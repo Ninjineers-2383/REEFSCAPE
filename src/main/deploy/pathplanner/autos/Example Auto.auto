@@ -1,0 +1,64 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Start"
+          }
+        },
+        {
+          "type": "conditional",
+          "data": {
+            "onTrue": {
+              "type": "sequential",
+              "data": {
+                "commands": [
+                  {
+                    "type": "path",
+                    "data": {
+                      "pathName": "Shoot From 1"
+                    }
+                  }
+                ]
+              }
+            },
+            "onFalse": {
+              "type": "deadline",
+              "data": {
+                "commands": [
+                  {
+                    "type": "wait_until",
+                    "data": {
+                      "namedConditional": "HasGamePiece"
+                    }
+                  },
+                  {
+                    "type": "path",
+                    "data": {
+                      "pathName": "Center Line Sweep From 1"
+                    }
+                  }
+                ]
+              }
+            },
+            "namedConditional": "HasGamePiece",
+            "default": true
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Go into Shoot from close"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}
