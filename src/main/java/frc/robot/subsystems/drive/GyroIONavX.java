@@ -17,11 +17,12 @@ import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.SPI;
+import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
 import java.util.Queue;
 
 /** IO implementation for NavX. */
 public class GyroIONavX implements GyroIO {
-  private final AHRS navX = new AHRS(SPI.Port.kMXP, (byte) Drive.ODOMETRY_FREQUENCY);
+  private final AHRS navX = new AHRS(SPI.Port.kMXP, (byte) DriveConstants.odometryFrequency);
   private final Queue<Double> yawPositionQueue;
   private final Queue<Double> yawTimestampQueue;
 

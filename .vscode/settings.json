@@ -25,8 +25,7 @@
         "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release",
         "DYLD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release"
       }
-    },
-    null
+    }
   ],
   "java.test.defaultConfig": "WPIlibUnitTests",
   "spotlessGradle.format.enable": true,
@@ -37,5 +36,34 @@
   },
   "[java]": {
     "editor.defaultFormatter": "richardwillis.vscode-spotless-gradle"
-  }
+  },
+  "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m -Xlog:disable",
+  "editor.tabSize": 2,
+  "cSpell.words": [
+    "AHRS",
+    "cancoder",
+    "CANFD",
+    "canivore",
+    "choreo",
+    "deadband",
+    "debouncer",
+    "debouncers",
+    "dtheta",
+    "feedforward",
+    "Holonomic",
+    "linuxarm",
+    "linuxathena",
+    "linuxx",
+    "odometry",
+    "osxuniversal",
+    "Pathfinding",
+    "pathplanner",
+    "Quasistatic",
+    "roborio",
+    "setpoint",
+    "Setpoints",
+    "windowsx",
+    "wpilib",
+    "wpilibj"
+  ]
 }
