@@ -5,7 +5,7 @@ import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelGains;
 import frc.robot.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
-public class FlywheelSubsystem extends SubsystemBase {
+public class Flywheel extends SubsystemBase {
   private final FlywheelIO m_flywheel;
   private final FlywheelIOInputsAutoLogged m_inputs = new FlywheelIOInputsAutoLogged();
 
@@ -18,7 +18,7 @@ public class FlywheelSubsystem extends SubsystemBase {
   private final LoggedTunableNumber kV;
   private final LoggedTunableNumber kA;
 
-  public FlywheelSubsystem(FlywheelIO io, FlywheelGains gains) {
+  public Flywheel(FlywheelIO io, FlywheelGains gains) {
     m_flywheel = io;
 
     m_gains = gains;
