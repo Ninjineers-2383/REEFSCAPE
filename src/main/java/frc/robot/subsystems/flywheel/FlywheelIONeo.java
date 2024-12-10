@@ -62,7 +62,6 @@ public class FlywheelIONeo implements FlywheelIO {
 
     inputs.motorVoltages = motorVoltages;
     inputs.motorCurrents = motorCurrents;
-    
   }
 
   @Override
