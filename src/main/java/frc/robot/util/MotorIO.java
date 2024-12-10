@@ -5,7 +5,7 @@ import org.littletonrobotics.junction.AutoLog;
 public interface MotorIO {
   @AutoLog
   public static class MotorIOInputs {
-    public boolean[] motorsConnected = {true};
+    public boolean[] motorsConnected = {false};
 
     public double[] motorPositions = {0.0};
     public double[] motorVelocities = {0.0};
