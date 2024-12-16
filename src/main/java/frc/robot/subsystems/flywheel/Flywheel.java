@@ -67,6 +67,6 @@ public class Flywheel extends SubsystemBase {
   }
 
   public double getVelocitySetpoint() {
-    return m_inputs.velocitySetpoint;
+    return m_inputs.desiredVelocity;
   }
 }

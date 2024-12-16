@@ -9,7 +9,7 @@ public interface FlywheelIO {
   public static class FlywheelIOInputs extends MotorIOInputs {
     public double velocity = 0.0;
 
-    public double velocitySetpoint = 0.0;
+    public double desiredVelocity = 0.0;
   }
 
   public default void updateInputs(FlywheelIOInputs inputs) {}

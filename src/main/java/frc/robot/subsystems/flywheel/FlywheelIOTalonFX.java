@@ -107,7 +107,7 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   public void updateInputs(FlywheelIOInputs inputs) {
     inputs.velocity = motors[0].getVelocity().getValueAsDouble();
 
-    inputs.velocitySetpoint = velocitySetpoint;
+    inputs.desiredVelocity = velocitySetpoint;
 
     for (int i = 0; i < motors.length; i++) {
       motorsConnected[i] =
