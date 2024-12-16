@@ -19,4 +19,8 @@ public interface FlywheelIO {
   public default void setVoltage(double voltage) {}
 
   public default void setGains(FlywheelGains gains) {}
+
+  public default String getName() {
+    return "Flywheel";
+  }
 }
