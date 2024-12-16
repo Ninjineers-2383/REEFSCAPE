@@ -18,6 +18,7 @@ import static frc.robot.util.PhoenixUtil.*;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.controls.PositionTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
@@ -27,6 +28,7 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -79,6 +81,8 @@ public class ModuleIOTalonFX implements ModuleIO {
   private final StatusSignal<Voltage> turnAppliedVolts;
   private final StatusSignal<Current> turnCurrent;
 
+  private ModuleGains gains;
+
   // Connection debouncers
   private final Debouncer driveConnectedDebounce = new Debouncer(0.5);
   private final Debouncer turnConnectedDebounce = new Debouncer(0.5);
@@ -91,17 +95,26 @@ public class ModuleIOTalonFX implements ModuleIO {
 
     // Configure drive motor
     var driveConfig = TalonFXModuleConstants.driveMotorConfig;
+    driveConfig.MotorOutput.Inverted =
+        constants.invertDrive()
+            ? InvertedValue.Clockwise_Positive
+            : InvertedValue.CounterClockwise_Positive;
     tryUntilOk(5, () -> driveTalon.getConfigurator().apply(driveConfig, 0.25));
     tryUntilOk(5, () -> driveTalon.setPosition(0.0, 0.25));
-
-    // Configure turn motor
-    var turnConfig = TalonFXModuleConstants.turnMotorConfig;
-    tryUntilOk(5, () -> turnTalon.getConfigurator().apply(turnConfig, 0.25));
 
     // Configure CANCoder
     CANcoderConfiguration cancoderConfig = TalonFXModuleConstants.cancoderConfig;
     cancoderConfig.MagnetSensor.withMagnetOffset(constants.CANCoderOffset());
-    cancoder.getConfigurator().apply(cancoderConfig);
+    tryUntilOk(5, () -> cancoder.getConfigurator().apply(cancoderConfig, 0.25));
+
+    // Configure turn motor
+    var turnConfig = TalonFXModuleConstants.turnMotorConfig;
+    turnConfig.MotorOutput.Inverted =
+        constants.invertSteer()
+            ? InvertedValue.CounterClockwise_Positive
+            : InvertedValue.Clockwise_Positive;
+    turnConfig.Feedback.FeedbackRemoteSensorID = cancoder.getDeviceID();
+    tryUntilOk(5, () -> turnTalon.getConfigurator().apply(turnConfig, 0.25));
 
     // Create timestamp queue
     timestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
@@ -135,6 +148,15 @@ public class ModuleIOTalonFX implements ModuleIO {
         turnAppliedVolts,
         turnCurrent);
     ParentDevice.optimizeBusUtilizationForAll(driveTalon, turnTalon);
+
+    gains =
+        new ModuleGains(
+            driveConfig.Slot0.kP,
+            driveConfig.Slot0.kI,
+            driveConfig.Slot0.kD,
+            driveConfig.Slot0.kS,
+            driveConfig.Slot0.kV,
+            driveConfig.Slot0.kA);
   }
 
   @Override
@@ -198,10 +220,13 @@ public class ModuleIOTalonFX implements ModuleIO {
 
   @Override
   public void setDriveVelocity(double velocityRadPerSec) {
+
     double velocityRotPerSec = Units.radiansToRotations(velocityRadPerSec);
     driveTalon.setControl(
         switch (TalonFXModuleConstants.driveMotorClosedLoopOutput) {
-          case Voltage -> velocityVoltageRequest.withVelocity(velocityRotPerSec);
+          case Voltage -> velocityVoltageRequest
+              .withAcceleration((velocityRotPerSec - velocityVoltageRequest.Velocity) / 0.02)
+              .withVelocity(velocityRotPerSec);
           case TorqueCurrentFOC -> velocityTorqueCurrentRequest.withVelocity(velocityRotPerSec);
         });
   }
@@ -214,5 +239,25 @@ public class ModuleIOTalonFX implements ModuleIO {
           case TorqueCurrentFOC -> positionTorqueCurrentRequest.withPosition(
               rotation.getRotations());
         });
+  }
+
+  @Override
+  public ModuleGains getGains() {
+    return gains;
+  }
+
+  @Override
+  public void setGains(ModuleGains gains) {
+    this.gains = gains;
+
+    Slot0Configs slot0Configs = new Slot0Configs();
+    slot0Configs.kP = gains.kP();
+    slot0Configs.kI = gains.kI();
+    slot0Configs.kD = gains.kD();
+    slot0Configs.kS = gains.kS();
+    slot0Configs.kV = gains.kV();
+    slot0Configs.kA = gains.kA();
+
+    tryUntilOk(5, () -> driveTalon.getConfigurator().apply(slot0Configs, 0.25));
   }
 }

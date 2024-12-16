@@ -19,14 +19,15 @@ import edu.wpi.first.units.measure.*;
 import frc.robot.subsystems.drive.DriveConstants;
 
 public class TalonFXModuleConstants {
-  public static String CANBusName = "CANBus";
+  public static String CANBusName = "Drive";
 
-  public static final Slot0Configs drivePIDConfig = new Slot0Configs();
+  public static final Slot0Configs drivePIDConfig =
+      new Slot0Configs().withKP(2).withKI(0).withKD(0).withKS(0.23).withKV(0.7).withKA(0.007);
 
   public static final Current slipCurrent = Amps.of(60.0);
 
   public static final ClosedLoopOutputType driveMotorClosedLoopOutput =
-      ClosedLoopOutputType.TorqueCurrentFOC;
+      ClosedLoopOutputType.Voltage;
 
   public static final TalonFXConfiguration driveMotorConfig =
       new TalonFXConfiguration()
@@ -39,7 +40,8 @@ public class TalonFXModuleConstants {
                   .withPeakForwardTorqueCurrent(slipCurrent.magnitude())
                   .withPeakReverseTorqueCurrent(-slipCurrent.magnitude()));
 
-  private static final Slot0Configs turnPIDConfig = new Slot0Configs();
+  private static final Slot0Configs turnPIDConfig =
+      new Slot0Configs().withKP(30).withKI(0).withKD(0).withKS(0).withKV(0).withKA(0);
   private static final ClosedLoopGeneralConfigs ContinuousWrap = new ClosedLoopGeneralConfigs();
 
   {
@@ -74,14 +76,19 @@ public class TalonFXModuleConstants {
                   .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive));
 
   public record ModuleSpecificConfiguration(
-      int driveCanID, int steerCanID, int CANcoderID, Angle CANCoderOffset) {}
+      int driveCanID,
+      int steerCanID,
+      int CANcoderID,
+      Angle CANCoderOffset,
+      boolean invertDrive,
+      boolean invertSteer) {}
 
   public static final ModuleSpecificConfiguration frontLeft =
-      new ModuleSpecificConfiguration(0, 1, 2, Rotations.of(0.0));
+      new ModuleSpecificConfiguration(31, 41, 21, Rotations.of(-0.181640625 + 0.5), false, false);
   public static final ModuleSpecificConfiguration frontRight =
-      new ModuleSpecificConfiguration(0, 1, 2, Rotations.of(0.0));
+      new ModuleSpecificConfiguration(32, 42, 22, Rotations.of(0.169678 - 0.5), false, false);
   public static final ModuleSpecificConfiguration rearLeft =
-      new ModuleSpecificConfiguration(0, 1, 2, Rotations.of(0.0));
+      new ModuleSpecificConfiguration(33, 43, 23, Rotations.of(-0.328857 + 0.5), false, true);
   public static final ModuleSpecificConfiguration rearRight =
-      new ModuleSpecificConfiguration(0, 1, 2, Rotations.of(0.0));
+      new ModuleSpecificConfiguration(34, 44, 24, Rotations.of(0.055908 - 0.5), true, false);
 }

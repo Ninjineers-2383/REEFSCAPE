@@ -19,6 +19,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.robot.subsystems.drive.ModuleIO.ModuleGains;
+import frc.robot.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 public class Module {
@@ -30,6 +32,13 @@ public class Module {
   private final Alert turnDisconnectedAlert;
   private final Alert turnEncoderDisconnectedAlert;
   private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
+
+  private final LoggedTunableNumber kP;
+  private final LoggedTunableNumber kI;
+  private final LoggedTunableNumber kD;
+  private final LoggedTunableNumber kS;
+  private final LoggedTunableNumber kV;
+  private final LoggedTunableNumber kA;
 
   public Module(ModuleIO io, int index) {
     this.io = io;
@@ -45,6 +54,15 @@ public class Module {
         new Alert(
             "Disconnected turn encoder on module " + Integer.toString(index) + ".",
             AlertType.kError);
+
+    ModuleGains gains = io.getGains();
+
+    kP = new LoggedTunableNumber("Drive/" + index + "/Gains/kP", gains.kP());
+    kI = new LoggedTunableNumber("Drive/" + index + "/Gains/kI", gains.kI());
+    kD = new LoggedTunableNumber("Drive/" + index + "/Gains/kD", gains.kD());
+    kS = new LoggedTunableNumber("Drive/" + index + "/Gains/kS", gains.kS());
+    kV = new LoggedTunableNumber("Drive/" + index + "/Gains/kV", gains.kV());
+    kA = new LoggedTunableNumber("Drive/" + index + "/Gains/kA", gains.kA());
   }
 
   public void periodic() {
@@ -65,6 +83,19 @@ public class Module {
     driveDisconnectedAlert.set(!inputs.driveConnected);
     turnDisconnectedAlert.set(!inputs.turnConnected);
     turnEncoderDisconnectedAlert.set(!inputs.turnEncoderConnected);
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        (values) -> {
+          io.setGains(
+              new ModuleGains(values[0], values[1], values[2], values[3], values[4], values[5]));
+        },
+        kP,
+        kI,
+        kD,
+        kS,
+        kV,
+        kA);
   }
 
   /** Runs the module with the specified setpoint state. Mutates the state to optimize it. */

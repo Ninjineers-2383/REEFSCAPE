@@ -52,4 +52,12 @@ public interface ModuleIO {
 
   /** Run the turn motor to the specified rotation. */
   public default void setTurnPosition(Rotation2d rotation) {}
+
+  public default ModuleGains getGains() {
+    return new ModuleGains(0, 0, 0, 0, 0, 0);
+  }
+
+  public default void setGains(ModuleGains gains) {}
+
+  public record ModuleGains(double kP, double kI, double kD, double kS, double kV, double kA) {}
 }
