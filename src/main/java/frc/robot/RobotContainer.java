@@ -138,6 +138,7 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     autoChooser.addOption("Example Auto", AutoBuilder.buildAuto("Example Auto"));
+    autoChooser.addOption("Subwoofer Start", AutoBuilder.buildAuto("Subwoofer Start"));
 
     SmartDashboard.putBoolean("HasGamePiece", false);
     SmartDashboard.putBoolean("Continue", false);
