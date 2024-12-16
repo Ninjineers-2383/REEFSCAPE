@@ -1,9 +1,6 @@
 package frc.robot.util;
 
-import org.littletonrobotics.junction.AutoLog;
-
 public interface MotorIO {
-  @AutoLog
   public static class MotorIOInputs {
     public boolean[] motorsConnected = {false};
 

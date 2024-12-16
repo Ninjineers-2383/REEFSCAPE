@@ -33,11 +33,17 @@ public class Flywheel extends SubsystemBase {
     kS = new LoggedTunableNumber(m_name + "/Gains/kS", m_gains.kS());
     kV = new LoggedTunableNumber(m_name + "/Gains/kV", m_gains.kV());
     kA = new LoggedTunableNumber(m_name + "/Gains/kA", m_gains.kA());
+  }
+
+  @Override
+  public void periodic() {
+    m_flywheel.updateInputs(m_inputs);
+    Logger.processInputs(m_name, m_inputs);
 
     LoggedTunableNumber.ifChanged(
         hashCode(),
         (values) -> {
-          io.setGains(
+          m_flywheel.setGains(
               new FlywheelGains(values[0], values[1], values[2], values[3], values[4], values[5]));
         },
         kP,
@@ -46,12 +52,6 @@ public class Flywheel extends SubsystemBase {
         kS,
         kV,
         kA);
-  }
-
-  @Override
-  public void periodic() {
-    m_flywheel.updateInputs(m_inputs);
-    Logger.processInputs(m_name, m_inputs);
   }
 
   public void setVelocity(double velocity) {

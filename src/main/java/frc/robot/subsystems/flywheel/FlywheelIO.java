@@ -1,15 +1,23 @@
 package frc.robot.subsystems.flywheel;
 
 import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelGains;
-import frc.robot.util.MotorIO.MotorIOInputs;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface FlywheelIO {
   @AutoLog
-  public static class FlywheelIOInputs extends MotorIOInputs {
+  public static class FlywheelIOInputs {
     public double velocity = 0.0;
 
     public double velocitySetpoint = 0.0;
+
+    public boolean[] motorsConnected = {false};
+
+    public double[] motorPositions = {0.0};
+    public double[] motorVelocities = {0.0};
+    public double[] motorAccelerations = {0.0};
+
+    public double[] motorVoltages = {0.0};
+    public double[] motorCurrents = {0.0};
   }
 
   public default void updateInputs(FlywheelIOInputs inputs) {}

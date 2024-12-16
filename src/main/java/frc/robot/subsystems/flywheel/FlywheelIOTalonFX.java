@@ -28,14 +28,14 @@ import java.util.ArrayList;
 public class FlywheelIOTalonFX implements FlywheelIO {
   private final String name;
 
-  private final TalonFX[] motors = new TalonFX[] {};
+  private final TalonFX[] motors;
 
   private TalonFXConfiguration leaderConfig;
 
   private double velocitySetpoint = 0.0;
 
-  private VoltageOut voltageRequest;
-  private VelocityVoltage velocityRequest;
+  private final VoltageOut voltageRequest = new VoltageOut(0);
+  private VelocityVoltage velocityRequest = new VelocityVoltage(0);
 
   private final StatusSignal<AngularVelocity> velocity;
 
@@ -45,18 +45,28 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   private final ArrayList<StatusSignal<Voltage>> voltages = new ArrayList<>();
   private final ArrayList<StatusSignal<Current>> currents = new ArrayList<>();
 
-  private boolean[] motorsConnected;
+  private final boolean[] motorsConnected;
 
-  private double[] motorPositions;
-  private double[] motorVelocities;
+  private final double[] motorPositions;
+  private final double[] motorVelocities;
 
-  private double[] motorVoltages;
-  private double[] motorCurrents;
+  private final double[] motorVoltages;
+  private final double[] motorCurrents;
 
-  private Alert[] motorAlerts;
+  private final Alert[] motorAlerts;
 
   public FlywheelIOTalonFX(String name, FlywheelHardwareConfig config) {
     this.name = name;
+
+    assert config.canIds().length > 0 && (config.canIds().length == config.reversed().length);
+
+    motors = new TalonFX[config.canIds().length];
+    motorsConnected = new boolean[config.canIds().length];
+    motorPositions = new double[config.canIds().length];
+    motorVelocities = new double[config.canIds().length];
+    motorVoltages = new double[config.canIds().length];
+    motorCurrents = new double[config.canIds().length];
+    motorAlerts = new Alert[config.canIds().length];
 
     motors[0] = new TalonFX(config.canIds()[0], config.canBus());
     leaderConfig =
@@ -66,12 +76,12 @@ public class FlywheelIOTalonFX implements FlywheelIO {
                     .withNeutralMode(NeutralModeValue.Brake)
                     .withInverted(
                         config.reversed()[0]
-                            ? InvertedValue.CounterClockwise_Positive
+                            ? InvertedValue.Clockwise_Positive
                             : InvertedValue.CounterClockwise_Positive))
             .withFeedback(
                 new FeedbackConfigs()
-                    .withRotorToSensorRatio(config.gearRatio())
-                    .withFeedbackSensorSource(FeedbackSensorSourceValue.FusedCANcoder));
+                    .withSensorToMechanismRatio(config.gearRatio())
+                    .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor));
 
     tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
 
@@ -157,6 +167,8 @@ public class FlywheelIOTalonFX implements FlywheelIO {
                 .withKV(gains.kV())
                 .withKA(gains.kA())
                 .withKS(gains.kS()));
+
+    System.out.println(name + " gains set to " + gains);
   }
 
   @Override
