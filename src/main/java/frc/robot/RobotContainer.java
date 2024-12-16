@@ -23,9 +23,14 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.flywheel.FlywheelVelocityCommand;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -34,6 +39,10 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.talon.ModuleIOTalonFX;
 import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
 import frc.robot.subsystems.drive.talon.TalonFXModuleConstants;
+import frc.robot.subsystems.flywheel.Flywheel;
+import frc.robot.subsystems.flywheel.FlywheelConstants;
+import frc.robot.subsystems.flywheel.FlywheelIO;
+import frc.robot.subsystems.flywheel.FlywheelIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
@@ -50,12 +59,16 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final Flywheel leftShooter;
+  private final Flywheel rightShooter;
+  private final Flywheel intake;
 
   @SuppressWarnings("unused")
   private final Vision vision;
 
   // Controller
-  private final CommandXboxController controller = new CommandXboxController(0);
+  private final CommandXboxController driverController = new CommandXboxController(0);
+  private final CommandXboxController operatorController = new CommandXboxController(1);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -78,6 +91,18 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0));
+        leftShooter =
+            new Flywheel(
+                new FlywheelIOTalonFX("LeftShooter", FlywheelConstants.left_shooter),
+                FlywheelConstants.left_shooter_gains);
+        rightShooter =
+            new Flywheel(
+                new FlywheelIOTalonFX("RightShooter", FlywheelConstants.right_shooter),
+                FlywheelConstants.right_shooter_gains);
+        intake =
+            new Flywheel(
+                new FlywheelIOTalonFX("Intake", FlywheelConstants.intake),
+                FlywheelConstants.intake_gains);
         break;
 
       case SIM:
@@ -97,6 +122,11 @@ public class RobotContainer {
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(
                     VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
+
+        leftShooter = new Flywheel(new FlywheelIO() {}, FlywheelConstants.left_shooter_gains);
+        rightShooter = new Flywheel(new FlywheelIO() {}, FlywheelConstants.right_shooter_gains);
+        intake = new Flywheel(new FlywheelIO() {}, FlywheelConstants.intake_gains);
+
         break;
 
       default:
@@ -110,6 +140,9 @@ public class RobotContainer {
                 new ModuleIO() {},
                 null);
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        leftShooter = new Flywheel(new FlywheelIO() {}, FlywheelConstants.left_shooter_gains);
+        rightShooter = new Flywheel(new FlywheelIO() {}, FlywheelConstants.right_shooter_gains);
+        intake = new Flywheel(new FlywheelIO() {}, FlywheelConstants.intake_gains);
         break;
     }
 
@@ -145,6 +178,13 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+
+    leftShooter.setDefaultCommand(
+        new FlywheelVelocityCommand(
+            leftShooter, () -> MathUtil.applyDeadband(operatorController.getLeftY(), 0.1) * 100));
+    rightShooter.setDefaultCommand(
+        new FlywheelVelocityCommand(
+            rightShooter, () -> MathUtil.applyDeadband(operatorController.getRightY(), 0.1) * 100));
   }
 
   /**
@@ -158,25 +198,25 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> -driverController.getLeftY(),
+            () -> -driverController.getLeftX(),
+            () -> -driverController.getRightX()));
 
     // Lock to 0° when A button is held
-    controller
+    driverController
         .a()
         .whileTrue(
             DriveCommands.joystickDriveAtAngle(
                 drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
+                () -> -driverController.getLeftY(),
+                () -> -driverController.getLeftX(),
                 () -> new Rotation2d()));
 
     // Switch to X pattern when X button is pressed
-    controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0° when B button is pressed
-    controller
+    driverController
         .b()
         .onTrue(
             Commands.runOnce(
@@ -192,6 +232,19 @@ public class RobotContainer {
                                     : new Rotation2d())),
                     drive)
                 .ignoringDisable(true));
+
+    operatorController
+        .a()
+        .onTrue(
+            new SequentialCommandGroup(
+                new ParallelCommandGroup(
+                    new FlywheelVelocityCommand(leftShooter, () -> 120),
+                    new FlywheelVelocityCommand(rightShooter, () -> 75)),
+                new PrintCommand("Shooting"),
+                new WaitCommand(2),
+                new ParallelCommandGroup(
+                    new FlywheelVelocityCommand(leftShooter, () -> 0),
+                    new FlywheelVelocityCommand(rightShooter, () -> 0))));
   }
 
   /**
