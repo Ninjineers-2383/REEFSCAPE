@@ -17,8 +17,5 @@ public class ElevatorConstants {
       double kTolerance) {}
 
   public record ElevatorHardwareConfig(
-      int[] canIds,
-      boolean[] reversed,
-      double gearRatio,
-      double currentLimit) {}
+      int[] canIds, boolean[] reversed, double gearRatio, double currentLimit) {}
 }

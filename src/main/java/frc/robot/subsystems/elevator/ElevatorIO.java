@@ -1,9 +1,8 @@
 package frc.robot.subsystems.elevator;
 
-import org.littletonrobotics.junction.AutoLog;
-
 import frc.robot.subsystems.elevator.ElevatorConstants.ElevatorGains;
 import frc.robot.util.MotorIO.MotorIOInputs;
+import org.littletonrobotics.junction.AutoLog;
 
 public interface ElevatorIO {
   @AutoLog
@@ -15,15 +14,11 @@ public interface ElevatorIO {
     public double desiredVelocity = 0.0;
   }
 
-  public default void updateInputs(ElevatorIOInputs inputs) {
-  }
+  public default void updateInputs(ElevatorIOInputs inputs) {}
 
-  public default void setPosition(double position, double velocity) {
-  }
+  public default void setPosition(double position, double velocity) {}
 
-  public default void setGains(ElevatorGains gains) {
-  }
+  public default void setGains(ElevatorGains gains) {}
 
-  public default void setVoltage(double voltage) {
-  }
+  public default void setVoltage(double voltage) {}
 }

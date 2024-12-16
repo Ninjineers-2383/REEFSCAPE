@@ -1,12 +1,11 @@
 package frc.robot.subsystems.elevator;
 
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.elevator.ElevatorConstants.ElevatorGains;
 import frc.robot.util.LoggedTunableNumber;
+import org.littletonrobotics.junction.Logger;
 
 public class Elevator extends SubsystemBase {
   private final ElevatorIO m_elevator;
@@ -53,10 +52,13 @@ public class Elevator extends SubsystemBase {
     kMaxVelo = new LoggedTunableNumber(m_gains.name() + "/Gains/kMaxVelo", gains.kMaxVelo());
     kMaxAccel = new LoggedTunableNumber(m_gains.name() + "/Gains/kMaxAccel", gains.kMaxAccel());
 
-    kMinPosition = new LoggedTunableNumber(m_gains.name() + "/Gains/kMinPosition", m_gains.kMinPosition());
-    kMaxPosition = new LoggedTunableNumber(m_gains.name() + "/Gains/kMaxPosition", m_gains.kMaxPosition());
+    kMinPosition =
+        new LoggedTunableNumber(m_gains.name() + "/Gains/kMinPosition", m_gains.kMinPosition());
+    kMaxPosition =
+        new LoggedTunableNumber(m_gains.name() + "/Gains/kMaxPosition", m_gains.kMaxPosition());
 
-    kTolerance = new LoggedTunableNumber(m_gains.name() + "/Gains/kTolerance", m_gains.kTolerance());
+    kTolerance =
+        new LoggedTunableNumber(m_gains.name() + "/Gains/kTolerance", m_gains.kTolerance());
 
     constraints = new TrapezoidProfile.Constraints(gains.kMaxVelo(), gains.kMaxAccel());
     profile = new TrapezoidProfile(constraints);
@@ -107,7 +109,9 @@ public class Elevator extends SubsystemBase {
   }
 
   public void setPosition(double position) {
-    goal = new TrapezoidProfile.State(MathUtil.clamp(position, kMinPosition.get(), kMaxPosition.get()), 0);
+    goal =
+        new TrapezoidProfile.State(
+            MathUtil.clamp(position, kMinPosition.get(), kMaxPosition.get()), 0);
   }
 
   public void incrementPosition(double deltaPosition) {
