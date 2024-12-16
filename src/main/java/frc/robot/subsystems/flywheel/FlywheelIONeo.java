@@ -20,7 +20,6 @@ public class FlywheelIONeo implements FlywheelIO {
   private final SparkMax[] motors = new SparkMax[] {};
 
   private SparkBaseConfig leaderConfig;
-  private SparkBaseConfig followerConfig;
 
   private double velocitySetpoint = 0.0;
 
@@ -38,7 +37,7 @@ public class FlywheelIONeo implements FlywheelIO {
     this.name = name;
 
     motors[0] = new SparkMax(config.canIds()[0], MotorType.kBrushless);
-    leaderConfig = new SparkMaxConfig();
+    leaderConfig = new SparkMaxConfig().inverted(config.reversed()[0]);
     leaderConfig
         .encoder
         .positionConversionFactor(config.gearRatio())
@@ -46,19 +45,17 @@ public class FlywheelIONeo implements FlywheelIO {
 
     motors[0].configure(
         leaderConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-    motors[0].setInverted(config.reversed()[0]);
 
     motorAlerts[0] =
         new Alert(
             name + " Leader Motor Disconnected! CAN ID: " + config.canIds()[0], AlertType.kError);
 
-    followerConfig = new SparkMaxConfig().follow(motors[0]);
-
     for (int i = 1; i < config.canIds().length; i++) {
       motors[i] = new SparkMax(config.canIds()[i], MotorType.kBrushless);
       motors[i].configure(
-          followerConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-      motors[i].setInverted(config.reversed()[i]);
+          new SparkMaxConfig().follow(motors[0]).inverted(config.reversed()[i]),
+          ResetMode.kNoResetSafeParameters,
+          PersistMode.kNoPersistParameters);
 
       motorAlerts[i] =
           new Alert(
