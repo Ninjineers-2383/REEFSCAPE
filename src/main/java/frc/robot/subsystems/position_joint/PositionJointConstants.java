@@ -3,7 +3,6 @@ package frc.robot.subsystems.position_joint;
 public class PositionJointConstants {
   public enum GravityType {
     CONSTANT,
-    SINE,
     COSINE
   }
 
@@ -26,5 +25,6 @@ public class PositionJointConstants {
       boolean[] reversed,
       double gearRatio,
       double currentLimit,
-      GravityType gravity) {}
+      GravityType gravity,
+      String canBus) {}
 }

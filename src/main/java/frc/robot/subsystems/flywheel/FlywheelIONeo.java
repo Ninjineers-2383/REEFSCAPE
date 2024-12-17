@@ -7,6 +7,7 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.EncoderConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.Alert;
@@ -17,31 +18,42 @@ import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelHardwareConfig;
 public class FlywheelIONeo implements FlywheelIO {
   private final String name;
 
-  private final SparkMax[] motors = new SparkMax[] {};
+  private final SparkMax[] motors;
+  private final SparkBaseConfig leaderConfig;
 
-  private SparkBaseConfig leaderConfig;
+  private final boolean[] motorsConnected;
+
+  private final double[] motorPositions;
+  private final double[] motorVelocities;
+
+  private final double[] motorVoltages;
+  private final double[] motorCurrents;
+
+  private final Alert[] motorAlerts;
 
   private double velocitySetpoint = 0.0;
-
-  private boolean[] motorsConnected;
-
-  private double[] motorPositions;
-  private double[] motorVelocities;
-
-  private double[] motorVoltages;
-  private double[] motorCurrents;
-
-  private Alert[] motorAlerts;
 
   public FlywheelIONeo(String name, FlywheelHardwareConfig config) {
     this.name = name;
 
+    assert config.canIds().length > 0 && (config.canIds().length == config.reversed().length);
+
+    motors = new SparkMax[config.canIds().length];
+    motorsConnected = new boolean[config.canIds().length];
+    motorPositions = new double[config.canIds().length];
+    motorVelocities = new double[config.canIds().length];
+    motorVoltages = new double[config.canIds().length];
+    motorCurrents = new double[config.canIds().length];
+    motorAlerts = new Alert[config.canIds().length];
+
     motors[0] = new SparkMax(config.canIds()[0], MotorType.kBrushless);
-    leaderConfig = new SparkMaxConfig().inverted(config.reversed()[0]);
-    leaderConfig
-        .encoder
-        .positionConversionFactor(config.gearRatio())
-        .velocityConversionFactor(config.gearRatio());
+    leaderConfig =
+        new SparkMaxConfig()
+            .inverted(config.reversed()[0])
+            .apply(
+                new EncoderConfig()
+                    .positionConversionFactor(config.gearRatio())
+                    .velocityConversionFactor(config.gearRatio()));
 
     motors[0].configure(
         leaderConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
@@ -110,6 +122,8 @@ public class FlywheelIONeo implements FlywheelIO {
             new ClosedLoopConfig().pidf(gains.kP(), gains.kI(), gains.kD(), gains.kV())),
         ResetMode.kNoResetSafeParameters,
         PersistMode.kNoPersistParameters);
+
+    System.out.println(name + " gains set to " + gains);
   }
 
   @Override

@@ -21,7 +21,8 @@ import edu.wpi.first.util.struct.StructSerializable;
  * A helper class that computes feedforward outputs for a simple arm (modeled as a motor acting
  * against the force of gravity on a beam suspended at an angle).
  */
-public class TunableArmFeedforward implements ProtobufSerializable, StructSerializable {
+public class TunableArmFeedforward
+    implements PositionJointFeedforward, ProtobufSerializable, StructSerializable {
   /** The static gain, in volts. */
   private double ks;
 
@@ -93,6 +94,9 @@ public class TunableArmFeedforward implements ProtobufSerializable, StructSerial
     this(ks, kg, kv, 0);
   }
 
+  public TunableArmFeedforward() {
+    this(0, 0, 0, 0);
+  }
   /**
    * Returns the static gain in volts.
    *
@@ -148,7 +152,6 @@ public class TunableArmFeedforward implements ProtobufSerializable, StructSerial
    * @param accelRadPerSecSquared The acceleration setpoint.
    * @return The computed feedforward.
    */
-  @Deprecated(forRemoval = true, since = "2025")
   public double calculate(
       double positionRadians, double velocityRadPerSec, double accelRadPerSecSquared) {
     return ks * Math.signum(velocityRadPerSec)

@@ -1,4 +1,4 @@
-package frc.robot.subsystems.flywheel;
+package frc.robot.subsystems.position_joint;
 
 import static frc.robot.util.PhoenixUtil.tryUntilOk;
 
@@ -9,10 +9,11 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.Angle;
@@ -21,18 +22,21 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelGains;
-import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelHardwareConfig;
+import frc.robot.subsystems.position_joint.PositionJointConstants.GravityType;
+import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointGains;
+import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointHardwareConfig;
 import java.util.ArrayList;
 
-public class FlywheelIOTalonFX implements FlywheelIO {
+public class PositionJointIOTalonFX implements PositionJointIO {
   private final String name;
+
+  private final PositionJointHardwareConfig hardwareConfig;
 
   private final TalonFX[] motors;
   private final TalonFXConfiguration leaderConfig;
 
   private final VoltageOut voltageRequest = new VoltageOut(0);
-  private final VelocityVoltage velocityRequest = new VelocityVoltage(0);
+  private final PositionVoltage positionRequest = new PositionVoltage(0);
 
   private final StatusSignal<AngularVelocity> velocity;
 
@@ -52,10 +56,11 @@ public class FlywheelIOTalonFX implements FlywheelIO {
 
   private final Alert[] motorAlerts;
 
-  private double velocitySetpoint = 0.0;
+  private double positionSetpoint = 0.0;
 
-  public FlywheelIOTalonFX(String name, FlywheelHardwareConfig config) {
+  public PositionJointIOTalonFX(String name, PositionJointHardwareConfig config) {
     this.name = name;
+    hardwareConfig = config;
 
     assert config.canIds().length > 0 && (config.canIds().length == config.reversed().length);
 
@@ -80,7 +85,8 @@ public class FlywheelIOTalonFX implements FlywheelIO {
             .withFeedback(
                 new FeedbackConfigs()
                     .withSensorToMechanismRatio(config.gearRatio())
-                    .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor));
+                    .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor))
+            .withSlot0(null);
 
     tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
 
@@ -113,10 +119,10 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   }
 
   @Override
-  public void updateInputs(FlywheelIOInputs inputs) {
+  public void updateInputs(PositionJointIOInputs inputs) {
     inputs.velocity = motors[0].getVelocity().getValueAsDouble();
 
-    inputs.desiredVelocity = velocitySetpoint;
+    inputs.desiredVelocity = positionSetpoint;
 
     for (int i = 0; i < motors.length; i++) {
       motorsConnected[i] =
@@ -143,10 +149,10 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   }
 
   @Override
-  public void setVelocity(double velocity) {
-    velocitySetpoint = velocity;
+  public void setPosition(double position, double velocity) {
+    positionSetpoint = position;
 
-    motors[0].setControl(velocityRequest.withVelocity(velocity));
+    motors[0].setControl(positionRequest.withPosition(position).withVelocity(velocity));
   }
 
   @Override
@@ -155,7 +161,14 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   }
 
   @Override
-  public void setGains(FlywheelGains gains) {
+  public void setGains(PositionJointGains gains) {
+    GravityTypeValue gravity;
+    if (hardwareConfig.gravity() == GravityType.CONSTANT) {
+      gravity = GravityTypeValue.Elevator_Static;
+    } else {
+      gravity = GravityTypeValue.Arm_Cosine;
+    }
+
     motors[0]
         .getConfigurator()
         .apply(
@@ -165,7 +178,9 @@ public class FlywheelIOTalonFX implements FlywheelIO {
                 .withKD(gains.kD())
                 .withKV(gains.kV())
                 .withKA(gains.kA())
-                .withKS(gains.kS()));
+                .withKS(gains.kS())
+                .withKG(gains.kG())
+                .withGravityType(gravity));
 
     System.out.println(name + " gains set to " + gains);
   }
