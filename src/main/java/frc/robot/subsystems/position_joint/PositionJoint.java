@@ -1,17 +1,19 @@
-package frc.robot.subsystems.elevator;
+package frc.robot.subsystems.position_joint;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.elevator.ElevatorConstants.ElevatorGains;
+import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointGains;
 import frc.robot.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
-public class Elevator extends SubsystemBase {
-  private final ElevatorIO m_elevator;
-  private final ElevatorIOInputsAutoLogged m_inputs = new ElevatorIOInputsAutoLogged();
+public class PositionJoint extends SubsystemBase {
+  private final PositionJointIO m_positionJoint;
+  private final PositionJointIOInputsAutoLogged m_inputs = new PositionJointIOInputsAutoLogged();
 
-  private final ElevatorGains m_gains;
+  private final String m_name;
+
+  private final PositionJointGains m_gains;
 
   private final LoggedTunableNumber kP;
   private final LoggedTunableNumber kI;
@@ -37,28 +39,27 @@ public class Elevator extends SubsystemBase {
 
   private TrapezoidProfile.State setpoint = new TrapezoidProfile.State();
 
-  public Elevator(ElevatorIO io, ElevatorGains gains) {
-    m_elevator = io;
+  public PositionJoint(PositionJointIO io, PositionJointGains gains) {
+    m_positionJoint = io;
+    m_name = io.getName();
+
     m_gains = gains;
 
-    kP = new LoggedTunableNumber(m_gains.name() + "/Gains/kP", gains.kP());
-    kI = new LoggedTunableNumber(m_gains.name() + "/Gains/kI", gains.kI());
-    kD = new LoggedTunableNumber(m_gains.name() + "/Gains/kD", gains.kD());
-    kS = new LoggedTunableNumber(m_gains.name() + "/Gains/kS", gains.kS());
-    kG = new LoggedTunableNumber(m_gains.name() + "/Gains/kG", gains.kG());
-    kV = new LoggedTunableNumber(m_gains.name() + "/Gains/kV", gains.kV());
-    kA = new LoggedTunableNumber(m_gains.name() + "/Gains/kA", gains.kA());
+    kP = new LoggedTunableNumber(m_name + "/Gains/kP", gains.kP());
+    kI = new LoggedTunableNumber(m_name + "/Gains/kI", gains.kI());
+    kD = new LoggedTunableNumber(m_name + "/Gains/kD", gains.kD());
+    kS = new LoggedTunableNumber(m_name + "/Gains/kS", gains.kS());
+    kG = new LoggedTunableNumber(m_name + "/Gains/kG", gains.kG());
+    kV = new LoggedTunableNumber(m_name + "/Gains/kV", gains.kV());
+    kA = new LoggedTunableNumber(m_name + "/Gains/kA", gains.kA());
 
-    kMaxVelo = new LoggedTunableNumber(m_gains.name() + "/Gains/kMaxVelo", gains.kMaxVelo());
-    kMaxAccel = new LoggedTunableNumber(m_gains.name() + "/Gains/kMaxAccel", gains.kMaxAccel());
+    kMaxVelo = new LoggedTunableNumber(m_name + "/Gains/kMaxVelo", gains.kMaxVelo());
+    kMaxAccel = new LoggedTunableNumber(m_name + "/Gains/kMaxAccel", gains.kMaxAccel());
 
-    kMinPosition =
-        new LoggedTunableNumber(m_gains.name() + "/Gains/kMinPosition", m_gains.kMinPosition());
-    kMaxPosition =
-        new LoggedTunableNumber(m_gains.name() + "/Gains/kMaxPosition", m_gains.kMaxPosition());
+    kMinPosition = new LoggedTunableNumber(m_name + "/Gains/kMinPosition", m_gains.kMinPosition());
+    kMaxPosition = new LoggedTunableNumber(m_name + "/Gains/kMaxPosition", m_gains.kMaxPosition());
 
-    kTolerance =
-        new LoggedTunableNumber(m_gains.name() + "/Gains/kTolerance", m_gains.kTolerance());
+    kTolerance = new LoggedTunableNumber(m_name + "/Gains/kTolerance", m_gains.kTolerance());
 
     constraints = new TrapezoidProfile.Constraints(gains.kMaxVelo(), gains.kMaxAccel());
     profile = new TrapezoidProfile(constraints);
@@ -70,8 +71,7 @@ public class Elevator extends SubsystemBase {
         hashCode(),
         (values) -> {
           io.setGains(
-              new ElevatorGains(
-                  m_gains.name(),
+              new PositionJointGains(
                   values[0],
                   values[1],
                   values[2],
@@ -100,12 +100,12 @@ public class Elevator extends SubsystemBase {
 
   @Override
   public void periodic() {
-    m_elevator.updateInputs(m_inputs);
-    Logger.processInputs(m_gains.name(), m_inputs);
+    m_positionJoint.updateInputs(m_inputs);
+    Logger.processInputs(m_name, m_inputs);
 
     setpoint = profile.calculate(0.02, setpoint, goal);
 
-    m_elevator.setPosition(setpoint.position, setpoint.velocity);
+    m_positionJoint.setPosition(setpoint.position, setpoint.velocity);
   }
 
   public void setPosition(double position) {
@@ -119,7 +119,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public void setVoltage(double voltage) {
-    m_elevator.setVoltage(voltage);
+    m_positionJoint.setVoltage(voltage);
   }
 
   public double getPosition() {

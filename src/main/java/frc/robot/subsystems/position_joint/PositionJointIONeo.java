@@ -1,4 +1,4 @@
-package frc.robot.subsystems.flywheel;
+package frc.robot.subsystems.position_joint;
 
 import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -11,17 +11,23 @@ import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelGains;
-import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelHardwareConfig;
+import frc.robot.subsystems.position_joint.PositionJointConstants.GravityType;
+import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointGains;
+import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointHardwareConfig;
+import frc.robot.util.TunableArmFeedforward;
 
-public class FlywheelIONeo implements FlywheelIO {
+public class PositionJointIONeo implements PositionJointIO {
   private final String name;
+  private final PositionJointHardwareConfig config;
 
   private final SparkMax[] motors = new SparkMax[] {};
 
+  private TunableArmFeedforward feedforward = new TunableArmFeedforward(0, 0, 0);
+
   private SparkBaseConfig leaderConfig;
 
-  private double velocitySetpoint = 0.0;
+  private double position = 0.0;
+  private double positionSetpoint = 0.0;
 
   private boolean[] motorsConnected;
 
@@ -33,8 +39,9 @@ public class FlywheelIONeo implements FlywheelIO {
 
   private Alert[] motorAlerts;
 
-  public FlywheelIONeo(String name, FlywheelHardwareConfig config) {
+  public PositionJointIONeo(String name, PositionJointHardwareConfig config) {
     this.name = name;
+    this.config = config;
 
     motors[0] = new SparkMax(config.canIds()[0], MotorType.kBrushless);
     leaderConfig = new SparkMaxConfig().inverted(config.reversed()[0]);
@@ -65,10 +72,11 @@ public class FlywheelIONeo implements FlywheelIO {
   }
 
   @Override
-  public void updateInputs(FlywheelIOInputs inputs) {
-    inputs.velocity = motors[0].getEncoder().getVelocity();
+  public void updateInputs(PositionJointIOInputs inputs) {
+    position = motors[0].getEncoder().getPosition();
+    inputs.position = position;
 
-    inputs.desiredVelocity = velocitySetpoint;
+    inputs.desiredPosition = positionSetpoint;
 
     for (int i = 0; i < motors.length; i++) {
       motorsConnected[i] = motors[i].getLastError() == REVLibError.kOk;
@@ -92,10 +100,13 @@ public class FlywheelIONeo implements FlywheelIO {
   }
 
   @Override
-  public void setVelocity(double velocity) {
-    velocitySetpoint = velocity;
+  public void setPosition(double position, double velocity) {
+    positionSetpoint = position;
 
-    motors[0].getClosedLoopController().setReference(velocitySetpoint, ControlType.kVelocity, 0);
+    motors[0]
+        .getClosedLoopController()
+        .setReference(
+            position, ControlType.kPosition, 0, feedforward.calculate(getFFPosition(), velocity));
   }
 
   @Override
@@ -104,12 +115,22 @@ public class FlywheelIONeo implements FlywheelIO {
   }
 
   @Override
-  public void setGains(FlywheelGains gains) {
+  public void setGains(PositionJointGains gains) {
+    feedforward.setGains(gains.kS(), gains.kG(), gains.kV(), gains.kA());
+
     motors[0].configure(
         leaderConfig.apply(
             new ClosedLoopConfig().pidf(gains.kP(), gains.kI(), gains.kD(), gains.kV())),
         ResetMode.kNoResetSafeParameters,
         PersistMode.kNoPersistParameters);
+  }
+
+  private double getFFPosition() {
+    if (config.gravity() == GravityType.CONSTANT) {
+      return 0;
+    } else {
+      return position;
+    }
   }
 
   @Override

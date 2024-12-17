@@ -8,7 +8,7 @@ public interface FlywheelIO {
   public static class FlywheelIOInputs {
     public double velocity = 0.0;
 
-    public double velocitySetpoint = 0.0;
+    public double desiredVelocity = 0.0;
 
     public boolean[] motorsConnected = {false};
 
