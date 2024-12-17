@@ -73,7 +73,7 @@ repositories {
     }
     mavenLocal()
     maven {
-        url = uri("file:/./build/repos/releases")
+        url = uri("file:/./repos/releases")
     }
 }
 
