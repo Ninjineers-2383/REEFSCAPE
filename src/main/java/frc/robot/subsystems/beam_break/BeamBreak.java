@@ -1,6 +1,7 @@
 package frc.robot.subsystems.beam_break;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import org.littletonrobotics.junction.Logger;
 
 public class BeamBreak extends SubsystemBase {
@@ -23,5 +24,9 @@ public class BeamBreak extends SubsystemBase {
 
   public boolean beamBreakTripped() {
     return beamBreak.beamBreakTripped();
+  }
+
+  public Trigger getTrigger() {
+    return new Trigger(this::beamBreakTripped);
   }
 }
