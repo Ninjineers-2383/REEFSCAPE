@@ -11,6 +11,12 @@
           }
         },
         {
+          "type": "named",
+          "data": {
+            "name": "PivotUp"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "Note1ToMid"

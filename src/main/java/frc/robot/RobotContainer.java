@@ -14,6 +14,7 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.auto.NamedConditions;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -32,6 +33,8 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.flywheel.FlywheelVelocityCommand;
+import frc.robot.commands.flywheel.FlywheelVoltageCommand;
+import frc.robot.commands.position_joint.PositionJointPositionCommand;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -44,6 +47,10 @@ import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.flywheel.FlywheelConstants;
 import frc.robot.subsystems.flywheel.FlywheelIO;
 import frc.robot.subsystems.flywheel.FlywheelIOTalonFX;
+import frc.robot.subsystems.position_joint.PositionJoint;
+import frc.robot.subsystems.position_joint.PositionJointConstants;
+import frc.robot.subsystems.position_joint.PositionJointIO;
+import frc.robot.subsystems.position_joint.PositionJointIONeo;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
@@ -63,6 +70,7 @@ public class RobotContainer {
   private final Flywheel leftShooter;
   private final Flywheel rightShooter;
   private final Flywheel intake;
+  private final PositionJoint pivot;
 
   @SuppressWarnings("unused")
   private final Vision vision;
@@ -104,6 +112,11 @@ public class RobotContainer {
             new Flywheel(
                 new FlywheelIOTalonFX("Intake", FlywheelConstants.intake),
                 FlywheelConstants.intake_gains);
+
+        pivot =
+            new PositionJoint(
+                new PositionJointIONeo("Pivot", PositionJointConstants.pivot_config),
+                PositionJointConstants.pivot_gains);
         break;
 
       case SIM:
@@ -128,6 +141,8 @@ public class RobotContainer {
         rightShooter = new Flywheel(new FlywheelIO() {}, FlywheelConstants.right_shooter_gains);
         intake = new Flywheel(new FlywheelIO() {}, FlywheelConstants.intake_gains);
 
+        pivot = new PositionJoint(new PositionJointIO() {}, PositionJointConstants.pivot_gains);
+
         break;
 
       default:
@@ -144,6 +159,9 @@ public class RobotContainer {
         leftShooter = new Flywheel(new FlywheelIO() {}, FlywheelConstants.left_shooter_gains);
         rightShooter = new Flywheel(new FlywheelIO() {}, FlywheelConstants.right_shooter_gains);
         intake = new Flywheel(new FlywheelIO() {}, FlywheelConstants.intake_gains);
+
+        pivot = new PositionJoint(new PositionJointIO() {}, PositionJointConstants.pivot_gains);
+
         break;
     }
 
@@ -154,6 +172,9 @@ public class RobotContainer {
         "HasGamePiece", () -> SmartDashboard.getBoolean("HasGamePiece", false));
     NamedConditions.registerCondition(
         "GoTo1Or2", () -> SmartDashboard.getBoolean("GoTo1Or2", false));
+
+    NamedCommands.registerCommand(
+        "PivotUp", Commands.sequence(new PositionJointPositionCommand(pivot, Math.PI / 2.0)));
 
     // Set up SysId routines
     autoChooser.addOption(
@@ -186,6 +207,11 @@ public class RobotContainer {
     rightShooter.setDefaultCommand(
         new FlywheelVelocityCommand(
             rightShooter, () -> MathUtil.applyDeadband(operatorController.getRightY(), 0.1) * 100));
+
+    intake.setDefaultCommand(
+        new FlywheelVoltageCommand(
+            intake,
+            () -> MathUtil.applyDeadband(operatorController.getLeftTriggerAxis(), 0.05) * 12));
   }
 
   /**
@@ -246,6 +272,9 @@ public class RobotContainer {
                 new ParallelCommandGroup(
                     new FlywheelVelocityCommand(leftShooter, () -> 0),
                     new FlywheelVelocityCommand(rightShooter, () -> 0))));
+
+    operatorController.b().onTrue(new PositionJointPositionCommand(pivot, Math.PI / 2.0));
+    operatorController.x().onTrue(new PositionJointPositionCommand(pivot, 0));
   }
 
   /**
