@@ -3,7 +3,8 @@ package frc.robot.subsystems.position_joint;
 public class PositionJointConstants {
   public enum GravityType {
     CONSTANT,
-    COSINE
+    COSINE,
+    SIN
   }
 
   public record PositionJointGains(

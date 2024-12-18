@@ -9,6 +9,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.EncoderConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
@@ -39,6 +40,9 @@ public class PositionJointIONeo implements PositionJointIO {
 
   private double currentPosition = 0.0;
   private double positionSetpoint = 0.0;
+  private double velocitySetpoint = 0.0;
+
+  private final double feedforward_position_addition;
 
   public PositionJointIONeo(String name, PositionJointHardwareConfig config) {
     this.name = name;
@@ -57,6 +61,7 @@ public class PositionJointIONeo implements PositionJointIO {
     leaderConfig =
         new SparkMaxConfig()
             .inverted(config.reversed()[0])
+            .idleMode(IdleMode.kBrake)
             .apply(
                 new EncoderConfig()
                     .positionConversionFactor(config.gearRatio())
@@ -84,8 +89,14 @@ public class PositionJointIONeo implements PositionJointIO {
 
     if (config.gravity() == GravityType.CONSTANT) {
       feedforward = new TunableElevatorFeedforward();
+      feedforward_position_addition = 0.0;
     } else {
       feedforward = new TunableArmFeedforward();
+      if (config.gravity() == GravityType.SIN) {
+        feedforward_position_addition = -Math.PI / 2;
+      } else {
+        feedforward_position_addition = 0.0;
+      }
     }
   }
 
@@ -95,6 +106,7 @@ public class PositionJointIONeo implements PositionJointIO {
     inputs.position = currentPosition;
 
     inputs.desiredPosition = positionSetpoint;
+    inputs.desiredVelocity = velocitySetpoint;
 
     for (int i = 0; i < motors.length; i++) {
       motorsConnected[i] = motors[i].getLastError() == REVLibError.kOk;
@@ -121,13 +133,17 @@ public class PositionJointIONeo implements PositionJointIO {
   public void setPosition(double desiredPosition, double desiredVelocity) {
     positionSetpoint = desiredPosition;
 
+    double ffposition = currentPosition + feedforward_position_addition;
+
     motors[0]
         .getClosedLoopController()
         .setReference(
             positionSetpoint,
             ControlType.kPosition,
             0,
-            feedforward.calculate(currentPosition, desiredVelocity));
+            feedforward.calculate(ffposition, velocitySetpoint, desiredPosition, 0.02));
+
+    velocitySetpoint = desiredVelocity;
   }
 
   @Override
@@ -140,8 +156,7 @@ public class PositionJointIONeo implements PositionJointIO {
     feedforward.setGains(gains.kS(), gains.kG(), gains.kV(), gains.kA());
 
     motors[0].configure(
-        leaderConfig.apply(
-            new ClosedLoopConfig().pidf(gains.kP(), gains.kI(), gains.kD(), gains.kV())),
+        leaderConfig.apply(new ClosedLoopConfig().pidf(gains.kP(), gains.kI(), gains.kD(), 0)),
         ResetMode.kNoResetSafeParameters,
         PersistMode.kNoPersistParameters);
 
