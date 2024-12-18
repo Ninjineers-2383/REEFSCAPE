@@ -31,7 +31,7 @@ public class PositionJoint extends SubsystemBase {
 
   private final LoggedTunableNumber kTolerance;
 
-  private final TrapezoidProfile.Constraints constraints;
+  private TrapezoidProfile.Constraints constraints;
 
   private TrapezoidProfile profile;
 
@@ -66,11 +66,21 @@ public class PositionJoint extends SubsystemBase {
 
     goal = new TrapezoidProfile.State(getPosition(), 0);
     setpoint = goal;
+  }
+
+  @Override
+  public void periodic() {
+    m_positionJoint.updateInputs(m_inputs);
+    Logger.processInputs(m_name, m_inputs);
+
+    setpoint = profile.calculate(0.02, setpoint, goal);
+
+    m_positionJoint.setPosition(setpoint.position, setpoint.velocity);
 
     LoggedTunableNumber.ifChanged(
         hashCode(),
         (values) -> {
-          io.setGains(
+          m_positionJoint.setGains(
               new PositionJointGains(
                   values[0],
                   values[1],
@@ -84,6 +94,9 @@ public class PositionJoint extends SubsystemBase {
                   values[9],
                   values[10],
                   values[11]));
+
+          constraints = new TrapezoidProfile.Constraints(values[7], values[8]);
+          profile = new TrapezoidProfile(constraints);
         },
         kP,
         kI,
@@ -95,17 +108,10 @@ public class PositionJoint extends SubsystemBase {
         kMaxVelo,
         kMaxAccel,
         kMinPosition,
-        kMaxPosition);
-  }
+        kMaxPosition,
+        kTolerance);
 
-  @Override
-  public void periodic() {
-    m_positionJoint.updateInputs(m_inputs);
-    Logger.processInputs(m_name, m_inputs);
-
-    setpoint = profile.calculate(0.02, setpoint, goal);
-
-    m_positionJoint.setPosition(setpoint.position, setpoint.velocity);
+    Logger.recordOutput(m_name + "/isFinished", isFinished());
   }
 
   public void setPosition(double position) {
