@@ -204,6 +204,30 @@ public class TunableElevatorFeedforward
     }
   }
 
+  /**
+   * Calculates the feedforward from the gains and setpoints assuming discrete control.
+   *
+   * <p>Note this method is inaccurate when the velocity crosses 0.
+   *
+   * @param currentVelocity The current velocity setpoint.
+   * @param nextVelocity The next velocity setpoint.
+   * @return The computed feedforward.
+   */
+  public double calculate(double position, double currentVelocity, double nextVelocity, double dt) {
+    // See wpimath/algorithms.md#Elevator_feedforward for derivation
+    if (ka == 0.0) {
+      return ks * Math.signum(nextVelocity) + kg + kv * nextVelocity;
+    } else {
+      double A = -kv / ka;
+      double B = 1.0 / ka;
+      double A_d = Math.exp(A * m_dt);
+      double B_d = 1.0 / A * (A_d - 1.0) * B;
+      return kg
+          + ks * Math.signum(currentVelocity)
+          + 1.0 / B_d * (nextVelocity - A_d * currentVelocity);
+    }
+  }
+
   // Rearranging the main equation from the calculate() method yields the
   // formulas for the methods below:
 
