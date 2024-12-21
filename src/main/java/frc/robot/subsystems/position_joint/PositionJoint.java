@@ -8,12 +8,10 @@ import frc.robot.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 public class PositionJoint extends SubsystemBase {
-  private final PositionJointIO m_positionJoint;
-  private final PositionJointIOInputsAutoLogged m_inputs = new PositionJointIOInputsAutoLogged();
+  private final PositionJointIO positionJoint;
+  private final PositionJointIOInputsAutoLogged inputs = new PositionJointIOInputsAutoLogged();
 
-  private final String m_name;
-
-  private final PositionJointGains m_gains;
+  private final String name;
 
   private final LoggedTunableNumber kP;
   private final LoggedTunableNumber kI;
@@ -40,26 +38,24 @@ public class PositionJoint extends SubsystemBase {
   private TrapezoidProfile.State setpoint = new TrapezoidProfile.State();
 
   public PositionJoint(PositionJointIO io, PositionJointGains gains) {
-    m_positionJoint = io;
-    m_name = io.getName();
+    positionJoint = io;
+    name = io.getName();
 
-    m_gains = gains;
+    kP = new LoggedTunableNumber(name + "/Gains/kP", gains.kP());
+    kI = new LoggedTunableNumber(name + "/Gains/kI", gains.kI());
+    kD = new LoggedTunableNumber(name + "/Gains/kD", gains.kD());
+    kS = new LoggedTunableNumber(name + "/Gains/kS", gains.kS());
+    kG = new LoggedTunableNumber(name + "/Gains/kG", gains.kG());
+    kV = new LoggedTunableNumber(name + "/Gains/kV", gains.kV());
+    kA = new LoggedTunableNumber(name + "/Gains/kA", gains.kA());
 
-    kP = new LoggedTunableNumber(m_name + "/Gains/kP", gains.kP());
-    kI = new LoggedTunableNumber(m_name + "/Gains/kI", gains.kI());
-    kD = new LoggedTunableNumber(m_name + "/Gains/kD", gains.kD());
-    kS = new LoggedTunableNumber(m_name + "/Gains/kS", gains.kS());
-    kG = new LoggedTunableNumber(m_name + "/Gains/kG", gains.kG());
-    kV = new LoggedTunableNumber(m_name + "/Gains/kV", gains.kV());
-    kA = new LoggedTunableNumber(m_name + "/Gains/kA", gains.kA());
+    kMaxVelo = new LoggedTunableNumber(name + "/Gains/kMaxVelo", gains.kMaxVelo());
+    kMaxAccel = new LoggedTunableNumber(name + "/Gains/kMaxAccel", gains.kMaxAccel());
 
-    kMaxVelo = new LoggedTunableNumber(m_name + "/Gains/kMaxVelo", gains.kMaxVelo());
-    kMaxAccel = new LoggedTunableNumber(m_name + "/Gains/kMaxAccel", gains.kMaxAccel());
+    kMinPosition = new LoggedTunableNumber(name + "/Gains/kMinPosition", gains.kMinPosition());
+    kMaxPosition = new LoggedTunableNumber(name + "/Gains/kMaxPosition", gains.kMaxPosition());
 
-    kMinPosition = new LoggedTunableNumber(m_name + "/Gains/kMinPosition", m_gains.kMinPosition());
-    kMaxPosition = new LoggedTunableNumber(m_name + "/Gains/kMaxPosition", m_gains.kMaxPosition());
-
-    kTolerance = new LoggedTunableNumber(m_name + "/Gains/kTolerance", m_gains.kTolerance());
+    kTolerance = new LoggedTunableNumber(name + "/Gains/kTolerance", gains.kTolerance());
 
     constraints = new TrapezoidProfile.Constraints(gains.kMaxVelo(), gains.kMaxAccel());
     profile = new TrapezoidProfile(constraints);
@@ -70,17 +66,17 @@ public class PositionJoint extends SubsystemBase {
 
   @Override
   public void periodic() {
-    m_positionJoint.updateInputs(m_inputs);
-    Logger.processInputs(m_name, m_inputs);
+    positionJoint.updateInputs(inputs);
+    Logger.processInputs(name, inputs);
 
     setpoint = profile.calculate(0.02, setpoint, goal);
 
-    m_positionJoint.setPosition(setpoint.position, setpoint.velocity);
+    positionJoint.setPosition(setpoint.position, setpoint.velocity);
 
     LoggedTunableNumber.ifChanged(
         hashCode(),
         (values) -> {
-          m_positionJoint.setGains(
+          positionJoint.setGains(
               new PositionJointGains(
                   values[0],
                   values[1],
@@ -111,7 +107,7 @@ public class PositionJoint extends SubsystemBase {
         kMaxPosition,
         kTolerance);
 
-    Logger.recordOutput(m_name + "/isFinished", isFinished());
+    Logger.recordOutput(name + "/isFinished", isFinished());
   }
 
   public void setPosition(double position) {
@@ -125,18 +121,18 @@ public class PositionJoint extends SubsystemBase {
   }
 
   public void setVoltage(double voltage) {
-    m_positionJoint.setVoltage(voltage);
+    positionJoint.setVoltage(voltage);
   }
 
   public double getPosition() {
-    return m_inputs.position;
+    return inputs.position;
   }
 
   public double getDesiredPosition() {
-    return m_inputs.desiredPosition;
+    return inputs.desiredPosition;
   }
 
   public boolean isFinished() {
-    return Math.abs(m_inputs.position - goal.position) < kTolerance.get();
+    return Math.abs(inputs.position - goal.position) < kTolerance.get();
   }
 }

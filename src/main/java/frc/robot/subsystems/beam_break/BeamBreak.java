@@ -23,7 +23,7 @@ public class BeamBreak extends SubsystemBase {
   }
 
   public boolean beamBreakTripped() {
-    return beamBreak.beamBreakTripped();
+    return inputs.beamBreakTripped;
   }
 
   public Trigger getTrigger() {

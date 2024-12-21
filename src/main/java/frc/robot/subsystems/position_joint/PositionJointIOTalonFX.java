@@ -165,8 +165,10 @@ public class PositionJointIOTalonFX implements PositionJointIO {
     GravityTypeValue gravity;
     if (hardwareConfig.gravity() == GravityType.CONSTANT) {
       gravity = GravityTypeValue.Elevator_Static;
-    } else {
+    } else if (hardwareConfig.gravity() == GravityType.COSINE) {
       gravity = GravityTypeValue.Arm_Cosine;
+    } else {
+      throw new IllegalArgumentException("SIN gravity is not supported for TalonFX");
     }
 
     motors[0]

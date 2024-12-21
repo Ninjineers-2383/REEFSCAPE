@@ -1,7 +1,6 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedConditions;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -105,11 +104,6 @@ public class RobotContainer {
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
-
-    NamedConditions.registerCondition(
-        "HasGamePiece", () -> SmartDashboard.getBoolean("HasGamePiece", false));
-    NamedConditions.registerCondition(
-        "GoTo1Or2", () -> SmartDashboard.getBoolean("GoTo1Or2", false));
 
     // Set up SysId routines
     autoChooser.addOption(
