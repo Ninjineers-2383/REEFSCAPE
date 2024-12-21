@@ -37,12 +37,11 @@ public class PositionJointIONeo implements PositionJointIO {
   private final Alert[] motorAlerts;
 
   private final PositionJointFeedforward feedforward;
+  private final double feedforward_position_addition;
 
   private double currentPosition = 0.0;
   private double positionSetpoint = 0.0;
   private double velocitySetpoint = 0.0;
-
-  private final double feedforward_position_addition;
 
   public PositionJointIONeo(String name, PositionJointHardwareConfig config) {
     this.name = name;
