@@ -18,9 +18,7 @@
     {
       "name": "WPIlibUnitTests",
       "workingDirectory": "${workspaceFolder}/build/jni/release",
-      "vmargs": [
-        "-Djava.library.path=${workspaceFolder}/build/jni/release"
-      ],
+      "vmargs": ["-Djava.library.path=${workspaceFolder}/build/jni/release"],
       "env": {
         "LD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release",
         "DYLD_LIBRARY_PATH": "${workspaceFolder}/build/jni/release"
@@ -41,6 +39,7 @@
   "editor.tabSize": 2,
   "cSpell.words": [
     "AHRS",
+    "brushless",
     "cancoder",
     "CANFD",
     "canivore",
@@ -54,10 +53,12 @@
     "linuxarm",
     "linuxathena",
     "linuxx",
+    "Maxs",
     "odometry",
     "osxuniversal",
     "Pathfinding",
     "pathplanner",
+    "PIDF",
     "Quasistatic",
     "roborio",
     "setpoint",

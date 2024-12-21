@@ -33,6 +33,8 @@ public class FlywheelIONeo implements FlywheelIO {
 
   private double velocitySetpoint = 0.0;
 
+  private FlywheelGains gains;
+
   public FlywheelIONeo(String name, FlywheelHardwareConfig config) {
     this.name = name;
 
@@ -107,7 +109,10 @@ public class FlywheelIONeo implements FlywheelIO {
   public void setVelocity(double velocity) {
     velocitySetpoint = velocity;
 
-    motors[0].getClosedLoopController().setReference(velocitySetpoint, ControlType.kVelocity, 0);
+    motors[0]
+        .getClosedLoopController()
+        .setReference(
+            velocitySetpoint, ControlType.kVelocity, 0, gains.kS() * Math.signum(velocity));
   }
 
   @Override
@@ -117,6 +122,7 @@ public class FlywheelIONeo implements FlywheelIO {
 
   @Override
   public void setGains(FlywheelGains gains) {
+    this.gains = gains;
     motors[0].configure(
         leaderConfig.apply(
             new ClosedLoopConfig().pidf(gains.kP(), gains.kI(), gains.kD(), gains.kV())),
