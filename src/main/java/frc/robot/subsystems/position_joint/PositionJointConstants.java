@@ -4,6 +4,7 @@ public class PositionJointConstants {
   public enum GravityType {
     CONSTANT,
     COSINE,
+    // Not supported by TalonFX
     SIN
   }
 
