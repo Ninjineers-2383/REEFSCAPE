@@ -72,9 +72,6 @@ repositories {
         }
     }
     mavenLocal()
-    maven {
-        url = uri("file:/./repos/releases")
-    }
 }
 
 task(replayWatch, type: JavaExec) {
