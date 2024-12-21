@@ -26,11 +26,14 @@ import frc.robot.subsystems.position_joint.PositionJointConstants.GravityType;
 import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointGains;
 import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointHardwareConfig;
 import java.util.ArrayList;
+import java.util.function.DoubleSupplier;
 
 public class PositionJointIOTalonFX implements PositionJointIO {
   private final String name;
 
   private final PositionJointHardwareConfig hardwareConfig;
+
+  private final DoubleSupplier externalFeedforward;
 
   private final TalonFX[] motors;
   private final TalonFXConfiguration leaderConfig;
@@ -58,9 +61,11 @@ public class PositionJointIOTalonFX implements PositionJointIO {
 
   private double positionSetpoint = 0.0;
 
-  public PositionJointIOTalonFX(String name, PositionJointHardwareConfig config) {
+  public PositionJointIOTalonFX(
+      String name, PositionJointHardwareConfig config, DoubleSupplier externalFeedforward) {
     this.name = name;
     hardwareConfig = config;
+    this.externalFeedforward = externalFeedforward;
 
     assert config.canIds().length > 0 && (config.canIds().length == config.reversed().length);
 
@@ -85,8 +90,7 @@ public class PositionJointIOTalonFX implements PositionJointIO {
             .withFeedback(
                 new FeedbackConfigs()
                     .withSensorToMechanismRatio(config.gearRatio())
-                    .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor))
-            .withSlot0(null);
+                    .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor));
 
     tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
 
@@ -116,6 +120,10 @@ public class PositionJointIOTalonFX implements PositionJointIO {
       voltages.add(motors[i].getSupplyVoltage());
       currents.add(motors[i].getStatorCurrent());
     }
+  }
+
+  public PositionJointIOTalonFX(String name, PositionJointHardwareConfig config) {
+    this(name, config, () -> 0);
   }
 
   @Override
@@ -152,7 +160,11 @@ public class PositionJointIOTalonFX implements PositionJointIO {
   public void setPosition(double position, double velocity) {
     positionSetpoint = position;
 
-    motors[0].setControl(positionRequest.withPosition(position).withVelocity(velocity));
+    motors[0].setControl(
+        positionRequest
+            .withPosition(position)
+            .withVelocity(velocity)
+            .withFeedForward(externalFeedforward.getAsDouble()));
   }
 
   @Override
