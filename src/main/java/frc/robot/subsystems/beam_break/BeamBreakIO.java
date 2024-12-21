@@ -10,10 +10,6 @@ public interface BeamBreakIO {
 
   public default void updateInputs(BeamBreakIOInputs inputs) {}
 
-  public default boolean beamBreakTripped() {
-    return false;
-  }
-
   public default String getName() {
     return "Beam Break";
   }
