@@ -34,7 +34,6 @@ public class DriveConstants {
   public static final int driveMotorCurrentLimit = 50;
   public static final double driveMotorGearRatio =
       1 / ((14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0)); // Mk4i L3 with 14t pinion
-  public static final double steerMotorGearRatio = 150.0 / 7.0; // MK4i
   public static final DCMotor driveGearbox = DCMotor.getKrakenX60Foc(1);
 
   // Drive encoder configuration
@@ -42,6 +41,14 @@ public class DriveConstants {
       2 * Math.PI / driveMotorGearRatio; // Rotor Rotations -> Wheel Radians
   public static final double driveEncoderVelocityFactor =
       (2 * Math.PI) / 60.0 / driveMotorGearRatio; // Rotor RPM -> Wheel Rad/Sec
+
+  // Turn motor configuration
+  public static final double steerMotorGearRatio = 150.0 / 7.0; // MK4i
+  public static final int turnMotorCurrentLimit = 20;
+  public static final double turnEncoderPositionFactor =
+      2 * Math.PI / steerMotorGearRatio; // Rotations -> Radians
+  public static final double turnEncoderVelocityFactor =
+      (2 * Math.PI) / 60.0 / steerMotorGearRatio; // RPM -> Rad/Sec
 
   // PathPlanner configuration
   public static final double robotMassKg = 74.088;
