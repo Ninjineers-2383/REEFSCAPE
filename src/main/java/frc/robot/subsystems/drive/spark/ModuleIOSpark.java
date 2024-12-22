@@ -217,6 +217,7 @@ public class ModuleIOSpark implements ModuleIO {
   @Override
   public void setGains(ModuleGains gains) {
     this.gains = gains;
+
     tryUntilOk(
         driveSpark,
         5,
