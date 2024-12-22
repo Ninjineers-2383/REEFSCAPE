@@ -32,10 +32,10 @@ public class PositionJointConstants {
       GravityType gravity,
       String canBus) {}
 
-  public static final PositionJointGains pivot_gains =
+  public static final PositionJointGains EXAMPLE_GAINS =
       new PositionJointGains(1.5, 0.0, 0.0, 0.5, 1.0, 2.0, 0.0, 10.0, 20.0, 0.0, Math.PI, 0.2);
 
-  public static final PositionJointHardwareConfig pivot_config =
+  public static final PositionJointHardwareConfig EXAMPLE_CONFIG =
       new PositionJointHardwareConfig(
           new int[] {10},
           new boolean[] {true},
