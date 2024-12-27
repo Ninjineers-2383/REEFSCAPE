@@ -96,7 +96,7 @@ public class PositionJointIONeo implements PositionJointIO {
       feedforward_position_addition = 0.0;
     } else {
       feedforward = new TunableArmFeedforward();
-      if (config.gravity() == GravityType.SIN) {
+      if (config.gravity() == GravityType.SINE) {
         feedforward_position_addition = -Math.PI / 2;
       } else {
         feedforward_position_addition = 0.0;
@@ -149,7 +149,7 @@ public class PositionJointIONeo implements PositionJointIO {
             positionSetpoint,
             ControlType.kPosition,
             0,
-            feedforward.calculate(ffposition, velocitySetpoint, desiredPosition, 0.02)
+            feedforward.calculate(ffposition, velocitySetpoint)
                 + externalFeedforward.getAsDouble());
 
     velocitySetpoint = desiredVelocity;

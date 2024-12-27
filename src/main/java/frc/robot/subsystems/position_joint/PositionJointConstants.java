@@ -5,7 +5,12 @@ public class PositionJointConstants {
     CONSTANT,
     COSINE,
     // Not supported by TalonFX
-    SIN
+    SINE
+  }
+
+  public enum EncoderType {
+    INTERNAL,
+    EXTERNAL
   }
 
   public record PositionJointGains(
@@ -30,6 +35,7 @@ public class PositionJointConstants {
       double gearRatio,
       double currentLimit,
       GravityType gravity,
+      EncoderType encoder,
       String canBus) {}
 
   public static final PositionJointGains EXAMPLE_GAINS =
@@ -41,6 +47,7 @@ public class PositionJointConstants {
           new boolean[] {true},
           1 / 85.33333 * 2 * Math.PI,
           40,
-          GravityType.SIN,
+          GravityType.SINE,
+          EncoderType.EXTERNAL,
           "");
 }

@@ -22,6 +22,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import frc.robot.subsystems.position_joint.PositionJointConstants.EncoderType;
 import frc.robot.subsystems.position_joint.PositionJointConstants.GravityType;
 import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointGains;
 import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointHardwareConfig;
@@ -86,11 +87,20 @@ public class PositionJointIOTalonFX implements PositionJointIO {
                     .withInverted(
                         config.reversed()[0]
                             ? InvertedValue.Clockwise_Positive
-                            : InvertedValue.CounterClockwise_Positive))
-            .withFeedback(
-                new FeedbackConfigs()
-                    .withSensorToMechanismRatio(config.gearRatio())
-                    .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor));
+                            : InvertedValue.CounterClockwise_Positive));
+
+    if (config.encoder() == EncoderType.INTERNAL) {
+      leaderConfig.withFeedback(
+          new FeedbackConfigs()
+              .withSensorToMechanismRatio(config.gearRatio())
+              .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor));
+    } else {
+      leaderConfig.withFeedback(
+          new FeedbackConfigs()
+              .withSensorToMechanismRatio(1.0)
+              .withRotorToSensorRatio(config.gearRatio())
+              .withFeedbackSensorSource(FeedbackSensorSourceValue.FusedCANcoder));
+    }
 
     tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
 
@@ -180,7 +190,7 @@ public class PositionJointIOTalonFX implements PositionJointIO {
     } else if (hardwareConfig.gravity() == GravityType.COSINE) {
       gravity = GravityTypeValue.Arm_Cosine;
     } else {
-      throw new IllegalArgumentException("SIN gravity is not supported for TalonFX");
+      throw new IllegalArgumentException("SINE gravity is not supported for TalonFX");
     }
 
     motors[0]
