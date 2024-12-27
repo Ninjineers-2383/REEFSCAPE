@@ -19,9 +19,12 @@ import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointH
 import frc.robot.util.PositionJointFeedforward;
 import frc.robot.util.TunableArmFeedforward;
 import frc.robot.util.TunableElevatorFeedforward;
+import java.util.function.DoubleSupplier;
 
 public class PositionJointIONeo implements PositionJointIO {
   private final String name;
+
+  private final DoubleSupplier externalFeedforward;
 
   private final SparkMax[] motors;
   private final SparkBaseConfig leaderConfig;
@@ -43,8 +46,10 @@ public class PositionJointIONeo implements PositionJointIO {
   private double positionSetpoint = 0.0;
   private double velocitySetpoint = 0.0;
 
-  public PositionJointIONeo(String name, PositionJointHardwareConfig config) {
+  public PositionJointIONeo(
+      String name, PositionJointHardwareConfig config, DoubleSupplier externalFeedforward) {
     this.name = name;
+    this.externalFeedforward = externalFeedforward;
 
     assert config.canIds().length > 0 && (config.canIds().length == config.reversed().length);
 
@@ -99,6 +104,10 @@ public class PositionJointIONeo implements PositionJointIO {
     }
   }
 
+  public PositionJointIONeo(String name, PositionJointHardwareConfig config) {
+    this(name, config, () -> 0);
+  }
+
   @Override
   public void updateInputs(PositionJointIOInputs inputs) {
     currentPosition = motors[0].getEncoder().getPosition();
@@ -140,7 +149,8 @@ public class PositionJointIONeo implements PositionJointIO {
             positionSetpoint,
             ControlType.kPosition,
             0,
-            feedforward.calculate(ffposition, velocitySetpoint, desiredPosition, 0.02));
+            feedforward.calculate(ffposition, velocitySetpoint, desiredPosition, 0.02)
+                + externalFeedforward.getAsDouble());
 
     velocitySetpoint = desiredVelocity;
   }
