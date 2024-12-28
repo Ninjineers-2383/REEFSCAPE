@@ -149,7 +149,7 @@ public class PositionJointIONeo implements PositionJointIO {
             positionSetpoint,
             ControlType.kPosition,
             0,
-            feedforward.calculate(ffposition, velocitySetpoint)
+            feedforward.calculate(ffposition, velocitySetpoint, desiredVelocity, 0.02)
                 + externalFeedforward.getAsDouble());
 
     velocitySetpoint = desiredVelocity;
