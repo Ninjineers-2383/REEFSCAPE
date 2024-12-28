@@ -70,5 +70,6 @@
     "wpilibj"
   ],
   "editor.formatOnPaste": true,
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "java.debug.settings.onBuildFailureProceed": true
 }
