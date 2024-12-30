@@ -1,0 +1,155 @@
+{
+  "sourceUrl": "https://ahschool.onshape.com/documents/906c75c2439252de21bea8cb/w/b0b813e7782403e8aba23f93/e/c8ce1650f067d8a94ce47668",
+  "rotations": [
+    {
+      "axis": "x",
+      "degrees": 90
+    },
+    {
+      "axis": "z",
+      "degrees": 270
+    }
+  ],
+  "position": [
+    0,
+    0,
+    0.055
+  ],
+  "components": [
+    {
+      "zeroedRotations": [
+        {
+          "axis": "x",
+          "degrees": 90
+        },
+        {
+          "axis": "z",
+          "degrees": 270
+        }
+      ],
+      "zeroedPosition": [
+        10,
+        0,
+        0
+      ]
+    }
+  ],
+  "cameras": [
+    {
+      "name": "Front Left",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": -20
+        },
+        {
+          "axis": "z",
+          "degrees": -20
+        }
+      ],
+      "position": [
+        0.267,
+        0.281,
+        0.211
+      ],
+      "resolution": [
+        1280,
+        720
+      ],
+      "fov": 70
+    },
+    {
+      "name": "Front Right",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": -40
+        },
+        {
+          "axis": "z",
+          "degrees": 0
+        }
+      ],
+      "position": [
+        0.274,
+        -0.277,
+        0.219
+      ],
+      "resolution": [
+        1280,
+        720
+      ],
+      "fov": 70
+    },
+    {
+      "name": "Rear Left",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": -40
+        },
+        {
+          "axis": "z",
+          "degrees": -180
+        }
+      ],
+      "position": [
+        -0.274,
+        0.277,
+        0.219
+      ],
+      "resolution": [
+        1280,
+        720
+      ],
+      "fov": 70
+    },
+    {
+      "name": "Rear Right",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": -20
+        },
+        {
+          "axis": "z",
+          "degrees": -200
+        }
+      ],
+      "position": [
+        -0.267,
+        -0.281,
+        0.211
+      ],
+      "resolution": [
+        1280,
+        720
+      ],
+      "fov": 70
+    },
+    {
+      "name": "Limelight",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": 180
+        },
+        {
+          "axis": "x",
+          "degrees": 180
+        }
+      ],
+      "position": [
+        -0.345,
+        0.0,
+        0.214
+      ],
+      "resolution": [
+        320,
+        240
+      ],
+      "fov": 59.6
+    }
+  ],
+  "name": "Midnight"
+}

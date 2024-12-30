@@ -1,0 +1,168 @@
+{
+  "sourceUrl": "https://ahschool.onshape.com/documents/ff5a6e55c379987bd1b76e42/w/c8633f906af74910928c959a/e/6aeced0e72493638cc7e647c",
+  "rotations": [
+    {
+      "axis": "x",
+      "degrees": 90
+    }
+  ],
+  "position": [
+    0,
+    0,
+    0
+  ],
+  "components": [
+    {
+      "zeroedRotations": [
+        {
+          "axis": "x",
+          "degrees": 90
+        },
+        {
+          "axis": "z",
+          "degrees": 0
+        }
+      ],
+      "zeroedPosition": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "zeroedRotations": [
+        {
+          "axis": "x",
+          "degrees": 90
+        },
+        {
+          "axis": "z",
+          "degrees": 0
+        }
+      ],
+      "zeroedPosition": [
+        0,
+        0,
+        -0.5679186
+      ]
+    }
+  ],
+  "cameras": [
+    {
+      "name": "Front Left",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": -20
+        },
+        {
+          "axis": "z",
+          "degrees": -20
+        }
+      ],
+      "position": [
+        0.267,
+        0.281,
+        0.211
+      ],
+      "resolution": [
+        1280,
+        720
+      ],
+      "fov": 70
+    },
+    {
+      "name": "Front Right",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": -40
+        },
+        {
+          "axis": "z",
+          "degrees": 0
+        }
+      ],
+      "position": [
+        0.274,
+        -0.277,
+        0.219
+      ],
+      "resolution": [
+        1280,
+        720
+      ],
+      "fov": 70
+    },
+    {
+      "name": "Rear Left",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": -40
+        },
+        {
+          "axis": "z",
+          "degrees": -180
+        }
+      ],
+      "position": [
+        -0.274,
+        0.277,
+        0.219
+      ],
+      "resolution": [
+        1280,
+        720
+      ],
+      "fov": 70
+    },
+    {
+      "name": "Rear Right",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": -20
+        },
+        {
+          "axis": "z",
+          "degrees": -200
+        }
+      ],
+      "position": [
+        -0.267,
+        -0.281,
+        0.211
+      ],
+      "resolution": [
+        1280,
+        720
+      ],
+      "fov": 70
+    },
+    {
+      "name": "Limelight",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": 180
+        },
+        {
+          "axis": "x",
+          "degrees": 180
+        }
+      ],
+      "position": [
+        -0.345,
+        0.0,
+        0.214
+      ],
+      "resolution": [
+        320,
+        240
+      ],
+      "fov": 59.6
+    }
+  ],
+  "name": "DAYBREAK"
+}

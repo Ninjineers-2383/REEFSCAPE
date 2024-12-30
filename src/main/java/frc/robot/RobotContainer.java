@@ -22,6 +22,11 @@ import frc.robot.subsystems.drive.spark.ModuleIOSparkSim;
 import frc.robot.subsystems.drive.talon.ModuleIOTalonFX;
 import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
 import frc.robot.subsystems.drive.talon.TalonFXModuleConstants;
+import frc.robot.subsystems.position_joint.PositionJoint;
+import frc.robot.subsystems.position_joint.PositionJointConstants;
+import frc.robot.subsystems.position_joint.PositionJointIO;
+import frc.robot.subsystems.position_joint.PositionJointIOSim;
+import frc.robot.subsystems.position_joint.PositionJointIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
@@ -41,10 +46,14 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
-  private SwerveDriveSimulation driveSimulation = null;
 
   @SuppressWarnings("unused")
   private final Vision vision;
+
+  private final PositionJoint pivot;
+
+  // Simulation
+  private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -70,11 +79,16 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0));
+
+        pivot =
+            new PositionJoint(
+                new PositionJointIOTalonFX("Pivot", PositionJointConstants.EXAMPLE_CONFIG),
+                PositionJointConstants.EXAMPLE_GAINS);
         break;
 
       case SIM:
         // create a maple-sim swerve drive simulation instance
-        this.driveSimulation =
+        driveSimulation =
             new SwerveDriveSimulation(
                 DriveConstants.mapleSimConfig, new Pose2d(3, 3, new Rotation2d()));
         // add the simulated drivetrain to the simulation field
@@ -101,6 +115,10 @@ public class RobotContainer {
                     VisionConstants.robotToCamera1,
                     driveSimulation::getSimulatedDriveTrainPose));
 
+        pivot =
+            new PositionJoint(
+                new PositionJointIOSim("pivot", PositionJointConstants.EXAMPLE_CONFIG),
+                PositionJointConstants.EXAMPLE_GAINS);
         break;
 
       default:
@@ -114,6 +132,8 @@ public class RobotContainer {
                 new ModuleIO() {},
                 null);
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+
+        pivot = new PositionJoint(new PositionJointIO() {}, PositionJointConstants.EXAMPLE_GAINS);
 
         break;
     }
