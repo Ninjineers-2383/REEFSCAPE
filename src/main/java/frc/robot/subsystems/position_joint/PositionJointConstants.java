@@ -45,7 +45,7 @@ public class PositionJointConstants {
       new PositionJointHardwareConfig(
           new int[] {10},
           new boolean[] {true},
-          1 / 85.33333 * 2 * Math.PI,
+          85.33333 * 2 * Math.PI,
           40,
           GravityType.SINE,
           EncoderType.EXTERNAL,

@@ -29,6 +29,8 @@ public class PositionJoint extends SubsystemBase {
 
   private final LoggedTunableNumber kTolerance;
 
+  private final LoggedTunableNumber kSetpoint;
+
   private TrapezoidProfile.Constraints constraints;
 
   private TrapezoidProfile profile;
@@ -56,6 +58,8 @@ public class PositionJoint extends SubsystemBase {
     kMaxPosition = new LoggedTunableNumber(name + "/Gains/kMaxPosition", gains.kMaxPosition());
 
     kTolerance = new LoggedTunableNumber(name + "/Gains/kTolerance", gains.kTolerance());
+
+    kSetpoint = new LoggedTunableNumber(name + "/Gains/kSetpoint", getPosition());
 
     constraints = new TrapezoidProfile.Constraints(gains.kMaxVelo(), gains.kMaxAccel());
     profile = new TrapezoidProfile(constraints);
@@ -91,6 +95,10 @@ public class PositionJoint extends SubsystemBase {
                   values[10],
                   values[11]));
 
+          goal =
+              new TrapezoidProfile.State(
+                  MathUtil.clamp(values[12], kMinPosition.get(), kMaxPosition.get()), 0);
+
           constraints = new TrapezoidProfile.Constraints(values[7], values[8]);
           profile = new TrapezoidProfile(constraints);
         },
@@ -105,7 +113,8 @@ public class PositionJoint extends SubsystemBase {
         kMaxAccel,
         kMinPosition,
         kMaxPosition,
-        kTolerance);
+        kTolerance,
+        kSetpoint);
 
     Logger.recordOutput(name + "/isFinished", isFinished());
   }

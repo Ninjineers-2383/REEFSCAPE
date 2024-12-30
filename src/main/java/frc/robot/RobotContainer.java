@@ -117,7 +117,7 @@ public class RobotContainer {
 
         pivot =
             new PositionJoint(
-                new PositionJointIOSim("pivot", PositionJointConstants.EXAMPLE_CONFIG),
+                new PositionJointIOSim("Pivot", PositionJointConstants.EXAMPLE_CONFIG),
                 PositionJointConstants.EXAMPLE_GAINS);
         break;
 
