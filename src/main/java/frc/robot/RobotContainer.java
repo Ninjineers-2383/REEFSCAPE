@@ -22,11 +22,6 @@ import frc.robot.subsystems.drive.spark.ModuleIOSparkSim;
 import frc.robot.subsystems.drive.talon.ModuleIOTalonFX;
 import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
 import frc.robot.subsystems.drive.talon.TalonFXModuleConstants;
-import frc.robot.subsystems.position_joint.PositionJoint;
-import frc.robot.subsystems.position_joint.PositionJointConstants;
-import frc.robot.subsystems.position_joint.PositionJointIO;
-import frc.robot.subsystems.position_joint.PositionJointIOSim;
-import frc.robot.subsystems.position_joint.PositionJointIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
@@ -49,8 +44,6 @@ public class RobotContainer {
 
   @SuppressWarnings("unused")
   private final Vision vision;
-
-  private final PositionJoint pivot;
 
   // Simulation
   private SwerveDriveSimulation driveSimulation = null;
@@ -79,11 +72,6 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0));
-
-        pivot =
-            new PositionJoint(
-                new PositionJointIOTalonFX("Pivot", PositionJointConstants.EXAMPLE_CONFIG),
-                PositionJointConstants.EXAMPLE_GAINS);
         break;
 
       case SIM:
@@ -114,11 +102,6 @@ public class RobotContainer {
                     VisionConstants.camera1Name,
                     VisionConstants.robotToCamera1,
                     driveSimulation::getSimulatedDriveTrainPose));
-
-        pivot =
-            new PositionJoint(
-                new PositionJointIOSim("Pivot", PositionJointConstants.EXAMPLE_CONFIG),
-                PositionJointConstants.EXAMPLE_GAINS);
         break;
 
       default:
@@ -132,9 +115,6 @@ public class RobotContainer {
                 new ModuleIO() {},
                 null);
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
-
-        pivot = new PositionJoint(new PositionJointIO() {}, PositionJointConstants.EXAMPLE_GAINS);
-
         break;
     }
 
