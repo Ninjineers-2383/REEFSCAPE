@@ -104,7 +104,8 @@ public class PositionJointIOTalonFX implements PositionJointIO {
     if (config.encoderType() == EncoderType.INTERNAL) {
       externalEncoder = new IAbsoluteEncoder() {};
 
-      encoderAlert = new Alert(name + " does not use an external encoder 💀", AlertType.kInfo);
+      encoderAlert =
+          new Alert(name, name + " does not use an external encoder 💀", AlertType.kInfo);
 
       leaderConfig.withFeedback(
           new FeedbackConfigs()
@@ -126,7 +127,9 @@ public class PositionJointIOTalonFX implements PositionJointIO {
 
       encoderAlert =
           new Alert(
-              name + "CANCoder Disconnected! CAN ID: " + config.encoderID(), AlertType.kError);
+              name,
+              name + "CANCoder Disconnected! CAN ID: " + config.encoderID(),
+              AlertType.kError);
 
       leaderConfig.withFeedback(
           new FeedbackConfigs()
@@ -143,7 +146,9 @@ public class PositionJointIOTalonFX implements PositionJointIO {
 
       encoderAlert =
           new Alert(
-              name + "DIO Encoder Disconnected! DIO ID: " + config.encoderID(), AlertType.kWarning);
+              name,
+              name + "DIO Encoder Disconnected! DIO ID: " + config.encoderID(),
+              AlertType.kWarning);
 
       tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
 
@@ -164,7 +169,9 @@ public class PositionJointIOTalonFX implements PositionJointIO {
 
     motorAlerts[0] =
         new Alert(
-            name + " Leader Motor Disconnected! CAN ID: " + config.canIds()[0], AlertType.kError);
+            name,
+            name + " Leader Motor Disconnected! CAN ID: " + config.canIds()[0],
+            AlertType.kError);
 
     for (int i = 1; i < config.canIds().length; i++) {
       motors[i] = new TalonFX(config.canIds()[i], config.canBus());
@@ -172,6 +179,7 @@ public class PositionJointIOTalonFX implements PositionJointIO {
 
       motorAlerts[i] =
           new Alert(
+              name,
               name + " Follower Motor " + i + " Disconnected! CAN ID: " + config.canIds()[i],
               AlertType.kError);
 

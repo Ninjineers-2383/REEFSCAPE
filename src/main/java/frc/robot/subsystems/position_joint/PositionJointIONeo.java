@@ -76,7 +76,9 @@ public class PositionJointIONeo implements PositionJointIO {
 
     motorAlerts[0] =
         new Alert(
-            name + " Leader Motor Disconnected! CAN ID: " + config.canIds()[0], AlertType.kError);
+            name,
+            name + " Leader Motor Disconnected! CAN ID: " + config.canIds()[0],
+            AlertType.kError);
 
     for (int i = 1; i < config.canIds().length; i++) {
       motors[i] = new SparkMax(config.canIds()[i], MotorType.kBrushless);
@@ -87,6 +89,7 @@ public class PositionJointIONeo implements PositionJointIO {
 
       motorAlerts[i] =
           new Alert(
+              name,
               name + " Follower Motor " + i + " Disconnected! CAN ID: " + config.canIds()[i],
               AlertType.kError);
     }
