@@ -61,7 +61,7 @@ public class PositionJointIOSim implements PositionJointIO {
     sim.setInputVoltage(inputVoltage);
     sim.update(0.02);
 
-    inputs.position = sim.getAngularPosition().in(Rotations);
+    inputs.outputPosition = sim.getAngularPosition().in(Rotations);
     inputs.desiredPosition = positionSetpoint;
     inputs.velocity = sim.getAngularVelocity().in(RotationsPerSecond);
     inputs.desiredVelocity = velocitySetpoint;

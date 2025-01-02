@@ -134,7 +134,7 @@ public class PositionJoint extends SubsystemBase {
   }
 
   public double getPosition() {
-    return inputs.position;
+    return inputs.outputPosition;
   }
 
   public double getDesiredPosition() {
@@ -142,6 +142,6 @@ public class PositionJoint extends SubsystemBase {
   }
 
   public boolean isFinished() {
-    return Math.abs(inputs.position - goal.position) < kTolerance.get();
+    return Math.abs(inputs.outputPosition - goal.position) < kTolerance.get();
   }
 }

@@ -111,7 +111,7 @@ public class PositionJointIONeo implements PositionJointIO {
   @Override
   public void updateInputs(PositionJointIOInputs inputs) {
     currentPosition = motors[0].getEncoder().getPosition();
-    inputs.position = currentPosition;
+    inputs.outputPosition = currentPosition;
 
     inputs.desiredPosition = positionSetpoint;
     inputs.desiredVelocity = velocitySetpoint;

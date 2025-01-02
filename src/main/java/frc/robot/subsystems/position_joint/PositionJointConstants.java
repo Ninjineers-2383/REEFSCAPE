@@ -1,5 +1,7 @@
 package frc.robot.subsystems.position_joint;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+
 public class PositionJointConstants {
   public enum GravityType {
     CONSTANT,
@@ -10,7 +12,9 @@ public class PositionJointConstants {
 
   public enum EncoderType {
     INTERNAL,
-    EXTERNAL
+    EXTERNAL_CANCODER,
+    EXTERNAL_DIO,
+    EXTERNAL_SPARK
   }
 
   public record PositionJointGains(
@@ -35,7 +39,9 @@ public class PositionJointConstants {
       double gearRatio,
       double currentLimit,
       GravityType gravity,
-      EncoderType encoder,
+      EncoderType encoderType,
+      int encoderID,
+      Rotation2d encoderOffset,
       String canBus) {}
 
   public static final PositionJointGains EXAMPLE_GAINS =
@@ -47,7 +53,9 @@ public class PositionJointConstants {
           new boolean[] {true},
           85.33333 * 2 * Math.PI,
           40,
-          GravityType.SINE,
-          EncoderType.EXTERNAL,
+          GravityType.COSINE,
+          EncoderType.EXTERNAL_CANCODER,
+          11,
+          Rotation2d.fromRotations(0.5),
           "");
 }
