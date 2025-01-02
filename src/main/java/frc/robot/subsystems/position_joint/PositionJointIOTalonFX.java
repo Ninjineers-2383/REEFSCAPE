@@ -151,7 +151,8 @@ public class PositionJointIOTalonFX implements PositionJointIO {
 
         tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
 
-        motors[0].setPosition(externalEncoder.getAbsoluteAngle().getMeasure());
+        motors[0].setPosition(
+            externalEncoder.getAbsoluteAngle().plus(config.encoderOffset()).getMeasure());
         break;
       case EXTERNAL_SPARK:
         throw new IllegalArgumentException("ENCODER_SPARK is not supported for TalonFX");

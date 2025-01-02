@@ -127,7 +127,10 @@ public class PositionJointIONeo implements PositionJointIO {
 
         motors[0].configure(
             leaderConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-        motors[0].getEncoder().setPosition(externalEncoder.getAbsoluteAngle().getRotations());
+        motors[0]
+            .getEncoder()
+            .setPosition(
+                externalEncoder.getAbsoluteAngle().plus(config.encoderOffset()).getRotations());
         break;
       case EXTERNAL_SPARK:
         externalEncoder = new IAbsoluteEncoder() {};
@@ -139,11 +142,16 @@ public class PositionJointIONeo implements PositionJointIO {
             new AbsoluteEncoderConfig()
                 .positionConversionFactor(1.0)
                 .velocityConversionFactor(1.0)
+                .zeroOffset(currentPosition)
                 .averageDepth(2));
 
         motors[0].configure(
             leaderConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-        motors[0].getEncoder().setPosition(motors[0].getAbsoluteEncoder().getPosition());
+        motors[0]
+            .getEncoder()
+            .setPosition(
+                motors[0].getAbsoluteEncoder().getPosition()
+                    + config.encoderOffset().getRotations());
         break;
 
       default:
