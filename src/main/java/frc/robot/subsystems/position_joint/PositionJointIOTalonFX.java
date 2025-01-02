@@ -25,7 +25,6 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import frc.robot.subsystems.position_joint.PositionJointConstants.EncoderType;
 import frc.robot.subsystems.position_joint.PositionJointConstants.GravityType;
 import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointGains;
 import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointHardwareConfig;
@@ -101,60 +100,66 @@ public class PositionJointIOTalonFX implements PositionJointIO {
                             ? InvertedValue.Clockwise_Positive
                             : InvertedValue.CounterClockwise_Positive));
 
-    if (config.encoderType() == EncoderType.INTERNAL) {
-      externalEncoder = new IAbsoluteEncoder() {};
+    switch (hardwareConfig.encoderType()) {
+      case INTERNAL:
+        externalEncoder = new IAbsoluteEncoder() {};
 
-      encoderAlert =
-          new Alert(name, name + " does not use an external encoder 💀", AlertType.kInfo);
+        encoderAlert =
+            new Alert(name, name + " does not use an external encoder 💀", AlertType.kInfo);
 
-      leaderConfig.withFeedback(
-          new FeedbackConfigs()
-              .withSensorToMechanismRatio(config.gearRatio())
-              .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor));
+        leaderConfig.withFeedback(
+            new FeedbackConfigs()
+                .withSensorToMechanismRatio(config.gearRatio())
+                .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor));
 
-      tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
+        tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
+        break;
+      case EXTERNAL_CANCODER:
+        externalEncoder =
+            new AbsoluteCancoder(
+                config.encoderID(),
+                config.canBus(),
+                new CANcoderConfiguration()
+                    .withMagnetSensor(
+                        new MagnetSensorConfigs()
+                            .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
+                            .withMagnetOffset(config.encoderOffset().getMeasure())));
 
-    } else if (config.encoderType() == EncoderType.EXTERNAL_CANCODER) {
-      externalEncoder =
-          new AbsoluteCancoder(
-              config.encoderID(),
-              config.canBus(),
-              new CANcoderConfiguration()
-                  .withMagnetSensor(
-                      new MagnetSensorConfigs()
-                          .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
-                          .withMagnetOffset(config.encoderOffset().getMeasure())));
+        encoderAlert =
+            new Alert(
+                name,
+                name + " CANCoder Disconnected! CAN ID: " + config.encoderID(),
+                AlertType.kError);
 
-      encoderAlert =
-          new Alert(
-              name,
-              name + "CANCoder Disconnected! CAN ID: " + config.encoderID(),
-              AlertType.kError);
+        leaderConfig.withFeedback(
+            new FeedbackConfigs()
+                .withFeedbackRemoteSensorID(config.encoderID())
+                .withSensorToMechanismRatio(1.0)
+                .withRotorToSensorRatio(config.gearRatio())
+                .withFeedbackSensorSource(FeedbackSensorSourceValue.FusedCANcoder));
 
-      leaderConfig.withFeedback(
-          new FeedbackConfigs()
-              .withFeedbackRemoteSensorID(config.encoderID())
-              .withSensorToMechanismRatio(1.0)
-              .withRotorToSensorRatio(config.gearRatio())
-              .withFeedbackSensorSource(FeedbackSensorSourceValue.FusedCANcoder)
-              .withFeedbackRotorOffset(null));
+        tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
+        break;
+      case EXTERNAL_DIO:
+        externalEncoder = new AbsoluteMagEncoder(config.encoderID());
 
-      tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
+        encoderAlert =
+            new Alert(
+                name,
+                name + " DIO Encoder Disconnected! DIO ID: " + config.encoderID(),
+                AlertType.kWarning);
 
-    } else if (config.encoderType() == EncoderType.EXTERNAL_DIO) {
-      externalEncoder = new AbsoluteMagEncoder(config.encoderID());
+        tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
 
-      encoderAlert =
-          new Alert(
-              name,
-              name + "DIO Encoder Disconnected! DIO ID: " + config.encoderID(),
-              AlertType.kWarning);
-
-      tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
-
-      motors[0].setPosition(externalEncoder.getAbsoluteAngle().getMeasure());
-    } else {
-      throw new IllegalArgumentException("ENCODER_SPARK is not supported for TalonFX");
+        motors[0].setPosition(externalEncoder.getAbsoluteAngle().getMeasure());
+        break;
+      case EXTERNAL_SPARK:
+        throw new IllegalArgumentException("ENCODER_SPARK is not supported for TalonFX");
+      default:
+        externalEncoder = new IAbsoluteEncoder() {};
+        encoderAlert =
+            new Alert(name, name + " does not use an external encoder 💀", AlertType.kInfo);
+        break;
     }
 
     outputPosition = motors[0].getPosition();
