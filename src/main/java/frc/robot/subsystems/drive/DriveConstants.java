@@ -88,7 +88,7 @@ public class DriveConstants {
                       driveGearbox,
                       turnGearbox,
                       driveMotorGearRatio,
-                      steerMotorGearRatio,
+                      18.0,
                       Volts.of(0.1),
                       Volts.of(0.1),
                       Meters.of(driveWheelRadiusMeters),
