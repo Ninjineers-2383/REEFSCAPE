@@ -1,11 +1,20 @@
 package frc.robot.subsystems.position_joint;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+
 public class PositionJointConstants {
   public enum GravityType {
     CONSTANT,
     COSINE,
     // Not supported by TalonFX
-    SIN
+    SINE
+  }
+
+  public enum EncoderType {
+    INTERNAL,
+    EXTERNAL_CANCODER,
+    EXTERNAL_DIO,
+    EXTERNAL_SPARK
   }
 
   public record PositionJointGains(
@@ -30,17 +39,23 @@ public class PositionJointConstants {
       double gearRatio,
       double currentLimit,
       GravityType gravity,
+      EncoderType encoderType,
+      int encoderID,
+      Rotation2d encoderOffset,
       String canBus) {}
 
-  public static final PositionJointGains pivot_gains =
+  public static final PositionJointGains EXAMPLE_GAINS =
       new PositionJointGains(1.5, 0.0, 0.0, 0.5, 1.0, 2.0, 0.0, 10.0, 20.0, 0.0, Math.PI, 0.2);
 
-  public static final PositionJointHardwareConfig pivot_config =
+  public static final PositionJointHardwareConfig EXAMPLE_CONFIG =
       new PositionJointHardwareConfig(
           new int[] {10},
           new boolean[] {true},
-          1 / 85.33333 * 2 * Math.PI,
+          85.33333 * 2 * Math.PI,
           40,
-          GravityType.SIN,
+          GravityType.COSINE,
+          EncoderType.EXTERNAL_CANCODER,
+          11,
+          Rotation2d.fromRotations(0.5),
           "");
 }

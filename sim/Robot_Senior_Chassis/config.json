@@ -1,0 +1,109 @@
+{
+  "sourceUrl": "https://ahschool.onshape.com/documents/e01c90b28b8e6625cbf22edd/w/88f4226833d4e6acc3fd19ab/e/78d8374dc05358ea0f4999cd",
+  "rotations": [
+    {
+      "axis": "x",
+      "degrees": 90
+    }
+  ],
+  "position": [
+    0,
+    0,
+    0.0422
+  ],
+  "cameras": [
+    {
+      "name": "Front Left",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": -10
+        },
+        {
+          "axis": "z",
+          "degrees": -20
+        }
+      ],
+      "position": [
+        0.257,
+        0.244,
+        0.163
+      ],
+      "resolution": [
+        1280,
+        720
+      ],
+      "fov": 70
+    },
+    {
+      "name": "Front Right",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": -10
+        },
+        {
+          "axis": "z",
+          "degrees": -110
+        }
+      ],
+      "position": [
+        0.243,
+        -0.255,
+        0.163
+      ],
+      "resolution": [
+        1280,
+        720
+      ],
+      "fov": 70
+    },
+    {
+      "name": "Rear Left",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": -10
+        },
+        {
+          "axis": "z",
+          "degrees": -290
+        }
+      ],
+      "position": [
+        -0.244,
+        0.263,
+        0.163
+      ],
+      "resolution": [
+        1280,
+        720
+      ],
+      "fov": 70
+    },
+    {
+      "name": "Rear Right",
+      "rotations": [
+        {
+          "axis": "y",
+          "degrees": -10
+        },
+        {
+          "axis": "z",
+          "degrees": -200
+        }
+      ],
+      "position": [
+        -0.263,
+        -0.244,
+        0.163
+      ],
+      "resolution": [
+        1280,
+        720
+      ],
+      "fov": 70
+    }
+  ],
+  "name": "Blizzard Chassis"
+}

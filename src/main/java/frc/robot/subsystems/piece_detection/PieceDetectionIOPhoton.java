@@ -19,7 +19,7 @@ public class PieceDetectionIOPhoton implements PieceDetectionIO {
 
     camera = new PhotonCamera(name);
 
-    cameraDisconnected = new Alert(name + " disconnected!", AlertType.kWarning);
+    cameraDisconnected = new Alert(name, name + " disconnected!", AlertType.kWarning);
   }
 
   @Override
