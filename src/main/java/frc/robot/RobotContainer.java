@@ -29,6 +29,7 @@ import frc.robot.subsystems.drive.talon.TalonFXModuleConstants;
 import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.flywheel.FlywheelConstants;
 import frc.robot.subsystems.flywheel.FlywheelIO;
+import frc.robot.subsystems.flywheel.FlywheelIOSim;
 import frc.robot.subsystems.flywheel.FlywheelIOTalonFX;
 import frc.robot.subsystems.position_joint.PositionJoint;
 import frc.robot.subsystems.position_joint.PositionJointConstants;
@@ -40,13 +41,11 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-import frc.robot.util.pathplanner.AdvancedPPHolonomicDriveController;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
-import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -57,14 +56,18 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+
   private final PositionJoint elevator;
   private final PositionJoint pivot;
   private final Flywheel claw;
 
-  @SuppressWarnings("unused")
+  private final PositionJoint climber;
+  private final Flywheel climberIntake;
+
+  private final Flywheel intake;
+
   private final Vision vision;
 
-  @SuppressWarnings("unused")
   private final Components sim_components;
 
   // Simulation
@@ -75,12 +78,16 @@ public class RobotContainer {
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
-  private final LoggedNetworkNumber xOverride;
 
   private final LoggedNetworkBoolean L1Chooser;
   private final LoggedNetworkBoolean L2Chooser;
   private final LoggedNetworkBoolean L3Chooser;
   private final LoggedNetworkBoolean L4Chooser;
+  private final LoggedNetworkBoolean ZeroChooser;
+  private final LoggedNetworkBoolean LowballChooser;
+  private final LoggedNetworkBoolean HighballChooser;
+
+  private final LoggedNetworkBoolean ScoreChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -116,6 +123,21 @@ public class RobotContainer {
             new Flywheel(
                 new FlywheelIOTalonFX("Claw", FlywheelConstants.CLAW_CONFIG),
                 FlywheelConstants.CLAW_GAINS);
+
+        climber =
+            new PositionJoint(
+                new PositionJointIOTalonFX("Climber", PositionJointConstants.CLIMBER_CONFIG),
+                PositionJointConstants.CLIMBER_GAINS);
+
+        climberIntake =
+            new Flywheel(
+                new FlywheelIOTalonFX("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
+                FlywheelConstants.CLIMBER_INTAKE_GAINS);
+
+        intake =
+            new Flywheel(
+                new FlywheelIOTalonFX("Intake", FlywheelConstants.INTAKE_CONFIG),
+                FlywheelConstants.INTAKE_GAINS);
         break;
 
       case SIM:
@@ -159,9 +181,23 @@ public class RobotContainer {
 
         claw =
             new Flywheel(
-                new FlywheelIOTalonFX("Claw", FlywheelConstants.CLAW_CONFIG),
+                new FlywheelIOSim("Claw", FlywheelConstants.CLAW_CONFIG),
                 FlywheelConstants.CLAW_GAINS);
 
+        climber =
+            new PositionJoint(
+                new PositionJointIOSim("Climber", PositionJointConstants.CLIMBER_CONFIG),
+                PositionJointConstants.CLIMBER_GAINS);
+
+        climberIntake =
+            new Flywheel(
+                new FlywheelIOSim("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
+                FlywheelConstants.CLIMBER_INTAKE_GAINS);
+
+        intake =
+            new Flywheel(
+                new FlywheelIOSim("Intake", FlywheelConstants.INTAKE_CONFIG),
+                FlywheelConstants.INTAKE_GAINS);
         break;
 
       default:
@@ -182,6 +218,13 @@ public class RobotContainer {
         pivot = new PositionJoint(new PositionJointIO() {}, PositionJointConstants.PIVOT_GAINS);
 
         claw = new Flywheel(new FlywheelIO() {}, FlywheelConstants.CLAW_GAINS);
+
+        climber = new PositionJoint(new PositionJointIO() {}, PositionJointConstants.CLIMBER_GAINS);
+
+        climberIntake = new Flywheel(new FlywheelIO() {}, FlywheelConstants.CLIMBER_INTAKE_GAINS);
+
+        intake = new Flywheel(new FlywheelIO() {}, FlywheelConstants.INTAKE_GAINS);
+
         break;
     }
 
@@ -189,12 +232,15 @@ public class RobotContainer {
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
-    xOverride = new LoggedNetworkNumber("/PPOverrides", 0.0);
 
     L1Chooser = new LoggedNetworkBoolean("/Coral Choosers/L1", false);
     L2Chooser = new LoggedNetworkBoolean("/Coral Choosers/L2", false);
     L3Chooser = new LoggedNetworkBoolean("/Coral Choosers/L3", false);
     L4Chooser = new LoggedNetworkBoolean("/Coral Choosers/L4", false);
+    ZeroChooser = new LoggedNetworkBoolean("/Coral Choosers/Zero", false);
+    ScoreChooser = new LoggedNetworkBoolean("/Coral Choosers/Score", false);
+    LowballChooser = new LoggedNetworkBoolean("/Coral Choosers/Lowball", false);
+    HighballChooser = new LoggedNetworkBoolean("/Coral Choosers/Highball", false);
 
     // Set up SysId routines
     autoChooser.addOption(
@@ -279,7 +325,16 @@ public class RobotContainer {
     new Trigger(L4Chooser::get)
         .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getL4));
 
-    AdvancedPPHolonomicDriveController.setYSetpointIncrement(xOverride::get);
+    new Trigger(ZeroChooser::get)
+        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getZero));
+
+    new Trigger(ScoreChooser::get).onTrue(QuarrelCommands.ScoreCommand(elevator, pivot, claw));
+
+    new Trigger(HighballChooser::get)
+        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getHighball));
+
+    new Trigger(LowballChooser::get)
+        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getLowball));
   }
 
   /**

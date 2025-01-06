@@ -6,14 +6,20 @@ public class FlywheelConstants {
   public record FlywheelHardwareConfig(
       int[] canIds, boolean[] reversed, double gearRatio, String canBus) {}
 
-  public static final FlywheelHardwareConfig EXAMPLE_CONFIG =
-      new FlywheelHardwareConfig(new int[] {1}, new boolean[] {true}, 24.0 / 48.0, "CANBus");
-
-  public static final FlywheelGains EXAMPLE_GAINS =
-      new FlywheelGains(0.2, 0.0, 0.0, 0.0, 0.065, 0.0);
-
   public static final FlywheelHardwareConfig CLAW_CONFIG =
       new FlywheelHardwareConfig(new int[] {1}, new boolean[] {true}, 24.0 / 48.0, "CANBus");
 
   public static final FlywheelGains CLAW_GAINS = new FlywheelGains(0.2, 0.0, 0.0, 0.0, 0.065, 0.0);
+
+  public static final FlywheelHardwareConfig CLIMBER_INTAKE_CONFIG =
+      new FlywheelHardwareConfig(new int[] {1}, new boolean[] {true}, 24.0 / 48.0, "CANBus");
+
+  public static final FlywheelGains CLIMBER_INTAKE_GAINS =
+      new FlywheelGains(0.2, 0.0, 0.0, 0.0, 0.065, 0.0);
+
+  public static final FlywheelHardwareConfig INTAKE_CONFIG =
+      new FlywheelHardwareConfig(new int[] {1}, new boolean[] {true}, 24.0 / 48.0, "CANBus");
+
+  public static final FlywheelGains INTAKE_GAINS =
+      new FlywheelGains(0.2, 0.0, 0.0, 0.0, 0.065, 0.0);
 }

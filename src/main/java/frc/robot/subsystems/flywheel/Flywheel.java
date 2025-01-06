@@ -18,6 +18,8 @@ public class Flywheel extends SubsystemBase {
   private final LoggedTunableNumber kV;
   private final LoggedTunableNumber kA;
 
+  private final LoggedTunableNumber kVeloSetpoint;
+
   public Flywheel(FlywheelIO io, FlywheelGains gains) {
     flywheel = io;
 
@@ -29,6 +31,8 @@ public class Flywheel extends SubsystemBase {
     kS = new LoggedTunableNumber(name + "/Gains/kS", gains.kS());
     kV = new LoggedTunableNumber(name + "/Gains/kV", gains.kV());
     kA = new LoggedTunableNumber(name + "/Gains/kA", gains.kA());
+
+    kVeloSetpoint = new LoggedTunableNumber(name + "/Gains/kVeloSetpoint", getVelocity());
   }
 
   @Override
@@ -41,13 +45,16 @@ public class Flywheel extends SubsystemBase {
         (values) -> {
           flywheel.setGains(
               new FlywheelGains(values[0], values[1], values[2], values[3], values[4], values[5]));
+
+          flywheel.setVelocity(values[6]);
         },
         kP,
         kI,
         kD,
         kS,
         kV,
-        kA);
+        kA,
+        kVeloSetpoint);
   }
 
   public void setVelocity(double velocity) {

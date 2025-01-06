@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.piece_detection.PieceDetection;
+import frc.robot.util.LoggedTunableNumber;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
@@ -37,6 +38,9 @@ public class DriveCommands {
   private static final double FF_RAMP_RATE = 0.1; // Volts/Sec
   private static final double WHEEL_RADIUS_MAX_VELOCITY = 0.25; // Rad/Sec
   private static final double WHEEL_RADIUS_RAMP_RATE = 0.05; // Rad/Sec^2
+
+  private static final LoggedTunableNumber PIECE_DETECTION_P =
+      new LoggedTunableNumber("Drive/PieceDetection/kP", 5.0);
 
   private DriveCommands() {}
 
@@ -98,7 +102,6 @@ public class DriveCommands {
   public static Command joystickDrivePieceDetection(
       Drive drive,
       PieceDetection pieceDetection,
-      DoubleSupplier kDetection,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
@@ -135,7 +138,7 @@ public class DriveCommands {
                     + new Transform3d(
                                 new Pose3d(drive.getPose()), pieceDetection.getGamePiecePose())
                             .getY()
-                        * kDetection.getAsDouble();
+                        * PIECE_DETECTION_P.get();
           }
 
           drive.runVelocity(speeds);

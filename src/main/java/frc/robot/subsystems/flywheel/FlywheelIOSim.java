@@ -51,4 +51,9 @@ public class FlywheelIOSim implements FlywheelIO {
 
     System.out.println(name + " gains set to " + gains);
   }
+
+  @Override
+  public String getName() {
+    return name;
+  }
 }

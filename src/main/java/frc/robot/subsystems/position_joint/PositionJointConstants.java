@@ -51,7 +51,7 @@ public class PositionJointConstants {
       new PositionJointHardwareConfig(
           new int[] {10, 11},
           new boolean[] {false, true},
-          85.33333 * 2 * Math.PI,
+          1.0,
           40,
           GravityType.CONSTANT,
           EncoderType.INTERNAL,
@@ -69,6 +69,21 @@ public class PositionJointConstants {
           83.3333,
           40,
           GravityType.COSINE,
+          EncoderType.INTERNAL,
+          -1,
+          new Rotation2d(),
+          "drive");
+
+  public static final PositionJointGains CLIMBER_GAINS =
+      new PositionJointGains(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+  public static final PositionJointHardwareConfig CLIMBER_CONFIG =
+      new PositionJointHardwareConfig(
+          new int[] {12},
+          new boolean[] {false},
+          83.3333,
+          40,
+          GravityType.CONSTANT,
           EncoderType.INTERNAL,
           -1,
           new Rotation2d(),

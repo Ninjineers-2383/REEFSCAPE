@@ -27,6 +27,24 @@ public class QuarrelPresets {
   public static final LoggedTunableNumber L4_ELEVATOR =
       new LoggedTunableNumber("QuarrelPresets/L4/Elevator", 0.0);
 
+  public static final LoggedTunableNumber ZERO_PIVOT =
+      new LoggedTunableNumber("QuarrelPresets/Zero/Pivot", 0.0);
+  public static final LoggedTunableNumber ZERO_ELEVATOR =
+      new LoggedTunableNumber("QuarrelPresets/Zero/Elevator", 0.0);
+
+  public static final LoggedTunableNumber LOWBALL_PIVOT =
+      new LoggedTunableNumber("QuarrelPresets/LOWBALL/Pivot", 0.0);
+  public static final LoggedTunableNumber LOWBALL_ELEVATOR =
+      new LoggedTunableNumber("QuarrelPresets/LOWBALL/Elevator", 0.0);
+
+  public static final LoggedTunableNumber HIGHBALL_PIVOT =
+      new LoggedTunableNumber("QuarrelPresets/HIGHBALL/Pivot", 0.0);
+  public static final LoggedTunableNumber HIGHBALL_ELEVATOR =
+      new LoggedTunableNumber("QuarrelPresets/HIGHBALL/Elevator", 0.0);
+
+  public static final LoggedTunableNumber SCORE_ELEVATOR =
+      new LoggedTunableNumber("QuarrelPresets/Score/Elevator", 0.0);
+
   public static QuarrelPosition getL1() {
     return new QuarrelPosition(L1_ELEVATOR.get(), Rotation2d.fromDegrees(L1_PIVOT.get()));
   }
@@ -41,6 +59,23 @@ public class QuarrelPresets {
 
   public static QuarrelPosition getL4() {
     return new QuarrelPosition(L4_ELEVATOR.get(), Rotation2d.fromDegrees(L4_PIVOT.get()));
+  }
+
+  public static QuarrelPosition getZero() {
+    return new QuarrelPosition(ZERO_ELEVATOR.get(), Rotation2d.fromDegrees(ZERO_PIVOT.get()));
+  }
+
+  public static QuarrelPosition getHighball() {
+    return new QuarrelPosition(
+        HIGHBALL_ELEVATOR.get(), Rotation2d.fromDegrees(HIGHBALL_PIVOT.get()));
+  }
+
+  public static QuarrelPosition getLowball() {
+    return new QuarrelPosition(LOWBALL_ELEVATOR.get(), Rotation2d.fromDegrees(LOWBALL_PIVOT.get()));
+  }
+
+  public static double getScore() {
+    return SCORE_ELEVATOR.get();
   }
 
   public static record QuarrelPosition(double elevatorPositionMeters, Rotation2d pivotRotation) {}
