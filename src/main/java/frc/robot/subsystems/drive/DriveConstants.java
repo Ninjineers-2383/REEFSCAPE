@@ -16,6 +16,7 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import org.ironmaple.simulation.drivesims.COTS;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 
 public class DriveConstants {
   public static final double odometryFrequency = 250.0; // Hz (100 for CAN, 250 for CANFD)
@@ -85,13 +86,14 @@ public class DriveConstants {
           .withSwerveModule(
               () ->
                   new SwerveModuleSimulation(
-                      driveGearbox,
-                      turnGearbox,
-                      driveMotorGearRatio,
-                      18.0,
-                      Volts.of(0.1),
-                      Volts.of(0.1),
-                      Meters.of(driveWheelRadiusMeters),
-                      KilogramSquareMeters.of(0.02),
-                      wheelCOF));
+                      new SwerveModuleSimulationConfig(
+                          driveGearbox,
+                          turnGearbox,
+                          driveMotorGearRatio,
+                          18.0,
+                          Volts.of(0.1),
+                          Volts.of(0.1),
+                          Meters.of(driveWheelRadiusMeters),
+                          KilogramSquareMeters.of(0.02),
+                          wheelCOF)));
 }
