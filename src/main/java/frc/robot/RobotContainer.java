@@ -10,8 +10,11 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.QuarrelCommands;
+import frc.robot.commands.QuarrelPresets;
 import frc.robot.subsystems.components.Components;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -42,6 +45,7 @@ import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 /**
@@ -73,8 +77,14 @@ public class RobotContainer {
   private final LoggedDashboardChooser<Command> autoChooser;
   private final LoggedNetworkNumber xOverride;
 
+  private final LoggedNetworkBoolean L1Chooser;
+  private final LoggedNetworkBoolean L2Chooser;
+  private final LoggedNetworkBoolean L3Chooser;
+  private final LoggedNetworkBoolean L4Chooser;
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    new QuarrelPresets();
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -181,6 +191,11 @@ public class RobotContainer {
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
     xOverride = new LoggedNetworkNumber("/PPOverrides", 0.0);
 
+    L1Chooser = new LoggedNetworkBoolean("/Coral Choosers/L1", false);
+    L2Chooser = new LoggedNetworkBoolean("/Coral Choosers/L2", false);
+    L3Chooser = new LoggedNetworkBoolean("/Coral Choosers/L3", false);
+    L4Chooser = new LoggedNetworkBoolean("/Coral Choosers/L4", false);
+
     // Set up SysId routines
     autoChooser.addOption(
         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
@@ -251,6 +266,18 @@ public class RobotContainer {
 
     // Reset gyro to 0° when B button is pressed
     driverController.b().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
+
+    new Trigger(L1Chooser::get)
+        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getL1));
+
+    new Trigger(L2Chooser::get)
+        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getL2));
+
+    new Trigger(L3Chooser::get)
+        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getL3));
+
+    new Trigger(L4Chooser::get)
+        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getL4));
 
     AdvancedPPHolonomicDriveController.setYSetpointIncrement(xOverride::get);
   }

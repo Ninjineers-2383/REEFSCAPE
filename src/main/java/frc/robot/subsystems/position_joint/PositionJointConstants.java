@@ -45,7 +45,7 @@ public class PositionJointConstants {
       String canBus) {}
 
   public static final PositionJointGains ELEVATOR_GAINS =
-      new PositionJointGains(0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 10.0, 20.0, 0.0, Math.PI, 0.2);
+      new PositionJointGains(10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 10.0, 20.0, 0.0, 3.0, 0.2);
 
   public static final PositionJointHardwareConfig ELEVATOR_CONFIG =
       new PositionJointHardwareConfig(
@@ -60,7 +60,7 @@ public class PositionJointConstants {
           "drive");
 
   public static final PositionJointGains PIVOT_GAINS =
-      new PositionJointGains(0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 10.0, 20.0, 0.0, Math.PI, 0.2);
+      new PositionJointGains(10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 10.0, 20.0, 0.0, Math.PI, 0.2);
 
   public static final PositionJointHardwareConfig PIVOT_CONFIG =
       new PositionJointHardwareConfig(
