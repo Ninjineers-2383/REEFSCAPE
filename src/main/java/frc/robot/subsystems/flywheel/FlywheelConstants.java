@@ -11,4 +11,9 @@ public class FlywheelConstants {
 
   public static final FlywheelGains EXAMPLE_GAINS =
       new FlywheelGains(0.2, 0.0, 0.0, 0.0, 0.065, 0.0);
+
+  public static final FlywheelHardwareConfig CLAW_CONFIG =
+      new FlywheelHardwareConfig(new int[] {1}, new boolean[] {true}, 24.0 / 48.0, "CANBus");
+
+  public static final FlywheelGains CLAW_GAINS = new FlywheelGains(0.2, 0.0, 0.0, 0.0, 0.065, 0.0);
 }

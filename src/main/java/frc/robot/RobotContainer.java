@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.subsystems.components.Components;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
@@ -22,6 +23,15 @@ import frc.robot.subsystems.drive.spark.ModuleIOSparkSim;
 import frc.robot.subsystems.drive.talon.ModuleIOTalonFX;
 import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
 import frc.robot.subsystems.drive.talon.TalonFXModuleConstants;
+import frc.robot.subsystems.flywheel.Flywheel;
+import frc.robot.subsystems.flywheel.FlywheelConstants;
+import frc.robot.subsystems.flywheel.FlywheelIO;
+import frc.robot.subsystems.flywheel.FlywheelIOTalonFX;
+import frc.robot.subsystems.position_joint.PositionJoint;
+import frc.robot.subsystems.position_joint.PositionJointConstants;
+import frc.robot.subsystems.position_joint.PositionJointIO;
+import frc.robot.subsystems.position_joint.PositionJointIOSim;
+import frc.robot.subsystems.position_joint.PositionJointIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
@@ -43,9 +53,15 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final PositionJoint elevator;
+  private final PositionJoint pivot;
+  private final Flywheel claw;
 
   @SuppressWarnings("unused")
   private final Vision vision;
+
+  @SuppressWarnings("unused")
+  private final Components sim_components;
 
   // Simulation
   private SwerveDriveSimulation driveSimulation = null;
@@ -75,6 +91,21 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0));
+
+        elevator =
+            new PositionJoint(
+                new PositionJointIOTalonFX("Elevator", PositionJointConstants.ELEVATOR_CONFIG),
+                PositionJointConstants.ELEVATOR_GAINS);
+
+        pivot =
+            new PositionJoint(
+                new PositionJointIOTalonFX("Pivot", PositionJointConstants.PIVOT_CONFIG),
+                PositionJointConstants.PIVOT_GAINS);
+
+        claw =
+            new Flywheel(
+                new FlywheelIOTalonFX("Claw", FlywheelConstants.CLAW_CONFIG),
+                FlywheelConstants.CLAW_GAINS);
         break;
 
       case SIM:
@@ -105,6 +136,22 @@ public class RobotContainer {
                     VisionConstants.camera1Name,
                     VisionConstants.robotToCamera1,
                     driveSimulation::getSimulatedDriveTrainPose));
+
+        elevator =
+            new PositionJoint(
+                new PositionJointIOSim("Elevator", PositionJointConstants.ELEVATOR_CONFIG),
+                PositionJointConstants.ELEVATOR_GAINS);
+
+        pivot =
+            new PositionJoint(
+                new PositionJointIOSim("Pivot", PositionJointConstants.PIVOT_CONFIG),
+                PositionJointConstants.PIVOT_GAINS);
+
+        claw =
+            new Flywheel(
+                new FlywheelIOTalonFX("Claw", FlywheelConstants.CLAW_CONFIG),
+                FlywheelConstants.CLAW_GAINS);
+
         break;
 
       default:
@@ -118,8 +165,17 @@ public class RobotContainer {
                 new ModuleIO() {},
                 null);
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+
+        elevator =
+            new PositionJoint(new PositionJointIO() {}, PositionJointConstants.ELEVATOR_GAINS);
+
+        pivot = new PositionJoint(new PositionJointIO() {}, PositionJointConstants.PIVOT_GAINS);
+
+        claw = new Flywheel(new FlywheelIO() {}, FlywheelConstants.CLAW_GAINS);
         break;
     }
+
+    sim_components = new Components(elevator, pivot);
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -143,6 +199,8 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+
+    Logger.recordOutput("Components", new Pose3d[] {new Pose3d()});
   }
 
   /**
