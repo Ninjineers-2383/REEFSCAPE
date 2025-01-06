@@ -1,6 +1,7 @@
 package frc.robot.subsystems.flywheel;
 
 import com.revrobotics.REVLibError;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -115,7 +116,10 @@ public class FlywheelIONeo implements FlywheelIO {
     motors[0]
         .getClosedLoopController()
         .setReference(
-            velocitySetpoint, ControlType.kVelocity, 0, gains.kS() * Math.signum(velocity));
+            velocitySetpoint,
+            ControlType.kVelocity,
+            ClosedLoopSlot.kSlot0,
+            gains.kS() * Math.signum(velocity));
   }
 
   @Override

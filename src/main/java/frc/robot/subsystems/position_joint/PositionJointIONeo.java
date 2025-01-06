@@ -4,6 +4,7 @@ import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.REVLibError;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -256,7 +257,7 @@ public class PositionJointIONeo implements PositionJointIO {
         .setReference(
             positionSetpoint,
             ControlType.kPosition,
-            0,
+            ClosedLoopSlot.kSlot0,
             feedforward.calculate(ffposition, velocitySetpoint, desiredVelocity, 0.02)
                 + externalFeedforward.getAsDouble());
 
