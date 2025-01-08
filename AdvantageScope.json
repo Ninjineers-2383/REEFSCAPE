@@ -1,10 +1,10 @@
 {
   "hubs": [
     {
-      "x": 0,
-      "y": 0,
-      "width": 854,
-      "height": 1019,
+      "x": -8,
+      "y": -8,
+      "width": 1722,
+      "height": 1034,
       "state": {
         "sidebar": {
           "width": 288,
@@ -32,11 +32,13 @@
             "/AdvantageKit",
             "/AdvantageKit/Elevator",
             "/AdvantageKit/RealOutputs",
-            "/AdvantageKit/RealOutputs/Components"
+            "/AdvantageKit/RealOutputs/Components",
+            "/Pivot",
+            "/Elevator"
           ]
         },
         "tabs": {
-          "selected": 5,
+          "selected": 2,
           "tabs": [
             {
               "type": 0,
@@ -53,7 +55,7 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Pivot/DesiredPosition",
+                    "logKey": "/Pivot/DesiredPosition",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -63,21 +65,11 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Pivot/OutputPosition",
+                    "logKey": "/Pivot/OutputPosition",
                     "logType": "Number",
                     "visible": true,
                     "options": {
                       "color": "#e5b31b",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Pivot/MotorVoltages/0",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#858584",
                       "size": "normal"
                     }
                   }
@@ -85,7 +77,7 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Pivot/DesiredVelocity",
+                    "logKey": "/Pivot/Velocity",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -95,45 +87,16 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Pivot/Velocity",
+                    "logKey": "/Pivot/DesiredVelocity",
                     "logType": "Number",
                     "visible": true,
                     "options": {
                       "color": "#80588e",
                       "size": "normal"
                     }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Pivot/MotorCurrents/0",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#3b875a",
-                      "size": "normal"
-                    }
                   }
                 ],
-                "discreteSources": [
-                  {
-                    "type": "stripes",
-                    "logKey": "NT:/AdvantageKit/Pivot/MotorsConnected",
-                    "logType": "BooleanArray",
-                    "visible": true,
-                    "options": {
-                      "color": "#e48b32"
-                    }
-                  },
-                  {
-                    "type": "stripes",
-                    "logKey": "NT:/AdvantageKit/RealOutputs/Elevator/isFinished",
-                    "logType": "Boolean",
-                    "visible": true,
-                    "options": {
-                      "color": "#c0b487"
-                    }
-                  }
-                ],
+                "discreteSources": [],
                 "leftLockedRange": null,
                 "rightLockedRange": null,
                 "leftUnitConversion": {
@@ -158,7 +121,7 @@
                 "leftSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Elevator/DesiredPosition",
+                    "logKey": "/Elevator/DesiredPosition",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -168,31 +131,11 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Elevator/OutputPosition",
+                    "logKey": "/Elevator/OutputPosition",
                     "logType": "Number",
                     "visible": true,
                     "options": {
                       "color": "#e5b31b",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Elevator/MotorVoltages/0",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#c0b487",
-                      "size": "normal"
-                    }
-                  },
-                  {
-                    "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Elevator/MotorVoltages/1",
-                    "logType": "Number",
-                    "visible": true,
-                    "options": {
-                      "color": "#858584",
                       "size": "normal"
                     }
                   }
@@ -200,7 +143,7 @@
                 "rightSources": [
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Elevator/DesiredVelocity",
+                    "logKey": "/Elevator/DesiredVelocity",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -210,7 +153,7 @@
                   },
                   {
                     "type": "stepped",
-                    "logKey": "NT:/AdvantageKit/Elevator/Velocity",
+                    "logKey": "/Elevator/Velocity",
                     "logType": "Number",
                     "visible": true,
                     "options": {
@@ -222,7 +165,7 @@
                 "discreteSources": [
                   {
                     "type": "stripes",
-                    "logKey": "NT:/AdvantageKit/Elevator/MotorsConnected",
+                    "logKey": "/Elevator/MotorsConnected",
                     "logType": "BooleanArray",
                     "visible": true,
                     "options": {
@@ -335,9 +278,9 @@
                 "cameraIndex": -2,
                 "orbitFov": 50,
                 "cameraPosition": [
-                  -5.132332693010791,
+                  -5.13233269301079,
                   1.214990885995775,
-                  -1.0265981919013094
+                  -1.0265981919013134
                 ],
                 "cameraTarget": [
                   -0.5507383585343778,
@@ -406,5 +349,5 @@
     }
   ],
   "satellites": [],
-  "version": "4.0.0-beta-3"
+  "version": "4.1.0"
 }

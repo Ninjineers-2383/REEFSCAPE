@@ -10,7 +10,7 @@ public class QuarrelPresets {
       new LoggedTunableNumber("QuarrelPresets/L1/Pivot", -10.0);
   ;
   public static final LoggedTunableNumber L1_ELEVATOR =
-      new LoggedTunableNumber("QuarrelPresets/L1/Elevator", 0.5);
+      new LoggedTunableNumber("QuarrelPresets/L1/Elevator", 0.2);
 
   public static final LoggedTunableNumber L2_PIVOT =
       new LoggedTunableNumber("QuarrelPresets/L2/Pivot", 60.0);
@@ -20,15 +20,15 @@ public class QuarrelPresets {
   public static final LoggedTunableNumber L3_PIVOT =
       new LoggedTunableNumber("QuarrelPresets/L3/Pivot", 60.0);
   public static final LoggedTunableNumber L3_ELEVATOR =
-      new LoggedTunableNumber("QuarrelPresets/L3/Elevator", 0.7);
+      new LoggedTunableNumber("QuarrelPresets/L3/Elevator", 0.3);
 
   public static final LoggedTunableNumber L4_PIVOT =
       new LoggedTunableNumber("QuarrelPresets/L4/Pivot", 20);
   public static final LoggedTunableNumber L4_ELEVATOR =
-      new LoggedTunableNumber("QuarrelPresets/L4/Elevator", 1.09);
+      new LoggedTunableNumber("QuarrelPresets/L4/Elevator", 0.5);
 
   public static final LoggedTunableNumber ZERO_PIVOT =
-      new LoggedTunableNumber("QuarrelPresets/Zero/Pivot", 90.0);
+      new LoggedTunableNumber("QuarrelPresets/Zero/Pivot", -90.0);
   public static final LoggedTunableNumber ZERO_ELEVATOR =
       new LoggedTunableNumber("QuarrelPresets/Zero/Elevator", 0.0);
 
@@ -49,13 +49,13 @@ public class QuarrelPresets {
       new LoggedTunableNumber("QuarrelPresets/TransferUp/Pivot", -90.0);
 
   public static final LoggedTunableNumber TRANSFER_UP_ELEVATOR =
-      new LoggedTunableNumber("QuarrelPresets/TransferUp/Elevator", 0.6);
+      new LoggedTunableNumber("QuarrelPresets/TransferUp/Elevator", 0.2);
 
   public static final LoggedTunableNumber TRANSFER_DOWN_PIVOT =
       new LoggedTunableNumber("QuarrelPresets/TransferDown/Pivot", -90.0);
 
   public static final LoggedTunableNumber TRANSFER_DOWN_ELEVATOR =
-      new LoggedTunableNumber("QuarrelPresets/TransferDown/Elevator", 0.39);
+      new LoggedTunableNumber("QuarrelPresets/TransferDown/Elevator", 0.0);
 
   public static QuarrelPosition getL1() {
     return new QuarrelPosition(L1_ELEVATOR.get(), Rotation2d.fromDegrees(L1_PIVOT.get()));

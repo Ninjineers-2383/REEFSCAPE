@@ -8,18 +8,6 @@
         "layouts": [],
         "containers": [
           {
-            "title": "Alerts",
-            "x": 0.0,
-            "y": 0.0,
-            "width": 512.0,
-            "height": 512.0,
-            "type": "Alerts",
-            "properties": {
-              "topic": "/SmartDashboard/Alerts",
-              "period": 0.06
-            }
-          },
-          {
             "title": "Field",
             "x": 512.0,
             "y": 0.0,
@@ -34,6 +22,7 @@
               "robot_length": 0.85,
               "show_other_objects": true,
               "show_trajectories": true,
+              "field_rotation": 0.0,
               "robot_color": 4294198070,
               "trajectory_color": 4294967295
             }
@@ -62,6 +51,18 @@
               "topic": "/SmartDashboard/Auto Choices",
               "period": 0.06,
               "sort_options": false
+            }
+          },
+          {
+            "title": "Alerts",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 512.0,
+            "height": 384.0,
+            "type": "Alerts",
+            "properties": {
+              "topic": "/SmartDashboard/Alerts",
+              "period": 0.06
             }
           }
         ]
@@ -533,7 +534,7 @@
         "containers": [
           {
             "title": "kSetpoint",
-            "x": 640.0,
+            "x": 384.0,
             "y": 384.0,
             "width": 256.0,
             "height": 256.0,
@@ -1068,11 +1069,11 @@
             ]
           },
           {
-            "title": "Score",
-            "x": 0.0,
-            "y": 768.0,
-            "width": 256.0,
-            "height": 128.0,
+            "title": "TransferDown",
+            "x": 512.0,
+            "y": 0.0,
+            "width": 128.0,
+            "height": 256.0,
             "type": "List Layout",
             "properties": {
               "label_position": "TOP"
@@ -1086,10 +1087,133 @@
                 "height": 128.0,
                 "type": "Text Display",
                 "properties": {
-                  "topic": "/TunableNumbers/QuarrelPresets/Score/Elevator",
+                  "topic": "/TunableNumbers/QuarrelPresets/TransferDown/Elevator",
                   "period": 0.06,
                   "data_type": "double",
                   "show_submit_button": true
+                }
+              },
+              {
+                "title": "Pivot",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/TunableNumbers/QuarrelPresets/TransferDown/Pivot",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": true
+                }
+              }
+            ]
+          },
+          {
+            "title": "TransferUp",
+            "x": 512.0,
+            "y": 256.0,
+            "width": 128.0,
+            "height": 256.0,
+            "type": "List Layout",
+            "properties": {
+              "label_position": "TOP"
+            },
+            "children": [
+              {
+                "title": "Elevator",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/TunableNumbers/QuarrelPresets/TransferUp/Elevator",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": true
+                }
+              },
+              {
+                "title": "Pivot",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/TunableNumbers/QuarrelPresets/TransferUp/Pivot",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": true
+                }
+              }
+            ]
+          },
+          {
+            "title": "Score",
+            "x": 0.0,
+            "y": 768.0,
+            "width": 128.0,
+            "height": 128.0,
+            "type": "List Layout",
+            "properties": {
+              "label_position": "TOP"
+            },
+            "children": [
+              {
+                "title": "Pivot",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/TunableNumbers/QuarrelPresets/Score/Pivot",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              }
+            ]
+          },
+          {
+            "title": "Zero",
+            "x": 512.0,
+            "y": 512.0,
+            "width": 128.0,
+            "height": 256.0,
+            "type": "List Layout",
+            "properties": {
+              "label_position": "TOP"
+            },
+            "children": [
+              {
+                "title": "Elevator",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/TunableNumbers/QuarrelPresets/Zero/Elevator",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
+                }
+              },
+              {
+                "title": "Pivot",
+                "x": 0.0,
+                "y": 0.0,
+                "width": 128.0,
+                "height": 128.0,
+                "type": "Text Display",
+                "properties": {
+                  "topic": "/TunableNumbers/QuarrelPresets/Zero/Pivot",
+                  "period": 0.06,
+                  "data_type": "double",
+                  "show_submit_button": false
                 }
               }
             ]
@@ -1098,7 +1222,7 @@
         "containers": [
           {
             "title": "L1",
-            "x": 512.0,
+            "x": 640.0,
             "y": 0.0,
             "width": 256.0,
             "height": 256.0,
@@ -1111,7 +1235,7 @@
           },
           {
             "title": "L2",
-            "x": 768.0,
+            "x": 896.0,
             "y": 0.0,
             "width": 256.0,
             "height": 256.0,
@@ -1124,7 +1248,7 @@
           },
           {
             "title": "L3",
-            "x": 512.0,
+            "x": 640.0,
             "y": 256.0,
             "width": 256.0,
             "height": 256.0,
@@ -1137,7 +1261,7 @@
           },
           {
             "title": "L4",
-            "x": 768.0,
+            "x": 896.0,
             "y": 256.0,
             "width": 256.0,
             "height": 256.0,
@@ -1150,7 +1274,7 @@
           },
           {
             "title": "Score",
-            "x": 1280.0,
+            "x": 1408.0,
             "y": 0.0,
             "width": 256.0,
             "height": 256.0,
@@ -1163,7 +1287,7 @@
           },
           {
             "title": "Highball",
-            "x": 1024.0,
+            "x": 1152.0,
             "y": 0.0,
             "width": 256.0,
             "height": 256.0,
@@ -1176,13 +1300,39 @@
           },
           {
             "title": "Lowball",
-            "x": 1024.0,
+            "x": 1152.0,
             "y": 256.0,
             "width": 256.0,
             "height": 256.0,
             "type": "Toggle Button",
             "properties": {
               "topic": "/Coral Choosers/Lowball",
+              "period": 0.06,
+              "data_type": "boolean"
+            }
+          },
+          {
+            "title": "Transfer",
+            "x": 1408.0,
+            "y": 256.0,
+            "width": 256.0,
+            "height": 256.0,
+            "type": "Toggle Button",
+            "properties": {
+              "topic": "/Coral Choosers/Transfer",
+              "period": 0.06,
+              "data_type": "boolean"
+            }
+          },
+          {
+            "title": "Zero",
+            "x": 640.0,
+            "y": 512.0,
+            "width": 256.0,
+            "height": 256.0,
+            "type": "Toggle Button",
+            "properties": {
+              "topic": "/Coral Choosers/Zero",
               "period": 0.06,
               "data_type": "boolean"
             }
