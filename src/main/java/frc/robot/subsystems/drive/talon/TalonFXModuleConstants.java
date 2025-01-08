@@ -84,11 +84,11 @@ public class TalonFXModuleConstants {
       boolean invertSteer) {}
 
   public static final ModuleSpecificConfiguration frontLeft =
-      new ModuleSpecificConfiguration(31, 41, 21, Rotations.of(-0.126465), false, false);
+      new ModuleSpecificConfiguration(31, 41, 21, Rotations.of(0.400879 - 0.5), false, false);
   public static final ModuleSpecificConfiguration frontRight =
-      new ModuleSpecificConfiguration(32, 42, 22, Rotations.of(0.221436), false, false);
+      new ModuleSpecificConfiguration(32, 42, 22, Rotations.of(0.380127 - 0.5), false, false);
   public static final ModuleSpecificConfiguration rearLeft =
-      new ModuleSpecificConfiguration(33, 43, 23, Rotations.of(0.159424), false, false);
+      new ModuleSpecificConfiguration(33, 43, 23, Rotations.of(-0.375488 + 0.5), false, false);
   public static final ModuleSpecificConfiguration rearRight =
-      new ModuleSpecificConfiguration(34, 44, 24, Rotations.of(-0.366211), false, false);
+      new ModuleSpecificConfiguration(34, 44, 24, Rotations.of(0.468750 - 0.5), false, false);
 }

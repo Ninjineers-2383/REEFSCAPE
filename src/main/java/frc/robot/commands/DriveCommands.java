@@ -87,9 +87,12 @@ public class DriveCommands {
           boolean isFlipped =
               DriverStation.getAlliance().isPresent()
                   && DriverStation.getAlliance().get() == Alliance.Red;
-          ChassisSpeeds.fromFieldRelativeSpeeds(
-              speeds,
-              isFlipped ? drive.getRotation().plus(new Rotation2d(Math.PI)) : drive.getRotation());
+          speeds =
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  speeds,
+                  isFlipped
+                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                      : drive.getRotation());
           drive.runVelocity(speeds);
         },
         drive);
@@ -126,9 +129,12 @@ public class DriveCommands {
           boolean isFlipped =
               DriverStation.getAlliance().isPresent()
                   && DriverStation.getAlliance().get() == Alliance.Red;
-          ChassisSpeeds.fromFieldRelativeSpeeds(
-              speeds,
-              isFlipped ? drive.getRotation().plus(new Rotation2d(Math.PI)) : drive.getRotation());
+          speeds =
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  speeds,
+                  isFlipped
+                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                      : drive.getRotation());
 
           if (Math.abs(speeds.vyMetersPerSecond) > 0.1
               && Math.abs(speeds.vyMetersPerSecond) < 0.3

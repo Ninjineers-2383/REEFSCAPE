@@ -9,12 +9,15 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.QuarrelCommands;
 import frc.robot.commands.QuarrelPresets;
+import frc.robot.commands.flywheel.FlywheelVoltageCommand;
 import frc.robot.subsystems.components.Components;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -41,6 +44,7 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import java.util.Set;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
@@ -88,6 +92,8 @@ public class RobotContainer {
   private final LoggedNetworkBoolean HighballChooser;
 
   private final LoggedNetworkBoolean ScoreChooser;
+
+  private final LoggedNetworkBoolean TransferChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -242,6 +248,7 @@ public class RobotContainer {
     LowballChooser = new LoggedNetworkBoolean("/Coral Choosers/Lowball", false);
     HighballChooser = new LoggedNetworkBoolean("/Coral Choosers/Highball", false);
 
+    TransferChooser = new LoggedNetworkBoolean("/Coral Choosers/Transfer", false);
     // Set up SysId routines
     autoChooser.addOption(
         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
@@ -313,28 +320,87 @@ public class RobotContainer {
     // Reset gyro to 0° when B button is pressed
     driverController.b().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 
+    driverController
+        .rightBumper()
+        .onTrue(new FlywheelVoltageCommand(claw, () -> 3.0))
+        .onFalse(new FlywheelVoltageCommand(claw, () -> 0.0));
+    driverController
+        .leftBumper()
+        .onTrue(new FlywheelVoltageCommand(claw, () -> -3.0))
+        .onFalse(new FlywheelVoltageCommand(claw, () -> 0.0));
+
+    intake.setDefaultCommand(
+        new FlywheelVoltageCommand(
+            intake,
+            () ->
+                (driverController.getLeftTriggerAxis() - driverController.getRightTriggerAxis())
+                    * 12.0));
+
     new Trigger(L1Chooser::get)
-        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getL1));
+        .or(L2Chooser::get)
+        .or(L3Chooser::get)
+        .or(L4Chooser::get)
+        .or(ZeroChooser::get)
+        .or(ScoreChooser::get)
+        .or(HighballChooser::get)
+        .or(LowballChooser::get)
+        .or(TransferChooser::get)
+        .onTrue(
+            new InstantCommand(
+                () -> {
+                  L1Chooser.set(false);
+                  L2Chooser.set(false);
+                  L3Chooser.set(false);
+                  L4Chooser.set(false);
+                  ZeroChooser.set(false);
+                  ScoreChooser.set(false);
+                  HighballChooser.set(false);
+                  LowballChooser.set(false);
+                  TransferChooser.set(false);
+                }));
+
+    new Trigger(L1Chooser::get)
+        .onTrue(
+            new DeferredCommand(
+                () ->
+                    QuarrelCommands.QuarrelCommand(
+                        elevator, pivot, claw, QuarrelPresets::getL1, () -> 0.0),
+                Set.of(elevator, pivot)));
 
     new Trigger(L2Chooser::get)
-        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getL2));
+        .onTrue(
+            QuarrelCommands.QuarrelCommand(
+                elevator, pivot, claw, QuarrelPresets::getL2, () -> 0.0));
 
     new Trigger(L3Chooser::get)
-        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getL3));
+        .onTrue(
+            QuarrelCommands.QuarrelCommand(
+                elevator, pivot, claw, QuarrelPresets::getL3, () -> 0.0));
 
     new Trigger(L4Chooser::get)
-        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getL4));
+        .onTrue(
+            QuarrelCommands.QuarrelCommand(
+                elevator, pivot, claw, QuarrelPresets::getL4, () -> 0.0));
 
     new Trigger(ZeroChooser::get)
-        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getZero));
+        .onTrue(
+            QuarrelCommands.QuarrelCommand(
+                elevator, pivot, claw, QuarrelPresets::getZero, () -> 0.0));
 
     new Trigger(ScoreChooser::get).onTrue(QuarrelCommands.ScoreCommand(elevator, pivot, claw));
 
     new Trigger(HighballChooser::get)
-        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getHighball));
+        .onTrue(
+            QuarrelCommands.QuarrelCommand(
+                elevator, pivot, claw, QuarrelPresets::getHighball, () -> -12.0));
 
     new Trigger(LowballChooser::get)
-        .onTrue(QuarrelCommands.QuarrelCommand(elevator, pivot, QuarrelPresets::getLowball));
+        .onTrue(
+            QuarrelCommands.QuarrelCommand(
+                elevator, pivot, claw, QuarrelPresets::getLowball, () -> -12.0));
+
+    new Trigger(TransferChooser::get)
+        .onTrue(QuarrelCommands.TransferCommand(elevator, pivot, claw));
   }
 
   /**

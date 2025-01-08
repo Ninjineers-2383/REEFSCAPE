@@ -72,6 +72,7 @@ public class PositionJointIOTalonFX implements PositionJointIO {
   private final Alert encoderAlert;
 
   private double positionSetpoint = 0.0;
+  private double velocitySetpoint = 0.0;
 
   public PositionJointIOTalonFX(
       String name, PositionJointHardwareConfig config, DoubleSupplier externalFeedforward) {
@@ -113,6 +114,8 @@ public class PositionJointIOTalonFX implements PositionJointIO {
                 .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor));
 
         tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
+
+        motors[0].setPosition(config.encoderOffset().getRotations());
         break;
       case EXTERNAL_CANCODER:
         externalEncoder =
@@ -170,7 +173,7 @@ public class PositionJointIOTalonFX implements PositionJointIO {
     positions.add(motors[0].getPosition());
     velocities.add(motors[0].getVelocity());
 
-    voltages.add(motors[0].getSupplyVoltage());
+    voltages.add(motors[0].getMotorVoltage());
     currents.add(motors[0].getStatorCurrent());
 
     motorAlerts[0] =
@@ -192,9 +195,11 @@ public class PositionJointIOTalonFX implements PositionJointIO {
       positions.add(motors[i].getPosition());
       velocities.add(motors[i].getVelocity());
 
-      voltages.add(motors[i].getSupplyVoltage());
+      voltages.add(motors[i].getMotorVoltage());
       currents.add(motors[i].getStatorCurrent());
     }
+
+    // positionSetpoint = config.initialSetpoint();
   }
 
   public PositionJointIOTalonFX(String name, PositionJointHardwareConfig config) {
@@ -203,11 +208,14 @@ public class PositionJointIOTalonFX implements PositionJointIO {
 
   @Override
   public void updateInputs(PositionJointIOInputs inputs) {
+    BaseStatusSignal.refreshAll(outputPosition, rotorPosition, velocity);
+
     inputs.outputPosition = outputPosition.getValueAsDouble();
     inputs.rotorPosition = rotorPosition.getValueAsDouble();
     inputs.velocity = velocity.getValueAsDouble();
 
-    inputs.desiredVelocity = positionSetpoint;
+    inputs.desiredPosition = positionSetpoint;
+    inputs.desiredVelocity = velocitySetpoint;
 
     for (int i = 0; i < motors.length; i++) {
       // Do not refresh the three status signals above
@@ -255,6 +263,7 @@ public class PositionJointIOTalonFX implements PositionJointIO {
   @Override
   public void setPosition(double position, double velocity) {
     positionSetpoint = position;
+    velocitySetpoint = velocity;
 
     motors[0].setControl(
         positionRequest

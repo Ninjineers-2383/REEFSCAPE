@@ -2,13 +2,16 @@ package frc.robot.commands;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.commands.QuarrelPresets.QuarrelPosition;
 import frc.robot.commands.flywheel.FlywheelVoltageCommand;
 import frc.robot.commands.position_joint.PositionJointPositionCommand;
 import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.position_joint.PositionJoint;
+import java.util.Set;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -26,19 +29,49 @@ public class QuarrelCommands {
   }
 
   public static Command QuarrelCommand(
-      PositionJoint elevator, PositionJoint pivot, Supplier<QuarrelPosition> position) {
-    return new ParallelCommandGroup(
-        new PositionJointPositionCommand(elevator, () -> position.get().elevatorPositionMeters()),
-        new PositionJointPositionCommand(
-            pivot, () -> position.get().pivotRotation().getRotations()));
+      PositionJoint elevator,
+      PositionJoint pivot,
+      Flywheel claw,
+      Supplier<QuarrelPosition> position,
+      DoubleSupplier clawVoltage) {
+    return new DeferredCommand(
+        () ->
+            new ParallelCommandGroup(
+                new PositionJointPositionCommand(
+                    elevator, () -> position.get().elevatorPositionMeters()),
+                new PositionJointPositionCommand(
+                    pivot, () -> position.get().pivotRotation().getRotations()),
+                new FlywheelVoltageCommand(claw, clawVoltage)),
+        Set.of(elevator, pivot));
   }
 
   public static Command ScoreCommand(PositionJoint elevator, PositionJoint pivot, Flywheel claw) {
     // Elevator goes down by a specified amount and feeder outtakes
-    return new SequentialCommandGroup(
-        new PositionJointPositionCommand(
-            elevator, () -> elevator.getPosition() - QuarrelPresets.getScore()),
-        new FlywheelVoltageCommand(claw, () -> 5.0).withTimeout(1.0),
-        new FlywheelVoltageCommand(claw, () -> 0.0).withTimeout(0.1));
+    return new ParallelCommandGroup(
+        new PositionJointPositionCommand(pivot, () -> QuarrelPresets.getScore().getRotations()),
+        new SequentialCommandGroup(
+            new WaitCommand(0.5),
+            new FlywheelVoltageCommand(claw, () -> 5.0)
+                .withTimeout(1.0)
+                .andThen(new FlywheelVoltageCommand(claw, () -> 0.0))));
+  }
+
+  public static Command TransferCommand(
+      PositionJoint elevator, PositionJoint pivot, Flywheel claw) {
+    return new DeferredCommand(
+        () ->
+            new SequentialCommandGroup(
+                new PositionJointPositionCommand(
+                    elevator, () -> QuarrelPresets.getTransferUp().elevatorPositionMeters()),
+                new ParallelCommandGroup(
+                    new PositionJointPositionCommand(
+                        pivot, () -> QuarrelPresets.getTransferUp().pivotRotation().getRotations()),
+                    new FlywheelVoltageCommand(claw, () -> -6.0).withTimeout(0.1)),
+                new PositionJointPositionCommand(
+                    elevator, () -> QuarrelPresets.getTransferDown().elevatorPositionMeters()),
+                new PositionJointPositionCommand(
+                    elevator, () -> QuarrelPresets.getTransferUp().elevatorPositionMeters()),
+                new FlywheelVoltageCommand(claw, () -> 0.0).withTimeout(0.1)),
+        Set.of(elevator, pivot, claw));
   }
 }

@@ -59,12 +59,12 @@ public class PositionJoint extends SubsystemBase {
 
     kTolerance = new LoggedTunableNumber(name + "/Gains/kTolerance", gains.kTolerance());
 
-    kSetpoint = new LoggedTunableNumber(name + "/Gains/kSetpoint", getPosition());
+    kSetpoint = new LoggedTunableNumber(name + "/Gains/kSetpoint", gains.kDefaultSetpoint());
 
     constraints = new TrapezoidProfile.Constraints(gains.kMaxVelo(), gains.kMaxAccel());
     profile = new TrapezoidProfile(constraints);
 
-    goal = new TrapezoidProfile.State(getPosition(), 0);
+    goal = new TrapezoidProfile.State(gains.kDefaultSetpoint(), 0);
     setpoint = goal;
   }
 
@@ -93,7 +93,8 @@ public class PositionJoint extends SubsystemBase {
                   values[8],
                   values[9],
                   values[10],
-                  values[11]));
+                  values[11],
+                  values[12]));
 
           goal =
               new TrapezoidProfile.State(
