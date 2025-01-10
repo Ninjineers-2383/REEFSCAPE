@@ -15,11 +15,13 @@ public class PieceDetection extends SubsystemBase {
   private Pose3d gamePiecePose;
 
   public PieceDetection(PieceDetectionIO io, Supplier<Pose3d> robotPoseSupplier) {
+    super(io.getName());
+
     pieceDetection = io;
 
-    poseSupplier = robotPoseSupplier;
-
     name = pieceDetection.getName();
+
+    poseSupplier = robotPoseSupplier;
   }
 
   @Override

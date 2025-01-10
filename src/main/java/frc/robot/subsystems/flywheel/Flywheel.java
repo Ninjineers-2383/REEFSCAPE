@@ -1,5 +1,6 @@
 package frc.robot.subsystems.flywheel;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelGains;
 import frc.robot.util.LoggedTunableNumber;
@@ -21,9 +22,11 @@ public class Flywheel extends SubsystemBase {
   private final LoggedTunableNumber kVeloSetpoint;
 
   public Flywheel(FlywheelIO io, FlywheelGains gains) {
+    super(io.getName());
+
     flywheel = io;
 
-    name = io.getName();
+    name = flywheel.getName();
 
     kP = new LoggedTunableNumber(name + "/Gains/kP", gains.kP());
     kI = new LoggedTunableNumber(name + "/Gains/kI", gains.kI());
@@ -33,6 +36,8 @@ public class Flywheel extends SubsystemBase {
     kA = new LoggedTunableNumber(name + "/Gains/kA", gains.kA());
 
     kVeloSetpoint = new LoggedTunableNumber(name + "/Gains/kVeloSetpoint", getVelocity());
+
+    SmartDashboard.putData(name, this);
   }
 
   @Override

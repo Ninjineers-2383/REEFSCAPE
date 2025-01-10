@@ -35,7 +35,7 @@ deploy {
                     jvmArgs.add("-XX:MaxGCPauseMillis=50")
 
                     // The options below may improve performance, but should only be enabled on the RIO 2
-
+                    //
                     // final MAX_JAVA_HEAP_SIZE_MB = 100;
                     // jvmArgs.add("-Xmx" + MAX_JAVA_HEAP_SIZE_MB + "M")
                     // jvmArgs.add("-Xms" + MAX_JAVA_HEAP_SIZE_MB + "M")
@@ -64,17 +64,6 @@ wpi.java.debugJni = false
 def includeDesktopSupport = true
 
 // Configuration for AdvantageKit
-repositories {
-    maven {
-        url = uri("https://maven.pkg.github.com/Mechanical-Advantage/AdvantageKit")
-        credentials {
-            username = "Mechanical-Advantage-Bot"
-            password = "\u0067\u0068\u0070\u005f\u006e\u0056\u0051\u006a\u0055\u004f\u004c\u0061\u0079\u0066\u006e\u0078\u006e\u0037\u0051\u0049\u0054\u0042\u0032\u004c\u004a\u006d\u0055\u0070\u0073\u0031\u006d\u0037\u004c\u005a\u0030\u0076\u0062\u0070\u0063\u0051"
-        }
-    }
-    mavenLocal()
-}
-
 task(replayWatch, type: JavaExec) {
     mainClass = "org.littletonrobotics.junction.ReplayWatch"
     classpath = sourceSets.main.runtimeClasspath
@@ -119,7 +108,7 @@ test {
 // AdvantageKit log replay from the command line. Set the
 // value to "true" to enable the sim GUI by default (this
 // is the standard WPILib behavior).
-wpi.sim.addGui().defaultEnabled = true
+wpi.sim.addGui().defaultEnabled = false
 wpi.sim.addDriverstation()
 
 // Setting up my Jar File. In this case, adding all libraries into the main jar ('fat jar')

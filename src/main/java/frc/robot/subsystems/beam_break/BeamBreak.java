@@ -11,6 +11,8 @@ public class BeamBreak extends SubsystemBase {
   private final String name;
 
   public BeamBreak(BeamBreakIO io) {
+    super(io.getName());
+
     beamBreak = io;
 
     name = beamBreak.getName();
