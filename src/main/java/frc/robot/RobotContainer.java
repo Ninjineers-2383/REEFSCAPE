@@ -27,12 +27,10 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-import frc.robot.util.pathplanner.AdvancedPPHolonomicDriveController;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -55,7 +53,6 @@ public class RobotContainer {
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
-  private final LoggedNetworkNumber xOverride;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -75,6 +72,7 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0));
+
         break;
 
       case SIM:
@@ -105,6 +103,7 @@ public class RobotContainer {
                     VisionConstants.camera1Name,
                     VisionConstants.robotToCamera1,
                     driveSimulation::getSimulatedDriveTrainPose));
+
         break;
 
       default:
@@ -123,7 +122,6 @@ public class RobotContainer {
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
-    xOverride = new LoggedNetworkNumber("/PPOverrides", 0.0);
 
     // Set up SysId routines
     autoChooser.addOption(
@@ -173,28 +171,42 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // Reset gyro / odometry
-    final Runnable resetGyro =
-        Constants.currentMode == Constants.Mode.SIM
-            ? () ->
-                drive.setPose(
-                    driveSimulation
-                        .getSimulatedDriveTrainPose()) // reset odometry to actual robot pose during
-            // simulation
-            : () ->
-                drive.setPose(
-                    new Pose2d(
-                        drive.getPose().getTranslation(),
-                        DriverStation.getAlliance().isPresent()
-                            ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red
-                                ? new Rotation2d(Math.PI)
-                                : new Rotation2d())
-                            : new Rotation2d())); // zero gyro
+    // // Reset gyro / odometry
+    // final Runnable resetGyro =
+    //     Constants.currentMode == Constants.Mode.SIM
+    //         ? () ->
+    //             drive.setPose(
+    //                 driveSimulation
+    //                     .getSimulatedDriveTrainPose()) // reset odometry to actual robot pose
+    // during
+    //         // simulation
+    //         : () ->
+    //             drive.setPose(
+    //                 new Pose2d(
+    //                     drive.getPose().getTranslation(),
+    //                     DriverStation.getAlliance().isPresent()
+    //                         ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red
+    //                             ? new Rotation2d(Math.PI)
+    //                             : new Rotation2d())
+    //                         : new Rotation2d())); // zero gyro
 
     // Reset gyro to 0° when B button is pressed
-    driverController.b().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
-
-    AdvancedPPHolonomicDriveController.setYSetpointIncrement(xOverride::get);
+    driverController
+        .b()
+        .onTrue(
+            Commands.runOnce(
+                    () ->
+                        drive.setPose(
+                            new Pose2d(
+                                drive.getPose().getTranslation(),
+                                DriverStation.getAlliance().isPresent()
+                                    ? (DriverStation.getAlliance().get()
+                                            == DriverStation.Alliance.Red
+                                        ? new Rotation2d(Math.PI)
+                                        : new Rotation2d())
+                                    : new Rotation2d())),
+                    drive)
+                .ignoringDisable(true));
   }
 
   /**
