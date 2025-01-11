@@ -2,6 +2,7 @@ package frc.robot.subsystems.position_joint;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointGains;
 import frc.robot.util.LoggedTunableNumber;
@@ -40,8 +41,10 @@ public class PositionJoint extends SubsystemBase {
   private TrapezoidProfile.State setpoint = new TrapezoidProfile.State();
 
   public PositionJoint(PositionJointIO io, PositionJointGains gains) {
+    super(io.getName());
+
     positionJoint = io;
-    name = io.getName();
+    name = positionJoint.getName();
 
     kP = new LoggedTunableNumber(name + "/Gains/kP", gains.kP());
     kI = new LoggedTunableNumber(name + "/Gains/kI", gains.kI());
@@ -59,13 +62,15 @@ public class PositionJoint extends SubsystemBase {
 
     kTolerance = new LoggedTunableNumber(name + "/Gains/kTolerance", gains.kTolerance());
 
-    kSetpoint = new LoggedTunableNumber(name + "/Gains/kSetpoint", getPosition());
+    kSetpoint = new LoggedTunableNumber(name + "/Gains/kSetpoint", gains.kDefaultSetpoint());
 
     constraints = new TrapezoidProfile.Constraints(gains.kMaxVelo(), gains.kMaxAccel());
     profile = new TrapezoidProfile(constraints);
 
-    goal = new TrapezoidProfile.State(getPosition(), 0);
+    goal = new TrapezoidProfile.State(gains.kDefaultSetpoint(), 0);
     setpoint = goal;
+
+    SmartDashboard.putData(name, this);
   }
 
   @Override
@@ -93,7 +98,8 @@ public class PositionJoint extends SubsystemBase {
                   values[8],
                   values[9],
                   values[10],
-                  values[11]));
+                  values[11],
+                  values[12]));
 
           goal =
               new TrapezoidProfile.State(

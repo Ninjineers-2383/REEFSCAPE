@@ -29,7 +29,8 @@ public class PositionJointConstants {
       double kMaxAccel,
       double kMinPosition,
       double kMaxPosition,
-      double kTolerance) {}
+      double kTolerance,
+      double kDefaultSetpoint) {}
 
   // Position Joint Gear Ratio should be multiplied by Math.PI * 2 for rotation joints to convert
   // from rotations to radians
@@ -45,7 +46,7 @@ public class PositionJointConstants {
       String canBus) {}
 
   public static final PositionJointGains EXAMPLE_GAINS =
-      new PositionJointGains(1.5, 0.0, 0.0, 0.5, 1.0, 2.0, 0.0, 10.0, 20.0, 0.0, Math.PI, 0.2);
+      new PositionJointGains(1.5, 0.0, 0.0, 0.5, 1.0, 2.0, 0.0, 10.0, 20.0, 0.0, Math.PI, 0.2, 0.0);
 
   public static final PositionJointHardwareConfig EXAMPLE_CONFIG =
       new PositionJointHardwareConfig(
