@@ -4,7 +4,9 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -148,7 +150,7 @@ public class RobotContainer {
         // create a maple-sim swerve drive simulation instance
         driveSimulation =
             new SwerveDriveSimulation(
-                DriveConstants.mapleSimConfig, new Pose2d(3, 3, new Rotation2d()));
+                DriveConstants.mapleSimConfig, new Pose2d(7, 5.5, new Rotation2d()));
         // add the simulated drivetrain to the simulation field
         SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
         // Sim robot, instantiate physics sim IO implementations
@@ -277,13 +279,20 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
-    drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
-            drive,
-            () -> -driverController.getLeftY(),
-            () -> -driverController.getLeftX(),
-            () -> -driverController.getRightX()));
+    try {
 
+      drive.setDefaultCommand(
+          DriveCommands.joystickDriveAlongTrajectory(
+              drive,
+              TrajectoryUtil.fromPathweaverJson(
+                  Filesystem.getDeployDirectory().toPath().resolve("paths/TestPath1.wpilib.json")),
+              () -> -driverController.getLeftY(),
+              () -> -driverController.getLeftX(),
+              () -> -driverController.getRightX()));
+
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
     // Lock to 0° when A button is held
     driverController
         .a()

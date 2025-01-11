@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -17,6 +18,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.piece_detection.PieceDetection;
@@ -27,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
@@ -205,6 +208,142 @@ public class DriveCommands {
 
         // Reset PID controller when command starts
         .beforeStarting(() -> angleController.reset(drive.getRotation().getRadians()));
+  }
+
+  protected static double transformDot(Transform2d a, Transform2d b) {
+    return a.getX() * b.getX() + a.getY() * b.getY();
+  }
+
+  protected static Trajectory.State sampleTrajectory(Trajectory trajectory, Pose2d pose) {
+    List<Trajectory.State> states = trajectory.getStates();
+
+    // Find closest point to current pose
+    Trajectory.State lowerState = states.get(0);
+    Trajectory.State higherState = states.get(0);
+    double minDistance = Double.POSITIVE_INFINITY;
+    for (int i = 0; i < states.size() - 1; i++) {
+      double distance =
+          states.get(i).poseMeters.getTranslation().getDistance(pose.getTranslation());
+      if (distance < minDistance) {
+        minDistance = distance;
+        lowerState = states.get(i);
+        higherState = states.get(i + 1);
+
+        Transform2d lowerToHigher = higherState.poseMeters.minus(lowerState.poseMeters);
+        Transform2d lowerToPose = pose.minus(lowerState.poseMeters);
+
+        double dot = transformDot(lowerToPose, lowerToHigher);
+
+        if (dot < 0) {
+          higherState = lowerState;
+          lowerState = states.get(i + 1);
+        }
+      }
+    }
+
+    // Interpolate between states based on distance
+    // TODO: FIx this to actually get the closest point
+    return trajectory.sample((lowerState.timeSeconds + higherState.timeSeconds) / 2);
+  }
+
+  /**
+   * @param drive
+   * @return
+   */
+  public static Command joystickDriveAlongTrajectory(
+      Drive drive,
+      Trajectory trajectory,
+      DoubleSupplier xSupplier,
+      DoubleSupplier ySupplier,
+      DoubleSupplier omegaSupplier) {
+    // Get closest point to drivetrain along trajectory
+
+    return new FunctionalCommand(
+        () -> {
+          Logger.recordOutput("DriveAlongTrajectory/Trajectory", trajectory);
+        },
+        () -> {
+          Trajectory.State goalState = sampleTrajectory(trajectory, drive.getPose());
+          Logger.recordOutput("DriveAlongTrajectory/TrajPose", goalState.poseMeters);
+
+          // Get linear velocity
+          Translation2d linearVelocity =
+              getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+
+          // Apply rotation deadband
+          double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
+
+          boolean isFlipped =
+              DriverStation.getAlliance().isPresent()
+                  && DriverStation.getAlliance().get() == Alliance.Red;
+
+          // Square rotation value for more precise control
+          omega = Math.copySign(omega * omega, omega);
+
+          ChassisSpeeds trajectoryVelocity =
+              ChassisSpeeds.fromRobotRelativeSpeeds(
+                  1.0, 0.0, 0.0, goalState.poseMeters.getRotation());
+
+          trajectoryVelocity =
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  trajectoryVelocity, new Rotation2d(isFlipped ? Math.PI : 0));
+
+          ChassisSpeeds driverVelocity =
+              new ChassisSpeeds(
+                  linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                  linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                  omega * drive.getMaxAngularSpeedRadPerSec());
+
+          Transform2d Vtraj =
+              new Transform2d(
+                  trajectoryVelocity.vxMetersPerSecond,
+                  trajectoryVelocity.vyMetersPerSecond,
+                  new Rotation2d());
+          Transform2d Vdrive =
+              new Transform2d(
+                  new Translation2d(
+                      driverVelocity.vxMetersPerSecond, driverVelocity.vyMetersPerSecond),
+                  new Rotation2d());
+          Transform2d Vdrive_norm = Vdrive.div(Vdrive.getTranslation().getNorm());
+
+          double dot = transformDot(Vtraj, Vdrive_norm);
+
+          Logger.recordOutput("DriveAlongTrajectory/Dot", dot);
+
+          Transform2d errorTransform = goalState.poseMeters.minus(drive.getPose());
+
+          ChassisSpeeds error =
+              new ChassisSpeeds(errorTransform.getX(), errorTransform.getY(), 0.0).times(2);
+
+          error =
+              ChassisSpeeds.fromFieldRelativeSpeeds(error, new Rotation2d(isFlipped ? Math.PI : 0));
+
+          ChassisSpeeds speeds;
+
+          if (dot > 0.5 && errorTransform.getTranslation().getNorm() < 1) {
+            speeds =
+                (trajectoryVelocity.times(dot * dot).times(Vdrive.getTranslation().getNorm()))
+                    .plus(driverVelocity.times((1 - dot) * (1 - dot)))
+                    .plus(error);
+
+            Logger.recordOutput("DriveAlongTrajectory/Enabled", true);
+
+          } else {
+            speeds = driverVelocity;
+            Logger.recordOutput("DriveAlongTrajectory/Enabled", false);
+          }
+
+          speeds =
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  speeds,
+                  isFlipped
+                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                      : drive.getRotation());
+          drive.runVelocity(speeds);
+        },
+        (interrupted) -> {},
+        () -> false,
+        drive);
   }
 
   /**
