@@ -172,39 +172,28 @@ public class RobotContainer {
     driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // // Reset gyro / odometry
-    // final Runnable resetGyro =
-    //     Constants.currentMode == Constants.Mode.SIM
-    //         ? () ->
-    //             drive.setPose(
-    //                 driveSimulation
-    //                     .getSimulatedDriveTrainPose()) // reset odometry to actual robot pose
-    // during
-    //         // simulation
-    //         : () ->
-    //             drive.setPose(
-    //                 new Pose2d(
-    //                     drive.getPose().getTranslation(),
-    //                     DriverStation.getAlliance().isPresent()
-    //                         ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red
-    //                             ? new Rotation2d(Math.PI)
-    //                             : new Rotation2d())
-    //                         : new Rotation2d())); // zero gyro
+    final Runnable resetGyro =
+        Constants.currentMode == Constants.Mode.SIM
+            ? () ->
+                drive.setPose(
+                    driveSimulation
+                        .getSimulatedDriveTrainPose()) // reset odometry to actual robot pose during simulation
+            : () ->
+                drive.setPose(
+                    new Pose2d(
+                        drive.getPose().getTranslation(),
+                        DriverStation.getAlliance().isPresent()
+                            ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red
+                                ? new Rotation2d(Math.PI)
+                                : new Rotation2d())
+                            : new Rotation2d())); // zero gyro
 
     // Reset gyro to 0° when B button is pressed
     driverController
         .b()
         .onTrue(
             Commands.runOnce(
-                    () ->
-                        drive.setPose(
-                            new Pose2d(
-                                drive.getPose().getTranslation(),
-                                DriverStation.getAlliance().isPresent()
-                                    ? (DriverStation.getAlliance().get()
-                                            == DriverStation.Alliance.Red
-                                        ? new Rotation2d(Math.PI)
-                                        : new Rotation2d())
-                                    : new Rotation2d())),
+                        resetGyro,
                     drive)
                 .ignoringDisable(true));
   }
@@ -231,7 +220,7 @@ public class RobotContainer {
     Logger.recordOutput(
         "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
     Logger.recordOutput(
-        "FieldSimulation/Notes",
+        "FieldSimulation/Coral",
         SimulatedArena.getInstance().getGamePiecesByType("Note").toArray(new Pose3d[0]));
   }
 }
