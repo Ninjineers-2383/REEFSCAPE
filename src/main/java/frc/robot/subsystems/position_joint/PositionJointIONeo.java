@@ -21,12 +21,12 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.subsystems.position_joint.PositionJointConstants.GravityType;
 import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointGains;
 import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointHardwareConfig;
-import frc.robot.util.PositionJointFeedforward;
-import frc.robot.util.TunableArmFeedforward;
-import frc.robot.util.TunableElevatorFeedforward;
 import frc.robot.util.encoder.AbsoluteCancoder;
 import frc.robot.util.encoder.AbsoluteMagEncoder;
 import frc.robot.util.encoder.IAbsoluteEncoder;
+import frc.robot.util.feedforwards.PositionJointFeedforward;
+import frc.robot.util.feedforwards.TunableArmFeedforward;
+import frc.robot.util.feedforwards.TunableElevatorFeedforward;
 import java.util.function.DoubleSupplier;
 
 public class PositionJointIONeo implements PositionJointIO {

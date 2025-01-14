@@ -1,4 +1,4 @@
-package frc.robot.util;
+package frc.robot.util.feedforwards;
 
 public interface PositionJointFeedforward {
   public double calculate(double position, double velocity);
