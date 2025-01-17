@@ -22,6 +22,10 @@ import frc.robot.subsystems.drive.spark.ModuleIOSparkSim;
 import frc.robot.subsystems.drive.talon.ModuleIOTalonFX;
 import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
 import frc.robot.subsystems.drive.talon.TalonFXModuleConstants;
+import frc.robot.subsystems.flywheel.Flywheel;
+import frc.robot.subsystems.flywheel.FlywheelConstants;
+import frc.robot.subsystems.flywheel.FlywheelIO;
+import frc.robot.subsystems.flywheel.FlywheelIOSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
@@ -44,6 +48,8 @@ public class RobotContainer {
 
   @SuppressWarnings("unused")
   private final Vision vision;
+
+  private final Flywheel flywheel;
 
   // Simulation
   private SwerveDriveSimulation driveSimulation = null;
@@ -72,6 +78,8 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0));
+
+        flywheel = new Flywheel(new FlywheelIO() {}, FlywheelConstants.EXAMPLE_GAINS);
 
         break;
 
@@ -104,6 +112,11 @@ public class RobotContainer {
                     VisionConstants.robotToCamera1,
                     driveSimulation::getSimulatedDriveTrainPose));
 
+        flywheel =
+            new Flywheel(
+                new FlywheelIOSim("Spinny", FlywheelConstants.EXAMPLE_CONFIG),
+                FlywheelConstants.EXAMPLE_GAINS);
+
         break;
 
       default:
@@ -117,6 +130,9 @@ public class RobotContainer {
                 new ModuleIO() {},
                 null);
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+
+        flywheel = new Flywheel(new FlywheelIO() {}, FlywheelConstants.EXAMPLE_GAINS);
+
         break;
     }
 

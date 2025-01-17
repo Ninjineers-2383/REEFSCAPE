@@ -1,5 +1,7 @@
 package frc.robot.subsystems.flywheel;
 
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
@@ -10,18 +12,33 @@ import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelHardwareConfig;
 public class FlywheelIOSim implements FlywheelIO {
   private final String name;
 
+  private final FlywheelHardwareConfig config;
+
   private final DCMotor gearBox;
 
   private final DCMotorSim sim;
 
   private final PIDController controller;
 
-  private double velocitySetpoint;
+  private final double[] motorPositions;
+  private final double[] motorVelocities;
+
+  private final double[] motorVoltages;
+  private final double[] motorCurrents;
+
+  private double velocitySetpoint = 0;
 
   public FlywheelIOSim(String name, FlywheelHardwareConfig config) {
     this.name = name;
 
+    this.config = config;
+
     assert config.canIds().length > 0 && (config.canIds().length == config.reversed().length);
+
+    motorPositions = new double[config.canIds().length];
+    motorVelocities = new double[config.canIds().length];
+    motorVoltages = new double[config.canIds().length];
+    motorCurrents = new double[config.canIds().length];
 
     gearBox = DCMotor.getKrakenX60Foc(config.canIds().length);
 
@@ -34,10 +51,24 @@ public class FlywheelIOSim implements FlywheelIO {
 
   @Override
   public void updateInputs(FlywheelIOInputs inputs) {
-    sim.setInputVoltage(controller.calculate(sim.getAngularVelocityRadPerSec(), velocitySetpoint));
+    double inputVoltage = controller.calculate(sim.getAngularVelocityRPM(), velocitySetpoint);
+    sim.setInputVoltage(inputVoltage);
+    sim.update(0.02);
 
-    inputs.velocity = sim.getAngularVelocity().magnitude();
+    inputs.velocity = sim.getAngularVelocityRPM();
     inputs.desiredVelocity = velocitySetpoint;
+
+    for (int i = 0; i < config.canIds().length; i++) {
+      motorPositions[i] = sim.getAngularPositionRotations();
+      motorVelocities[i] = sim.getAngularVelocity().in(RotationsPerSecond);
+      motorVoltages[i] = inputVoltage;
+      motorCurrents[i] = sim.getCurrentDrawAmps();
+    }
+
+    inputs.motorPositions = motorPositions;
+    inputs.motorVelocities = motorVelocities;
+    inputs.motorVoltages = motorVoltages;
+    inputs.motorCurrents = motorCurrents;
   }
 
   @Override
@@ -50,5 +81,10 @@ public class FlywheelIOSim implements FlywheelIO {
     controller.setPID(gains.kP(), gains.kI(), gains.kD());
 
     System.out.println(name + " gains set to " + gains);
+  }
+
+  @Override
+  public String getName() {
+    return name;
   }
 }

@@ -46,7 +46,7 @@ public class PositionJointIOSim implements PositionJointIO {
     motorVoltages = new double[config.canIds().length];
     motorCurrents = new double[config.canIds().length];
 
-    gearBox = DCMotor.getKrakenX60Foc(1);
+    gearBox = DCMotor.getKrakenX60Foc(config.canIds().length);
 
     sim =
         new DCMotorSim(
