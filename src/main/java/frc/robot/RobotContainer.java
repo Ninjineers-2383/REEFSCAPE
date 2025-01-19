@@ -19,6 +19,10 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.commands.QuarrelCommands;
 import frc.robot.commands.QuarrelPresets;
 import frc.robot.commands.flywheel.FlywheelVoltageCommand;
+import frc.robot.subsystems.beam_break.BeamBreak;
+import frc.robot.subsystems.beam_break.BeamBreakConstants;
+import frc.robot.subsystems.beam_break.BeamBreakIO;
+import frc.robot.subsystems.beam_break.BeamBreakIODigitialInput;
 import frc.robot.subsystems.components.Components;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -62,13 +66,12 @@ public class RobotContainer {
   private final Drive drive;
 
   private final PositionJoint elevator;
-  private final PositionJoint pivot;
-  private final Flywheel claw;
+  private final Flywheel outtake;
+
+  private final BeamBreak outtake_sensor;
 
   private final PositionJoint climber;
   private final Flywheel climberIntake;
-
-  private final Flywheel intake;
 
   private final Vision vision;
 
@@ -120,15 +123,15 @@ public class RobotContainer {
                 new PositionJointIOTalonFX("Elevator", PositionJointConstants.ELEVATOR_CONFIG),
                 PositionJointConstants.ELEVATOR_GAINS);
 
-        pivot =
-            new PositionJoint(
-                new PositionJointIOTalonFX("Pivot", PositionJointConstants.PIVOT_CONFIG),
-                PositionJointConstants.PIVOT_GAINS);
-
-        claw =
+        outtake =
             new Flywheel(
-                new FlywheelIOTalonFX("Claw", FlywheelConstants.CLAW_CONFIG),
-                FlywheelConstants.CLAW_GAINS);
+                new FlywheelIOTalonFX("Outtake", FlywheelConstants.OUTTAKE_CONFIG),
+                FlywheelConstants.OUTTAKE_GAINS);
+
+        outtake_sensor =
+            new BeamBreak(
+                new BeamBreakIODigitialInput(
+                    "Outtake_Sensor", BeamBreakConstants.OUTTAKE_BREAK_CONFIG));
 
         climber =
             new PositionJoint(
@@ -139,11 +142,6 @@ public class RobotContainer {
             new Flywheel(
                 new FlywheelIOTalonFX("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
                 FlywheelConstants.CLIMBER_INTAKE_GAINS);
-
-        intake =
-            new Flywheel(
-                new FlywheelIOTalonFX("Intake", FlywheelConstants.INTAKE_CONFIG),
-                FlywheelConstants.INTAKE_GAINS);
         break;
 
       case SIM:
@@ -180,15 +178,12 @@ public class RobotContainer {
                 new PositionJointIOSim("Elevator", PositionJointConstants.ELEVATOR_CONFIG),
                 PositionJointConstants.ELEVATOR_GAINS);
 
-        pivot =
-            new PositionJoint(
-                new PositionJointIOSim("Pivot", PositionJointConstants.PIVOT_CONFIG),
-                PositionJointConstants.PIVOT_GAINS);
-
-        claw =
+        outtake =
             new Flywheel(
-                new FlywheelIOSim("Claw", FlywheelConstants.CLAW_CONFIG),
-                FlywheelConstants.CLAW_GAINS);
+                new FlywheelIOSim("Outtake", FlywheelConstants.OUTTAKE_CONFIG),
+                FlywheelConstants.OUTTAKE_GAINS);
+
+        outtake_sensor = new BeamBreak(new BeamBreakIO() {});
 
         climber =
             new PositionJoint(
@@ -199,11 +194,6 @@ public class RobotContainer {
             new Flywheel(
                 new FlywheelIOSim("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
                 FlywheelConstants.CLIMBER_INTAKE_GAINS);
-
-        intake =
-            new Flywheel(
-                new FlywheelIOSim("Intake", FlywheelConstants.INTAKE_CONFIG),
-                FlywheelConstants.INTAKE_GAINS);
         break;
 
       default:
@@ -221,20 +211,18 @@ public class RobotContainer {
         elevator =
             new PositionJoint(new PositionJointIO() {}, PositionJointConstants.ELEVATOR_GAINS);
 
-        pivot = new PositionJoint(new PositionJointIO() {}, PositionJointConstants.PIVOT_GAINS);
+        outtake = new Flywheel(new FlywheelIO() {}, FlywheelConstants.OUTTAKE_GAINS);
 
-        claw = new Flywheel(new FlywheelIO() {}, FlywheelConstants.CLAW_GAINS);
+        outtake_sensor = new BeamBreak(new BeamBreakIO() {});
 
         climber = new PositionJoint(new PositionJointIO() {}, PositionJointConstants.CLIMBER_GAINS);
 
         climberIntake = new Flywheel(new FlywheelIO() {}, FlywheelConstants.CLIMBER_INTAKE_GAINS);
 
-        intake = new Flywheel(new FlywheelIO() {}, FlywheelConstants.INTAKE_GAINS);
-
         break;
     }
 
-    sim_components = new Components(elevator, pivot);
+    sim_components = new Components(elevator);
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -329,18 +317,18 @@ public class RobotContainer {
 
     driverController
         .rightBumper()
-        .onTrue(new FlywheelVoltageCommand(claw, () -> 3.0))
-        .onFalse(new FlywheelVoltageCommand(claw, () -> 0.0));
+        .onTrue(new FlywheelVoltageCommand(outtake, () -> 3.0))
+        .onFalse(new FlywheelVoltageCommand(outtake, () -> 0.0));
     driverController
         .leftBumper()
-        .onTrue(new FlywheelVoltageCommand(claw, () -> -3.0))
-        .onFalse(new FlywheelVoltageCommand(claw, () -> 0.0));
+        .onTrue(new FlywheelVoltageCommand(outtake, () -> -3.0))
+        .onFalse(new FlywheelVoltageCommand(outtake, () -> 0.0));
 
-    intake.setDefaultCommand(
+    outtake.setDefaultCommand(
         new FlywheelVoltageCommand(
-            intake,
+            outtake,
             () ->
-                (driverController.getLeftTriggerAxis() - driverController.getRightTriggerAxis())
+                (driverController.getRightTriggerAxis() - driverController.getLeftTriggerAxis())
                     * 12.0));
 
     new Trigger(L1Chooser::get)
@@ -365,10 +353,6 @@ public class RobotContainer {
                   LowballChooser.set(false);
                   TransferChooser.set(false);
 
-                  if (pivot.getCurrentCommand() != null) {
-                    pivot.getCurrentCommand().cancel();
-                  }
-
                   if (elevator.getCurrentCommand() != null) {
                     elevator.getCurrentCommand().cancel();
                   }
@@ -376,43 +360,38 @@ public class RobotContainer {
 
     new Trigger(L1Chooser::get)
         .onTrue(
-            QuarrelCommands.QuarrelCommand(
-                elevator, pivot, claw, QuarrelPresets::getL1, () -> 0.0));
+            QuarrelCommands.QuarrelCommand(elevator, outtake, QuarrelPresets::getL1, () -> 0.0));
 
     new Trigger(L2Chooser::get)
         .onTrue(
-            QuarrelCommands.QuarrelCommand(
-                elevator, pivot, claw, QuarrelPresets::getL2, () -> 0.0));
+            QuarrelCommands.QuarrelCommand(elevator, outtake, QuarrelPresets::getL2, () -> 0.0));
 
     new Trigger(L3Chooser::get)
         .onTrue(
-            QuarrelCommands.QuarrelCommand(
-                elevator, pivot, claw, QuarrelPresets::getL3, () -> 0.0));
+            QuarrelCommands.QuarrelCommand(elevator, outtake, QuarrelPresets::getL3, () -> 0.0));
 
     new Trigger(L4Chooser::get)
         .onTrue(
-            QuarrelCommands.QuarrelCommand(
-                elevator, pivot, claw, QuarrelPresets::getL4, () -> 0.0));
+            QuarrelCommands.QuarrelCommand(elevator, outtake, QuarrelPresets::getL4, () -> 0.0));
 
     new Trigger(ZeroChooser::get)
         .onTrue(
-            QuarrelCommands.QuarrelCommand(
-                elevator, pivot, claw, QuarrelPresets::getZero, () -> 0.0));
+            QuarrelCommands.QuarrelCommand(elevator, outtake, QuarrelPresets::getZero, () -> 0.0));
 
-    new Trigger(ScoreChooser::get).onTrue(QuarrelCommands.ScoreCommand(elevator, pivot, claw));
+    new Trigger(ScoreChooser::get).onTrue(QuarrelCommands.ScoreCommand(elevator, outtake));
 
     new Trigger(HighballChooser::get)
         .onTrue(
             QuarrelCommands.QuarrelCommand(
-                elevator, pivot, claw, QuarrelPresets::getHighball, () -> -12.0));
+                elevator, outtake, QuarrelPresets::getHighball, () -> -12.0));
 
     new Trigger(LowballChooser::get)
         .onTrue(
             QuarrelCommands.QuarrelCommand(
-                elevator, pivot, claw, QuarrelPresets::getLowball, () -> -12.0));
+                elevator, outtake, QuarrelPresets::getLowball, () -> -12.0));
 
     new Trigger(TransferChooser::get)
-        .onTrue(QuarrelCommands.TransferCommand(elevator, pivot, claw));
+        .onTrue(QuarrelCommands.TransferCommand(elevator, outtake, outtake_sensor));
   }
 
   /**

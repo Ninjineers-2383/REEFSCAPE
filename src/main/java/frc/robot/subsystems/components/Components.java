@@ -10,14 +10,11 @@ import org.littletonrobotics.junction.Logger;
 
 public class Components extends SubsystemBase {
   PositionJoint elevator;
-  PositionJoint pivot;
 
   LoggedTunableNumber elevatorPosition = new LoggedTunableNumber("Components/ElevatorPosition", 0);
-  LoggedTunableNumber pivotPosition = new LoggedTunableNumber("Components/PivotPosition", 0);
 
-  public Components(PositionJoint elevator, PositionJoint pivot) {
+  public Components(PositionJoint elevator) {
     this.elevator = elevator;
-    this.pivot = pivot;
   }
 
   @Override
@@ -25,8 +22,7 @@ public class Components extends SubsystemBase {
     Pose3d[] poses = new Pose3d[1];
     poses[0] =
         new Pose3d(
-            new Translation3d(0, 0, 0.334 + elevator.getPosition()),
-            new Rotation3d(pivot.getPosition(), 0, 0));
+            new Translation3d(0, 0, 0.334 + elevator.getPosition()), new Rotation3d(0, 0, 0));
     // poses[0] =
     //     new Pose3d(
     //         new Translation3d(0, 0, 0.334 + elevatorPosition.get()),

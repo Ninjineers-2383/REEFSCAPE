@@ -61,21 +61,6 @@ public class PositionJointConstants {
           new Rotation2d(),
           "Drive");
 
-  public static final PositionJointGains PIVOT_GAINS =
-      new PositionJointGains(35.0, 0.0, 0.0, 0.2, 0.4, 0.0, 0.0, 5.0, 5.0, -0.5, 0.5, 0.2, -0.25);
-
-  public static final PositionJointHardwareConfig PIVOT_CONFIG =
-      new PositionJointHardwareConfig(
-          new int[] {12},
-          new boolean[] {false},
-          83.3,
-          40,
-          GravityType.COSINE,
-          EncoderType.INTERNAL,
-          -1,
-          Rotation2d.fromRotations(-0.25),
-          "Drive");
-
   public static final PositionJointGains CLIMBER_GAINS =
       new PositionJointGains(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0);
 
