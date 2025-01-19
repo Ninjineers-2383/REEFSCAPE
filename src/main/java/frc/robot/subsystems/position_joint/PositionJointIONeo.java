@@ -18,6 +18,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.subsystems.position_joint.PositionJointConstants.GravityType;
 import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointGains;
 import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointHardwareConfig;
@@ -83,8 +84,8 @@ public class PositionJointIONeo implements PositionJointIO {
             .idleMode(IdleMode.kBrake)
             .apply(
                 new EncoderConfig()
-                    .positionConversionFactor(config.gearRatio())
-                    .velocityConversionFactor(config.gearRatio()));
+                    .positionConversionFactor(1.0 / config.gearRatio())
+                    .velocityConversionFactor(1.0 / (60.0 * config.gearRatio())));
 
     switch (config.encoderType()) {
       case INTERNAL:
@@ -171,7 +172,10 @@ public class PositionJointIONeo implements PositionJointIO {
     for (int i = 1; i < config.canIds().length; i++) {
       motors[i] = new SparkMax(config.canIds()[i], MotorType.kBrushless);
       motors[i].configure(
-          new SparkMaxConfig().follow(motors[0]).inverted(config.reversed()[i]),
+          new SparkMaxConfig()
+              .follow(motors[0])
+              .inverted(config.reversed()[i])
+              .idleMode(IdleMode.kBrake),
           ResetMode.kNoResetSafeParameters,
           PersistMode.kNoPersistParameters);
 
@@ -202,9 +206,12 @@ public class PositionJointIONeo implements PositionJointIO {
   @Override
   public void updateInputs(PositionJointIOInputs inputs) {
     currentPosition = motors[0].getEncoder().getPosition();
-    inputs.outputPosition = currentPosition;
 
+    inputs.outputPosition = currentPosition;
+    inputs.rotorPosition = currentPosition * hardwareConfig.gearRatio();
     inputs.desiredPosition = positionSetpoint;
+
+    inputs.velocity = motors[0].getEncoder().getVelocity();
     inputs.desiredVelocity = velocitySetpoint;
 
     for (int i = 0; i < motors.length; i++) {
@@ -213,10 +220,10 @@ public class PositionJointIONeo implements PositionJointIO {
       motorPositions[i] = motors[i].getEncoder().getPosition();
       motorVelocities[i] = motors[i].getEncoder().getVelocity();
 
-      motorVoltages[i] = motors[i].getAppliedOutput() * 12;
+      motorVoltages[i] = motors[i].getAppliedOutput() * RobotController.getBatteryVoltage();
       motorCurrents[i] = motors[i].getOutputCurrent();
 
-      motorAlerts[i].set(motorsConnected[i]);
+      motorAlerts[i].set(!motorsConnected[i]);
     }
 
     inputs.motorsConnected = motorsConnected;
