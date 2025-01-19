@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.commands.QuarrelPresets.QuarrelPosition;
 import frc.robot.commands.flywheel.FlywheelVoltageCommand;
 import frc.robot.commands.position_joint.PositionJointPositionCommand;
-import frc.robot.subsystems.beam_break.BeamBreak;
+import frc.robot.subsystems.digital_sensor.DigitalSensor;
 import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.position_joint.PositionJoint;
 import java.util.function.DoubleSupplier;
@@ -47,7 +47,8 @@ public class QuarrelCommands {
                 .andThen(new FlywheelVoltageCommand(claw, () -> 0.0))));
   }
 
-  public static Command TransferCommand(PositionJoint elevator, Flywheel claw, BeamBreak sensor) {
+  public static Command TransferCommand(
+      PositionJoint elevator, Flywheel claw, DigitalSensor sensor) {
     return new SequentialCommandGroup(
         new PositionJointPositionCommand(
             elevator, () -> QuarrelPresets.getTransferUp().elevatorPositionMeters()),

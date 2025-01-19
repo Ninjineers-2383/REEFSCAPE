@@ -1,6 +1,5 @@
 package frc.robot.subsystems.flywheel;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelGains;
 import frc.robot.util.LoggedTunableNumber;
@@ -19,7 +18,9 @@ public class Flywheel extends SubsystemBase {
   private final LoggedTunableNumber kV;
   private final LoggedTunableNumber kA;
 
-  private final LoggedTunableNumber kVeloSetpoint;
+  private final LoggedTunableNumber kTolerance;
+
+  private final LoggedTunableNumber kSetpoint;
 
   public Flywheel(FlywheelIO io, FlywheelGains gains) {
     super(io.getName());
@@ -35,9 +36,9 @@ public class Flywheel extends SubsystemBase {
     kV = new LoggedTunableNumber(name + "/Gains/kV", gains.kV());
     kA = new LoggedTunableNumber(name + "/Gains/kA", gains.kA());
 
-    kVeloSetpoint = new LoggedTunableNumber(name + "/Gains/kVeloSetpoint", getVelocity());
+    kTolerance = new LoggedTunableNumber(name + "/Gains/kTolerance", gains.kTolerance());
 
-    SmartDashboard.putData(name, this);
+    kSetpoint = new LoggedTunableNumber(name + "/Gains/kSetpoint", 0.0);
   }
 
   @Override
@@ -49,9 +50,10 @@ public class Flywheel extends SubsystemBase {
         hashCode(),
         (values) -> {
           flywheel.setGains(
-              new FlywheelGains(values[0], values[1], values[2], values[3], values[4], values[5]));
+              new FlywheelGains(
+                  values[0], values[1], values[2], values[3], values[4], values[5], values[6]));
 
-          flywheel.setVelocity(values[6]);
+          flywheel.setVelocity(values[7]);
         },
         kP,
         kI,
@@ -59,7 +61,8 @@ public class Flywheel extends SubsystemBase {
         kS,
         kV,
         kA,
-        kVeloSetpoint);
+        kTolerance,
+        kSetpoint);
   }
 
   public void setVelocity(double velocity) {

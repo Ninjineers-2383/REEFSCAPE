@@ -19,11 +19,11 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.commands.QuarrelCommands;
 import frc.robot.commands.QuarrelPresets;
 import frc.robot.commands.flywheel.FlywheelVoltageCommand;
-import frc.robot.subsystems.beam_break.BeamBreak;
-import frc.robot.subsystems.beam_break.BeamBreakConstants;
-import frc.robot.subsystems.beam_break.BeamBreakIO;
-import frc.robot.subsystems.beam_break.BeamBreakIODigitialInput;
 import frc.robot.subsystems.components.Components;
+import frc.robot.subsystems.digital_sensor.DigitalSensor;
+import frc.robot.subsystems.digital_sensor.DigitalSensorConstants;
+import frc.robot.subsystems.digital_sensor.DigitalSensorIO;
+import frc.robot.subsystems.digital_sensor.DigitalSensorIODigitialInput;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
@@ -68,7 +68,7 @@ public class RobotContainer {
   private final PositionJoint elevator;
   private final Flywheel outtake;
 
-  private final BeamBreak outtake_sensor;
+  private final DigitalSensor outtake_sensor;
 
   private final PositionJoint climber;
   private final Flywheel climberIntake;
@@ -129,9 +129,9 @@ public class RobotContainer {
                 FlywheelConstants.OUTTAKE_GAINS);
 
         outtake_sensor =
-            new BeamBreak(
-                new BeamBreakIODigitialInput(
-                    "Outtake_Sensor", BeamBreakConstants.OUTTAKE_BREAK_CONFIG));
+            new DigitalSensor(
+                new DigitalSensorIODigitialInput(
+                    "Outtake_Sensor", DigitalSensorConstants.OUTTAKE_BREAK_CONFIG));
 
         climber =
             new PositionJoint(
@@ -183,7 +183,7 @@ public class RobotContainer {
                 new FlywheelIOSim("Outtake", FlywheelConstants.OUTTAKE_CONFIG),
                 FlywheelConstants.OUTTAKE_GAINS);
 
-        outtake_sensor = new BeamBreak(new BeamBreakIO() {});
+        outtake_sensor = new DigitalSensor(new DigitalSensorIO() {});
 
         climber =
             new PositionJoint(
@@ -213,7 +213,7 @@ public class RobotContainer {
 
         outtake = new Flywheel(new FlywheelIO() {}, FlywheelConstants.OUTTAKE_GAINS);
 
-        outtake_sensor = new BeamBreak(new BeamBreakIO() {});
+        outtake_sensor = new DigitalSensor(new DigitalSensorIO() {});
 
         climber = new PositionJoint(new PositionJointIO() {}, PositionJointConstants.CLIMBER_GAINS);
 
@@ -294,7 +294,7 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // Reset gyro / odometry
+    // // Reset gyro / odometry
     final Runnable resetGyro =
         Constants.currentMode == Constants.Mode.SIM
             ? () ->
@@ -416,7 +416,7 @@ public class RobotContainer {
     Logger.recordOutput(
         "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
     Logger.recordOutput(
-        "FieldSimulation/Notes",
+        "FieldSimulation/Coral",
         SimulatedArena.getInstance().getGamePiecesByType("Note").toArray(new Pose3d[0]));
   }
 }

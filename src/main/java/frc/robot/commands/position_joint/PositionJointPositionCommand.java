@@ -17,7 +17,6 @@ public class PositionJointPositionCommand extends Command {
 
   @Override
   public void initialize() {
-    System.out.println("Quarreling");
     positionJoint.setPosition(position.getAsDouble());
   }
 
