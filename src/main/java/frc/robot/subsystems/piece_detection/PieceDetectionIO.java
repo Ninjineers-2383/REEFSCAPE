@@ -1,5 +1,6 @@
 package frc.robot.subsystems.piece_detection;
 
+import edu.wpi.first.math.geometry.Transform3d;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface PieceDetectionIO {
@@ -10,6 +11,10 @@ public interface PieceDetectionIO {
     public double yaw = 0.0;
     public double pitch = 0.0;
     public double area = 0.0;
+
+    public double distance = 0.0;
+
+    public Transform3d robotToPieceTransform = new Transform3d();
 
     public boolean seesTarget = false;
   }
