@@ -1,6 +1,6 @@
 # Ninjineers 2025 Base Robot Code
 
-FRC Robot Code has gotten significantly more advanced in recent years with brushless motors, external CAN sensors, vision, and more complicated odometry. Ninjineers has realized that these advancements are not possible over the course of a single season so we created this base code to allow teams to focus on the emergent behavior of their robot instead of getting bogged down in the weeds of motor control. In developing this template we tried to create sensible defaults for Falcons, Krakens, and Spark Maxs for motor control, and integrated Mechanical Advantage's Drivetrain and Vision projects (with modification to enable more modular configuration). These defaults work for us but you are free to create your own [IO layers](https://docs.advantagekit.org/data-flow/recording-inputs/io-interfaces) or bespoke Subsystems. We would love it if you create a pull request to share your code with other teams.
+FRC Robot Code has gotten significantly more advanced in recent years with brushless motors, external CAN sensors, vision, and more complicated odometry. Ninjineers has realized that these advancements are not possible over the course of a single season so we created this base code to allow teams to focus on the emergent behavior of their robot instead of getting bogged down in the weeds of motor control. In developing this template we tried to create sensible defaults for TalonFX's and Spark Max's for motor control, and integrated Mechanical Advantage's Drivetrain and Vision projects (with modification to enable more modular configuration). These defaults work for us but you are free to create your own [IO layers](https://docs.advantagekit.org/data-flow/recording-inputs/io-interfaces) or bespoke Subsystems. We would love it if you create a pull request to share your code with other teams.
 
 ## Getting Started
 
@@ -27,32 +27,84 @@ Many of what we want to think of as a single robot Subsystems will need to be re
 
 ## Flywheel Constants
 
-Flywheels have PIDF gains and motor configs:
-* Gains
+Flywheels have mechanism gains and motor configs:
+
+* Motor Configs: 
+
+  * canIds: List of canIDs for motors in group. First canID will be master
+
+  * reversed: Reverse config for each motor: first boolean will reverse the master motor, the next booleans will reverse the follower motors relative to the master motor
+
+  * gearRatio: ratio of motor revolutions (rotations) to mechanism revolutions (rotations or radians)
+
+  * canBus: For TalonFX can be name of CANivore or "rio", unused on SparkMax
+
+* Gains:
 
   Feedback:
-  kP: (volts / rotation / second)
-  kI: (volts / rotation)
-  kD: (volts / rotation / second^2)
+
+  * kP: (volts / rotation / second)
+
+  * kI: (volts / rotation)
+
+  * kD: (volts / rotation / second^2)
 
   Feedforward:
-  kS: (volts)
-  kV: (volts / rotation / second)
-  kA: (volts / rotation / second^2) (Not recommended to be non 0) (Not used in SparkMax control)
 
-* Motor Configs
-  canIds: List of canIDs for motors in group. First canID will be master
-  reversed: Reverse config for each motor: first boolean will reverse entire group, next booleans are all relative to master motor
-  gearRatio: ratio of mechanism to motor
-  canBus: For TalonFX can be name of CANivore or "rio", unused on SparkMax
+  * kS: (volts)
+
+  * kV: (volts / rotation / second)
+
+  * kA: (volts / rotation / second^2) (Not recommended to be non 0) (Not used in SparkMax control)
+
+  Tolerance:
+
+  * kTolerance: Velocity tolerance for mechanism to be considered at setpoint 
 
 ## PositionJoint Constants
 
-* Gains
-  Very similar to Flywheel with minor differences noted here
-  kG: Feedforward to compensate for effects of gravity
-  kTolerance: Position tolerance for joint to be considered at setpoint
-
 * HardwareConfig
-  gearRatio: ratio of mechanism (radians or meters) to motor (rotations)
-  gravity: GravityType.Constant for an elevator, and GravityType.COSINE for pivots. (This means that pivots must have a 0 position horizontal)
+  * canIds: List of canIDs for motors in group. First canID will be master
+
+  * reversed: Reverse config for each motor: first boolean will reverse entire group, next booleans are all relative to master motor
+
+  * gearRatio: ratio of motor revolutions (rotations) to mechanism units, e.g. rotations, radians, or meters.
+
+  * currentLimit: current limit of the motor (Amps)
+
+  * gravity: GravityType.CONSTANT for a mechanism where gravity acts in a constant way (e.g. turret or elevator), GravityType.COSINE for pivots with a 0 position horizontal, and GravityType.SINE for pivots with a 0 position vertical (not supported on TalonFX)
+
+  * encoderType: Use EncoderType.INTERNAL to use the motor's internal encoder for relative positioning, EncoderType.EXTERNAL_CANCODER to use a CANCoder for absolute positioning Encoder_Type.EXTERNAL_DIO to use an external encoder connected to the Rio's DIO ports for absolute positioning, and Encoder_Type.EXTERNAL_SPARK to use an external encoder connected to the SPARK MAX motor controller for absolute positioning (not supported for TalonFX).
+
+  * encoderID: The CAN/DIO ID for the external encoder, can be left as 0 or -1 if using EncoderType.INTERNAL or EncoderType.EXTERNAL_SPARK.
+
+  * encoderOffset: The offset of the absolute encoder, in rotations. If using EncoderType.INTERNAL or EncoderType.EXTERNAL_SPARK an empty Rotation (new Rotation2d()) can be used.
+
+  * canBus: For TalonFX can be name of CANivore or "rio", unused on SparkMax
+
+* Gains
+
+  Feedback:
+  * kP: (volts / rotation / second)
+  * kI: (volts / rotation)
+  * kD: (volts / rotation / second^2)
+
+  Feedforward:
+  * kS: (volts)
+  * kV: (volts / rotation / second)
+  * kA: (volts / rotation / second^2) (Not recommended to be non 0) (Not used in SparkMax control)
+  * kG: (volts) Feedforward to compensate for effects of gravity
+
+  Trapezoidal:
+  * kMaxVelo: (rotation / second)
+  * kMaxAccel: (rotation / second^2)
+
+  Positional Bounds:
+  * kMinPosition: (rotation)
+  * kMaxPosition: (rotation)
+
+  Tolerance:
+  * kTolerance: Position tolerance for joint to be considered at setpoint
+
+  Default Setpoint:
+  * kDefaultSetpoint: (rotation) the setpoint the mechanism should go to upon intialization
