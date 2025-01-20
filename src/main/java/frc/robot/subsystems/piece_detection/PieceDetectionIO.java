@@ -17,7 +17,5 @@ public interface PieceDetectionIO {
   /** Updates the set of loggable inputs. */
   public default void updateInputs(PieceDetectionIOInputs inputs) {}
 
-  public default String getName() {
-    return "Piece Detection";
-  }
+  public String getName();
 }

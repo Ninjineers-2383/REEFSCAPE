@@ -29,7 +29,7 @@ Many of what we want to think of as a single robot Subsystems will need to be re
 
 Flywheels have mechanism gains and motor configs:
 
-* Motor Configs: 
+* Motor Configs:
 
   * canIds: List of canIDs for motors in group. First canID will be master
 
@@ -59,7 +59,7 @@ Flywheels have mechanism gains and motor configs:
 
   Tolerance:
 
-  * kTolerance: Velocity tolerance for mechanism to be considered at setpoint 
+  * kTolerance: Velocity tolerance for mechanism to be considered at setpoint
 
 ## PositionJoint Constants
 
