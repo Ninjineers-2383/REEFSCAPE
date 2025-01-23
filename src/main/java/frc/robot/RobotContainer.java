@@ -294,7 +294,7 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // // Reset gyro / odometry
+    // // // Reset gyro / odometry
     final Runnable resetGyro =
         Constants.currentMode == Constants.Mode.SIM
             ? () ->
@@ -416,6 +416,7 @@ public class RobotContainer {
     Logger.recordOutput(
         "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
     Logger.recordOutput(
+        "FieldSimulation/Coral",
         "FieldSimulation/Coral",
         SimulatedArena.getInstance().getGamePiecesByType("Note").toArray(new Pose3d[0]));
   }

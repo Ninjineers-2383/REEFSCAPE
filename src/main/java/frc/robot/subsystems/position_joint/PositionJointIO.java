@@ -32,7 +32,5 @@ public interface PositionJointIO {
 
   public default void setVoltage(double voltage) {}
 
-  public default String getName() {
-    return "Position Joint";
-  }
+  public String getName();
 }

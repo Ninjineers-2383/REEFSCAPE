@@ -10,7 +10,5 @@ public interface DigitalSensorIO {
 
   public default void updateInputs(DigitalSensorIOInputs inputs) {}
 
-  public default String getName() {
-    return "Digital Sensor";
-  }
+  public String getName();
 }

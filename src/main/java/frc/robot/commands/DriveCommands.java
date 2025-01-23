@@ -149,7 +149,6 @@ public class DriveCommands {
                             .getY()
                         * PIECE_DETECTION_P.get();
           }
-
           drive.runVelocity(speeds);
         },
         drive);

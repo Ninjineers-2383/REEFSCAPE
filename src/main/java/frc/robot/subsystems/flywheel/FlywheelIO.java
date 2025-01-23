@@ -28,7 +28,5 @@ public interface FlywheelIO {
 
   public default void setGains(FlywheelGains gains) {}
 
-  public default String getName() {
-    return "Flywheel";
-  }
+  public String getName();
 }

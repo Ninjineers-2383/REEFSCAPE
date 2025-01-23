@@ -6,11 +6,15 @@ import java.util.function.Supplier;
 public class PieceDetectionIOSim implements PieceDetectionIO {
   Supplier<Pose3d[]> notePoses;
   Supplier<Pose3d> drivePose;
+  String name;
 
   private double smallestDistance = Integer.MAX_VALUE;
 
-  public PieceDetectionIOSim(Supplier<Pose3d[]> notePoses, Supplier<Pose3d> drivePose) {
+  public PieceDetectionIOSim(
+      String name, Supplier<Pose3d[]> notePoses, Supplier<Pose3d> drivePose) {
     this.notePoses = notePoses;
+    this.drivePose = drivePose;
+    this.name = name;
   }
 
   @Override
@@ -28,5 +32,10 @@ public class PieceDetectionIOSim implements PieceDetectionIO {
     // inputs.frontSeesTarget = true;
     // inputs.frontYaw = frontResult.getBestTarget().getYaw();
     // inputs.frontPitch = frontResult.getBestTarget().getPitch();
+  }
+
+  @Override
+  public String getName() {
+    return name;
   }
 }

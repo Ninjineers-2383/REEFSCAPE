@@ -80,4 +80,8 @@ public class Flywheel extends SubsystemBase {
   public double getVelocitySetpoint() {
     return inputs.desiredVelocity;
   }
+
+  public boolean isFinished() {
+    return Math.abs(inputs.velocity - inputs.desiredVelocity) < kTolerance.get();
+  }
 }

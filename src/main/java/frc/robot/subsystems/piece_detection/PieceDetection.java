@@ -10,28 +10,26 @@ public class PieceDetection extends SubsystemBase {
   private PieceDetectionIOInputsAutoLogged inputs = new PieceDetectionIOInputsAutoLogged();
 
   private final String name;
+  private final Supplier<Pose3d> robotPose;
 
-  private final Supplier<Pose3d> poseSupplier;
-  private Pose3d gamePiecePose;
+  private Pose3d gamePiecePose = new Pose3d();
 
-  public PieceDetection(PieceDetectionIO io, Supplier<Pose3d> robotPoseSupplier) {
-    super(io.getName());
-
+  public PieceDetection(PieceDetectionIO io, Supplier<Pose3d> robotPose) {
     pieceDetection = io;
 
     name = pieceDetection.getName();
-
-    poseSupplier = robotPoseSupplier;
+    this.robotPose = robotPose;
   }
 
   @Override
   public void periodic() {
     pieceDetection.updateInputs(inputs);
 
-    gamePiecePose = poseSupplier.get().transformBy(inputs.pieceTransform);
+    if (inputs.seesTarget) {
+      gamePiecePose = robotPose.get().transformBy(inputs.robotToPieceTransform);
 
-    Logger.recordOutput(name + "/Game Piece Pose", getGamePiecePose());
-
+      Logger.recordOutput(name + "/Piece Pose", gamePiecePose);
+    }
     Logger.processInputs(name, inputs);
   }
 
@@ -53,5 +51,9 @@ public class PieceDetection extends SubsystemBase {
 
   public boolean pieceDetected() {
     return inputs.seesTarget;
+  }
+
+  public Pose3d getPiecePose() {
+    return gamePiecePose;
   }
 }

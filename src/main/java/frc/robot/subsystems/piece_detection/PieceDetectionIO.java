@@ -12,7 +12,9 @@ public interface PieceDetectionIO {
     public double pitch = 0.0;
     public double area = 0.0;
 
-    public Transform3d pieceTransform = new Transform3d();
+    public double distance = 0.0;
+
+    public Transform3d robotToPieceTransform = new Transform3d();
 
     public boolean seesTarget = false;
   }
@@ -20,7 +22,5 @@ public interface PieceDetectionIO {
   /** Updates the set of loggable inputs. */
   public default void updateInputs(PieceDetectionIOInputs inputs) {}
 
-  public default String getName() {
-    return "Piece Detection";
-  }
+  public String getName();
 }

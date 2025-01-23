@@ -26,6 +26,6 @@ public class FlywheelVelocityCommand extends Command {
 
   @Override
   public boolean isFinished() {
-    return Math.abs(flywheel.getVelocity() - velocity.getAsDouble()) < 1.5;
+    return flywheel.isFinished();
   }
 }
