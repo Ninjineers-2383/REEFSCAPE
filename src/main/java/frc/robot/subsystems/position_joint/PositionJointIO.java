@@ -28,9 +28,9 @@ public interface PositionJointIO {
 
   public default void setPosition(double position, double velocity) {}
 
-  public default void setGains(PositionJointGains gains) {}
-
   public default void setVoltage(double voltage) {}
+
+  public default void setGains(PositionJointGains gains) {}
 
   public String getName();
 }

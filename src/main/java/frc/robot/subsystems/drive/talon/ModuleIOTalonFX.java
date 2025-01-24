@@ -24,7 +24,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.subsystems.drive.ModuleIO;
+import frc.robot.subsystems.drive.module.ModuleIO;
 import frc.robot.subsystems.drive.talon.TalonFXModuleConstants.ModuleSpecificConfiguration;
 import java.util.Queue;
 

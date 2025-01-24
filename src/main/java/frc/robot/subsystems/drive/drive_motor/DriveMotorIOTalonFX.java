@@ -1,4 +1,4 @@
-package frc.robot.subsystems.flywheel;
+package frc.robot.subsystems.drive.drive_motor;
 
 import static frc.robot.util.PhoenixUtil.tryUntilOk;
 
@@ -15,17 +15,21 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelGains;
-import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelHardwareConfig;
+import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.drive.drive_motor.DriveMotorConstants.DriveMotorGains;
+import frc.robot.subsystems.drive.drive_motor.DriveMotorConstants.DriveMotorHardwareConfig;
+import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
 import java.util.ArrayList;
+import java.util.Queue;
 
-public class FlywheelIOTalonFX implements FlywheelIO {
+public class DriveMotorIOTalonFX implements DriveMotorIO {
   private final String name;
 
   private final TalonFX[] motors;
@@ -55,7 +59,10 @@ public class FlywheelIOTalonFX implements FlywheelIO {
 
   private double velocitySetpoint = 0.0;
 
-  public FlywheelIOTalonFX(String name, FlywheelHardwareConfig config) {
+  private final Queue<Double> timestampQueue;
+  private final Queue<Double> drivePositionQueue;
+
+  public DriveMotorIOTalonFX(String name, DriveMotorHardwareConfig config) {
     this.name = name;
 
     assert config.canIds().length > 0 && (config.canIds().length == config.reversed().length);
@@ -116,16 +123,22 @@ public class FlywheelIOTalonFX implements FlywheelIO {
       voltages.add(motors[i].getSupplyVoltage());
       currents.add(motors[i].getStatorCurrent());
     }
+
+    timestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
+
+    drivePositionQueue = PhoenixOdometryThread.getInstance().registerSignal(position);
+
+    BaseStatusSignal.setUpdateFrequencyForAll(DriveConstants.odometryFrequency, position);
   }
 
   @Override
-  public void updateInputs(FlywheelIOInputs inputs) {
+  public void updateInputs(DriveMotorIOInputs inputs) {
     BaseStatusSignal.refreshAll(velocity, position);
 
-    inputs.velocity = velocity.getValueAsDouble();
-    inputs.desiredVelocity = velocitySetpoint;
+    inputs.velocityRotationsPerSecond = velocity.getValueAsDouble();
+    inputs.desiredVelocityRotationsPerSecond = velocitySetpoint;
 
-    inputs.position = position.getValueAsDouble();
+    inputs.positionRotations = position.getValueAsDouble();
 
     for (int i = 0; i < motors.length; i++) {
       motorsConnected[i] =
@@ -149,6 +162,16 @@ public class FlywheelIOTalonFX implements FlywheelIO {
 
     inputs.motorVoltages = motorVoltages;
     inputs.motorCurrents = motorCurrents;
+
+    inputs.odometryTimestamps =
+        timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+    inputs.odometryDrivePositionsRad =
+        drivePositionQueue.stream()
+            .mapToDouble((Double value) -> Units.rotationsToRadians(value))
+            .toArray();
+
+    timestampQueue.clear();
+    drivePositionQueue.clear();
   }
 
   @Override
@@ -164,17 +187,17 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   }
 
   @Override
-  public void setGains(FlywheelGains gains) {
-    motors[0]
-        .getConfigurator()
-        .apply(
-            new Slot0Configs()
-                .withKP(gains.kP())
-                .withKI(gains.kI())
-                .withKD(gains.kD())
-                .withKV(gains.kV())
-                .withKA(gains.kA())
-                .withKS(gains.kS()));
+  public void setGains(DriveMotorGains gains) {
+    Slot0Configs slot0Configs =
+        new Slot0Configs()
+            .withKP(gains.kP())
+            .withKI(gains.kI())
+            .withKD(gains.kD())
+            .withKV(gains.kV())
+            .withKA(gains.kA())
+            .withKS(gains.kS());
+
+    tryUntilOk(5, () -> motors[0].getConfigurator().apply(slot0Configs));
 
     System.out.println(name + " gains set to " + gains);
   }

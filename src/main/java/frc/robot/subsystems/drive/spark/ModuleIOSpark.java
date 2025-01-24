@@ -35,7 +35,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Angle;
-import frc.robot.subsystems.drive.ModuleIO;
+import frc.robot.subsystems.drive.module.ModuleIO;
 import frc.robot.subsystems.drive.spark.SparkMaxModuleConstants.ModuleSpecificConfiguration;
 import frc.robot.subsystems.drive.talon.TalonFXModuleConstants;
 import frc.robot.util.PhoenixUtil;

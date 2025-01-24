@@ -14,14 +14,19 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.subsystems.drive.GyroIO;
-import frc.robot.subsystems.drive.GyroIOPigeon2;
-import frc.robot.subsystems.drive.GyroIOSim;
-import frc.robot.subsystems.drive.ModuleIO;
-import frc.robot.subsystems.drive.spark.ModuleIOSparkSim;
-import frc.robot.subsystems.drive.talon.ModuleIOTalonFX;
+import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants;
+import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorIOReplay;
+import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorIOSim;
+import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorIOTalonFX;
+import frc.robot.subsystems.drive.drive_motor.DriveMotorConstants;
+import frc.robot.subsystems.drive.drive_motor.DriveMotorIOReplay;
+import frc.robot.subsystems.drive.drive_motor.DriveMotorIOSim;
+import frc.robot.subsystems.drive.drive_motor.DriveMotorIOTalonFX;
+import frc.robot.subsystems.drive.gyro.GyroIO;
+import frc.robot.subsystems.drive.gyro.GyroIOPigeon2;
+import frc.robot.subsystems.drive.gyro.GyroIOSim;
+import frc.robot.subsystems.drive.module.NewModule;
 import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
-import frc.robot.subsystems.drive.talon.TalonFXModuleConstants;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
@@ -62,10 +67,32 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIOPigeon2(0),
-                new ModuleIOTalonFX(TalonFXModuleConstants.frontLeft),
-                new ModuleIOTalonFX(TalonFXModuleConstants.frontRight),
-                new ModuleIOTalonFX(TalonFXModuleConstants.rearLeft),
-                new ModuleIOTalonFX(TalonFXModuleConstants.rearRight),
+                new NewModule(
+                    new DriveMotorIOTalonFX(
+                        "FrontLeftDrive", DriveMotorConstants.FRONT_LEFT_CONFIG),
+                    DriveMotorConstants.FRONT_LEFT_GAINS,
+                    new AzimuthMotorIOTalonFX(
+                        "FrontLeftAz", AzimuthMotorConstants.FRONT_LEFT_CONFIG),
+                    AzimuthMotorConstants.FRONT_LEFT_GAINS),
+                new NewModule(
+                    new DriveMotorIOTalonFX(
+                        "FrontRightDrive", DriveMotorConstants.FRONT_RIGHT_CONFIG),
+                    DriveMotorConstants.FRONT_RIGHT_GAINS,
+                    new AzimuthMotorIOTalonFX(
+                        "FrontRightAz", AzimuthMotorConstants.FRONT_RIGHT_CONFIG),
+                    AzimuthMotorConstants.FRONT_RIGHT_GAINS),
+                new NewModule(
+                    new DriveMotorIOTalonFX("BackLeftDrive", DriveMotorConstants.BACK_LEFT_CONFIG),
+                    DriveMotorConstants.BACK_LEFT_GAINS,
+                    new AzimuthMotorIOTalonFX("BackLeftAz", AzimuthMotorConstants.BACK_LEFT_CONFIG),
+                    AzimuthMotorConstants.BACK_LEFT_GAINS),
+                new NewModule(
+                    new DriveMotorIOTalonFX(
+                        "BackRightDrive", DriveMotorConstants.BACK_RIGHT_CONFIG),
+                    DriveMotorConstants.BACK_RIGHT_GAINS,
+                    new AzimuthMotorIOTalonFX(
+                        "BackRightAz", AzimuthMotorConstants.BACK_RIGHT_CONFIG),
+                    AzimuthMotorConstants.BACK_RIGHT_GAINS),
                 PhoenixOdometryThread.getInstance());
         vision =
             new Vision(
@@ -85,11 +112,28 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIOSim(driveSimulation.getGyroSimulation()),
-                new ModuleIOSparkSim(driveSimulation.getModules()[0]),
-                new ModuleIOSparkSim(driveSimulation.getModules()[1]),
-                new ModuleIOSparkSim(driveSimulation.getModules()[2]),
-                new ModuleIOSparkSim(driveSimulation.getModules()[3]),
+                new NewModule(
+                    new DriveMotorIOSim("FrontLeftDrive", DriveMotorConstants.FRONT_LEFT_CONFIG),
+                    DriveMotorConstants.FRONT_LEFT_GAINS,
+                    new AzimuthMotorIOSim("FrontLeftAz", AzimuthMotorConstants.FRONT_LEFT_CONFIG),
+                    AzimuthMotorConstants.FRONT_LEFT_GAINS),
+                new NewModule(
+                    new DriveMotorIOSim("FrontRightDrive", DriveMotorConstants.FRONT_RIGHT_CONFIG),
+                    DriveMotorConstants.FRONT_RIGHT_GAINS,
+                    new AzimuthMotorIOSim("FrontRightAz", AzimuthMotorConstants.FRONT_RIGHT_CONFIG),
+                    AzimuthMotorConstants.FRONT_RIGHT_GAINS),
+                new NewModule(
+                    new DriveMotorIOSim("BackLeftDrive", DriveMotorConstants.BACK_LEFT_CONFIG),
+                    DriveMotorConstants.BACK_LEFT_GAINS,
+                    new AzimuthMotorIOSim("BackLeftAz", AzimuthMotorConstants.BACK_LEFT_CONFIG),
+                    AzimuthMotorConstants.BACK_LEFT_GAINS),
+                new NewModule(
+                    new DriveMotorIOSim("BackRightDrive", DriveMotorConstants.BACK_RIGHT_CONFIG),
+                    DriveMotorConstants.BACK_RIGHT_GAINS,
+                    new AzimuthMotorIOSim("BackRightAz", AzimuthMotorConstants.BACK_RIGHT_CONFIG),
+                    AzimuthMotorConstants.BACK_RIGHT_GAINS),
                 null);
+        ;
 
         vision =
             new Vision(
@@ -109,10 +153,26 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIO() {},
-                new ModuleIO() {},
-                new ModuleIO() {},
-                new ModuleIO() {},
-                new ModuleIO() {},
+                new NewModule(
+                    new DriveMotorIOReplay("FrontLeftDrive"),
+                    DriveMotorConstants.FRONT_LEFT_GAINS,
+                    new AzimuthMotorIOReplay("FrontLeftAz"),
+                    AzimuthMotorConstants.FRONT_LEFT_GAINS),
+                new NewModule(
+                    new DriveMotorIOReplay("FrontRightDrive"),
+                    DriveMotorConstants.FRONT_RIGHT_GAINS,
+                    new AzimuthMotorIOReplay("FrontRightAz"),
+                    AzimuthMotorConstants.FRONT_RIGHT_GAINS),
+                new NewModule(
+                    new DriveMotorIOReplay("BackLeftDrive"),
+                    DriveMotorConstants.BACK_LEFT_GAINS,
+                    new AzimuthMotorIOReplay("BackLeftAz"),
+                    AzimuthMotorConstants.BACK_LEFT_GAINS),
+                new NewModule(
+                    new DriveMotorIOReplay("BackRightDrive"),
+                    DriveMotorConstants.BACK_RIGHT_GAINS,
+                    new AzimuthMotorIOReplay("BackRightAz"),
+                    AzimuthMotorConstants.BACK_RIGHT_GAINS),
                 null);
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
         break;

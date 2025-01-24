@@ -1,4 +1,4 @@
-package frc.robot.subsystems.drive;
+package frc.robot.subsystems.drive.gyro;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusCode;
@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
 import frc.robot.subsystems.drive.talon.TalonFXModuleConstants;
 import java.util.Queue;

@@ -18,7 +18,7 @@ import static edu.wpi.first.units.Units.*;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.subsystems.drive.ModuleIO;
+import frc.robot.subsystems.drive.module.ModuleIO;
 import frc.robot.util.PhoenixUtil;
 import java.util.Arrays;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
