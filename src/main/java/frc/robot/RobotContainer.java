@@ -2,7 +2,6 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -13,7 +12,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.drive.Module;
 import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants;
 import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorIOReplay;
 import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorIOSim;
@@ -24,17 +23,12 @@ import frc.robot.subsystems.drive.drive_motor.DriveMotorIOSim;
 import frc.robot.subsystems.drive.drive_motor.DriveMotorIOTalonFX;
 import frc.robot.subsystems.drive.gyro.GyroIO;
 import frc.robot.subsystems.drive.gyro.GyroIOPigeon2;
-import frc.robot.subsystems.drive.gyro.GyroIOSim;
-import frc.robot.subsystems.drive.module.NewModule;
-import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
+import frc.robot.subsystems.drive.odometry_threads.PhoenixOdometryThread;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-import org.ironmaple.simulation.SimulatedArena;
-import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -50,9 +44,6 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private final Vision vision;
 
-  // Simulation
-  private SwerveDriveSimulation driveSimulation = null;
-
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
 
@@ -66,27 +57,27 @@ public class RobotContainer {
         // Real robot, instantiate hardware IO implementations
         drive =
             new Drive(
-                new GyroIOPigeon2(0),
-                new NewModule(
+                new GyroIOPigeon2(0, "Drive"),
+                new Module(
                     new DriveMotorIOTalonFX(
                         "FrontLeftDrive", DriveMotorConstants.FRONT_LEFT_CONFIG),
                     DriveMotorConstants.FRONT_LEFT_GAINS,
                     new AzimuthMotorIOTalonFX(
                         "FrontLeftAz", AzimuthMotorConstants.FRONT_LEFT_CONFIG),
                     AzimuthMotorConstants.FRONT_LEFT_GAINS),
-                new NewModule(
+                new Module(
                     new DriveMotorIOTalonFX(
                         "FrontRightDrive", DriveMotorConstants.FRONT_RIGHT_CONFIG),
                     DriveMotorConstants.FRONT_RIGHT_GAINS,
                     new AzimuthMotorIOTalonFX(
                         "FrontRightAz", AzimuthMotorConstants.FRONT_RIGHT_CONFIG),
                     AzimuthMotorConstants.FRONT_RIGHT_GAINS),
-                new NewModule(
+                new Module(
                     new DriveMotorIOTalonFX("BackLeftDrive", DriveMotorConstants.BACK_LEFT_CONFIG),
                     DriveMotorConstants.BACK_LEFT_GAINS,
                     new AzimuthMotorIOTalonFX("BackLeftAz", AzimuthMotorConstants.BACK_LEFT_CONFIG),
                     AzimuthMotorConstants.BACK_LEFT_GAINS),
-                new NewModule(
+                new Module(
                     new DriveMotorIOTalonFX(
                         "BackRightDrive", DriveMotorConstants.BACK_RIGHT_CONFIG),
                     DriveMotorConstants.BACK_RIGHT_GAINS,
@@ -102,32 +93,25 @@ public class RobotContainer {
         break;
 
       case SIM:
-        // create a maple-sim swerve drive simulation instance
-        driveSimulation =
-            new SwerveDriveSimulation(
-                DriveConstants.mapleSimConfig, new Pose2d(3, 3, new Rotation2d()));
-        // add the simulated drivetrain to the simulation field
-        SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
-        // Sim robot, instantiate physics sim IO implementations
         drive =
             new Drive(
-                new GyroIOSim(driveSimulation.getGyroSimulation()),
-                new NewModule(
+                new GyroIO() {},
+                new Module(
                     new DriveMotorIOSim("FrontLeftDrive", DriveMotorConstants.FRONT_LEFT_CONFIG),
                     DriveMotorConstants.FRONT_LEFT_GAINS,
                     new AzimuthMotorIOSim("FrontLeftAz", AzimuthMotorConstants.FRONT_LEFT_CONFIG),
                     AzimuthMotorConstants.FRONT_LEFT_GAINS),
-                new NewModule(
+                new Module(
                     new DriveMotorIOSim("FrontRightDrive", DriveMotorConstants.FRONT_RIGHT_CONFIG),
                     DriveMotorConstants.FRONT_RIGHT_GAINS,
                     new AzimuthMotorIOSim("FrontRightAz", AzimuthMotorConstants.FRONT_RIGHT_CONFIG),
                     AzimuthMotorConstants.FRONT_RIGHT_GAINS),
-                new NewModule(
+                new Module(
                     new DriveMotorIOSim("BackLeftDrive", DriveMotorConstants.BACK_LEFT_CONFIG),
                     DriveMotorConstants.BACK_LEFT_GAINS,
                     new AzimuthMotorIOSim("BackLeftAz", AzimuthMotorConstants.BACK_LEFT_CONFIG),
                     AzimuthMotorConstants.BACK_LEFT_GAINS),
-                new NewModule(
+                new Module(
                     new DriveMotorIOSim("BackRightDrive", DriveMotorConstants.BACK_RIGHT_CONFIG),
                     DriveMotorConstants.BACK_RIGHT_GAINS,
                     new AzimuthMotorIOSim("BackRightAz", AzimuthMotorConstants.BACK_RIGHT_CONFIG),
@@ -139,13 +123,9 @@ public class RobotContainer {
             new Vision(
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(
-                    VisionConstants.camera0Name,
-                    VisionConstants.robotToCamera0,
-                    driveSimulation::getSimulatedDriveTrainPose),
+                    VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(
-                    VisionConstants.camera1Name,
-                    VisionConstants.robotToCamera1,
-                    driveSimulation::getSimulatedDriveTrainPose));
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
         break;
 
       default:
@@ -153,22 +133,22 @@ public class RobotContainer {
         drive =
             new Drive(
                 new GyroIO() {},
-                new NewModule(
+                new Module(
                     new DriveMotorIOReplay("FrontLeftDrive"),
                     DriveMotorConstants.FRONT_LEFT_GAINS,
                     new AzimuthMotorIOReplay("FrontLeftAz"),
                     AzimuthMotorConstants.FRONT_LEFT_GAINS),
-                new NewModule(
+                new Module(
                     new DriveMotorIOReplay("FrontRightDrive"),
                     DriveMotorConstants.FRONT_RIGHT_GAINS,
                     new AzimuthMotorIOReplay("FrontRightAz"),
                     AzimuthMotorConstants.FRONT_RIGHT_GAINS),
-                new NewModule(
+                new Module(
                     new DriveMotorIOReplay("BackLeftDrive"),
                     DriveMotorConstants.BACK_LEFT_GAINS,
                     new AzimuthMotorIOReplay("BackLeftAz"),
                     AzimuthMotorConstants.BACK_LEFT_GAINS),
-                new NewModule(
+                new Module(
                     new DriveMotorIOReplay("BackRightDrive"),
                     DriveMotorConstants.BACK_RIGHT_GAINS,
                     new AzimuthMotorIOReplay("BackRightAz"),
@@ -231,21 +211,15 @@ public class RobotContainer {
 
     // // Reset gyro / odometry
     final Runnable resetGyro =
-        Constants.currentMode == Constants.Mode.SIM
-            ? () ->
-                drive.setPose(
-                    driveSimulation
-                        .getSimulatedDriveTrainPose()) // reset odometry to actual robot pose during
-            // simulation
-            : () ->
-                drive.setPose(
-                    new Pose2d(
-                        drive.getPose().getTranslation(),
-                        DriverStation.getAlliance().isPresent()
-                            ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red
-                                ? new Rotation2d(Math.PI)
-                                : new Rotation2d())
-                            : new Rotation2d())); // zero gyro
+        () ->
+            drive.setPose(
+                new Pose2d(
+                    drive.getPose().getTranslation(),
+                    DriverStation.getAlliance().isPresent()
+                        ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red
+                            ? new Rotation2d(Math.PI)
+                            : new Rotation2d())
+                        : new Rotation2d())); // zero gyro
 
     // Reset gyro to 0° when B button is pressed
     driverController.b().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
@@ -258,22 +232,5 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return autoChooser.get();
-  }
-
-  public void resetSimulationField() {
-    if (Constants.currentMode != Constants.Mode.SIM) return;
-
-    driveSimulation.setSimulationWorldPose(drive.getPose());
-    SimulatedArena.getInstance().resetFieldForAuto();
-  }
-
-  public void displaySimFieldToAdvantageScope() {
-    if (Constants.currentMode != Constants.Mode.SIM) return;
-
-    Logger.recordOutput(
-        "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
-    Logger.recordOutput(
-        "FieldSimulation/Coral",
-        SimulatedArena.getInstance().getGamePiecesByType("Note").toArray(new Pose3d[0]));
   }
 }

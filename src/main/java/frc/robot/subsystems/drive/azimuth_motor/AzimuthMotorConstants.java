@@ -5,6 +5,8 @@ import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.position_joint.PositionJointConstants.EncoderType;
 
 public class AzimuthMotorConstants {
+  public static final String canBusName = "Drive";
+
   public record AzimuthMotorGains(
       double kP,
       double kI,
@@ -34,7 +36,7 @@ public class AzimuthMotorConstants {
           EncoderType.EXTERNAL_CANCODER,
           21,
           Rotation2d.fromRotations(0),
-          "Drive");
+          canBusName);
 
   public static final AzimuthMotorHardwareConfig FRONT_RIGHT_CONFIG =
       new AzimuthMotorHardwareConfig(
@@ -45,7 +47,7 @@ public class AzimuthMotorConstants {
           EncoderType.EXTERNAL_CANCODER,
           22,
           Rotation2d.fromRotations(0),
-          "Drive");
+          canBusName);
 
   public static final AzimuthMotorHardwareConfig BACK_LEFT_CONFIG =
       new AzimuthMotorHardwareConfig(
@@ -56,7 +58,7 @@ public class AzimuthMotorConstants {
           EncoderType.EXTERNAL_CANCODER,
           23,
           Rotation2d.fromRotations(0),
-          "Drive");
+          canBusName);
 
   public static final AzimuthMotorHardwareConfig BACK_RIGHT_CONFIG =
       new AzimuthMotorHardwareConfig(
@@ -67,17 +69,17 @@ public class AzimuthMotorConstants {
           EncoderType.EXTERNAL_CANCODER,
           24,
           Rotation2d.fromRotations(0),
-          "Drive");
+          canBusName);
 
   public static final AzimuthMotorGains FRONT_LEFT_GAINS =
-      new AzimuthMotorGains(0, 0, 0, 0, 0, 0, 0, 0);
+      new AzimuthMotorGains(10, 0, 0, 0, 2.5, 0, 1, 2);
 
   public static final AzimuthMotorGains FRONT_RIGHT_GAINS =
-      new AzimuthMotorGains(0, 0, 0, 0, 0, 0, 0, 0);
+      new AzimuthMotorGains(10, 0, 0, 0, 2.5, 0, 1, 2);
 
   public static final AzimuthMotorGains BACK_LEFT_GAINS =
-      new AzimuthMotorGains(0, 0, 0, 0, 0, 0, 0, 0);
+      new AzimuthMotorGains(10, 0, 0, 0, 2.5, 0, 1, 2);
 
   public static final AzimuthMotorGains BACK_RIGHT_GAINS =
-      new AzimuthMotorGains(0, 0, 0, 0, 0, 0, 0, 0);
+      new AzimuthMotorGains(10, 0, 0, 0, 2.5, 0, 1, 2);
 }

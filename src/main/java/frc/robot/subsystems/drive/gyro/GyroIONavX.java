@@ -5,7 +5,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.SPI;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
+import frc.robot.subsystems.drive.odometry_threads.PhoenixOdometryThread;
 import java.util.Queue;
 
 /** IO implementation for NavX. */

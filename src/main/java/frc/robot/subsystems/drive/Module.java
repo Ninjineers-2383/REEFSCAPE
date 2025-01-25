@@ -1,11 +1,10 @@
-package frc.robot.subsystems.drive.module;
+package frc.robot.subsystems.drive;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants.AzimuthMotorGains;
 import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorIO;
 import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorIOInputsAutoLogged;
@@ -15,7 +14,7 @@ import frc.robot.subsystems.drive.drive_motor.DriveMotorIOInputsAutoLogged;
 import frc.robot.util.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
-public class NewModule {
+public class Module {
   private final DriveMotorIO driveMotor;
   private final DriveMotorIOInputsAutoLogged driveInputs = new DriveMotorIOInputsAutoLogged();
 
@@ -52,7 +51,7 @@ public class NewModule {
 
   private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
 
-  public NewModule(
+  public Module(
       DriveMotorIO driveMotorIO,
       DriveMotorGains driveGains,
       AzimuthMotorIO azimuthMotorIO,

@@ -29,7 +29,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants.AzimuthMotorGains;
 import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants.AzimuthMotorHardwareConfig;
-import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
+import frc.robot.subsystems.drive.odometry_threads.PhoenixOdometryThread;
 import frc.robot.util.encoder.AbsoluteCancoder;
 import frc.robot.util.encoder.AbsoluteMagEncoder;
 import frc.robot.util.encoder.IAbsoluteEncoder;

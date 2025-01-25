@@ -25,7 +25,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.drive_motor.DriveMotorConstants.DriveMotorGains;
 import frc.robot.subsystems.drive.drive_motor.DriveMotorConstants.DriveMotorHardwareConfig;
-import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
+import frc.robot.subsystems.drive.odometry_threads.PhoenixOdometryThread;
 import java.util.ArrayList;
 import java.util.Queue;
 

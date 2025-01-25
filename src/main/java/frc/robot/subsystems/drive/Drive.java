@@ -32,7 +32,6 @@ import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.subsystems.drive.gyro.GyroIO;
 import frc.robot.subsystems.drive.gyro.GyroIOInputsAutoLogged;
-import frc.robot.subsystems.drive.module.NewModule;
 import frc.robot.util.pathplanner.AdvancedPPHolonomicDriveController;
 import frc.robot.util.pathplanner.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
@@ -44,7 +43,7 @@ public class Drive extends SubsystemBase {
   public static final Lock odometryLock = new ReentrantLock();
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
-  private final NewModule[] modules = new NewModule[4]; // FL, FR, BL, BR
+  private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   private final SysIdRoutine sysId;
   private final Alert gyroDisconnectedAlert =
       new Alert("Drive", "Disconnected gyro, using kinematics as fallback.", AlertType.kError);
@@ -63,10 +62,10 @@ public class Drive extends SubsystemBase {
 
   public Drive(
       GyroIO gyroIO,
-      NewModule flModule,
-      NewModule frModuleIO,
-      NewModule blModuleIO,
-      NewModule brModuleIO,
+      Module flModule,
+      Module frModuleIO,
+      Module blModuleIO,
+      Module brModuleIO,
       Thread odometryThread) {
     this.gyroIO = gyroIO;
     modules[0] = flModule;

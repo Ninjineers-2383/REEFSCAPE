@@ -1,4 +1,4 @@
-package frc.robot.subsystems.drive.talon;
+package frc.robot.subsystems.drive.odometry_threads;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
@@ -7,6 +7,8 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants;
+import frc.robot.subsystems.drive.drive_motor.DriveMotorConstants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
@@ -32,7 +34,12 @@ public class PhoenixOdometryThread extends Thread {
   private final List<Queue<Double>> genericQueues = new ArrayList<>();
   private final List<Queue<Double>> timestampQueues = new ArrayList<>();
 
-  private static boolean isCANFD = new CANBus(TalonFXModuleConstants.CANBusName).isNetworkFD();
+  // Check if either drive or azimuth are CANFD. All CTRE devices on the swerve drive must be on the
+  // same CAN loop.
+  private static boolean isCANFD =
+      new CANBus(DriveMotorConstants.canBusName).isNetworkFD()
+          || new CANBus(AzimuthMotorConstants.canBusName).isNetworkFD();
+
   private static PhoenixOdometryThread instance = null;
 
   public static PhoenixOdometryThread getInstance() {

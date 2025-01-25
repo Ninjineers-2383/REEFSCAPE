@@ -10,8 +10,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
-import frc.robot.subsystems.drive.talon.TalonFXModuleConstants;
+import frc.robot.subsystems.drive.odometry_threads.PhoenixOdometryThread;
 import java.util.Queue;
 
 /** IO implementation for Pigeon 2. */
@@ -22,8 +21,8 @@ public class GyroIOPigeon2 implements GyroIO {
   private final Queue<Double> yawTimestampQueue;
   private final StatusSignal<AngularVelocity> yawVelocity;
 
-  public GyroIOPigeon2(int canID) {
-    pigeon = new Pigeon2(canID, TalonFXModuleConstants.CANBusName);
+  public GyroIOPigeon2(int canID, String canBusName) {
+    pigeon = new Pigeon2(canID, canBusName);
     pigeon.getConfigurator().apply(new Pigeon2Configuration());
     pigeon.getConfigurator().setYaw(0.0);
 
