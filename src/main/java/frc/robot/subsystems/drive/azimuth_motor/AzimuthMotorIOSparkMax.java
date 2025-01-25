@@ -1,4 +1,4 @@
-package frc.robot.subsystems.position_joint;
+package frc.robot.subsystems.drive.azimuth_motor;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
@@ -19,23 +19,17 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.RobotController;
-import frc.robot.subsystems.position_joint.PositionJointConstants.GravityType;
-import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointGains;
-import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointHardwareConfig;
+import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants.AzimuthMotorGains;
+import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants.AzimuthMotorHardwareConfig;
 import frc.robot.util.encoder.AbsoluteCancoder;
 import frc.robot.util.encoder.AbsoluteMagEncoder;
 import frc.robot.util.encoder.IAbsoluteEncoder;
-import frc.robot.util.feedforwards.PositionJointFeedforward;
-import frc.robot.util.feedforwards.TunableArmFeedforward;
-import frc.robot.util.feedforwards.TunableElevatorFeedforward;
-import java.util.function.DoubleSupplier;
+import frc.robot.util.feedforwards.TunableSimpleMotorFeedforward;
 
-public class PositionJointIONeo implements PositionJointIO {
+public class AzimuthMotorIOSparkMax implements AzimuthMotorIO {
   private final String name;
 
-  private final PositionJointHardwareConfig hardwareConfig;
-
-  private final DoubleSupplier externalFeedforward;
+  private final AzimuthMotorHardwareConfig hardwareConfig;
 
   private final SparkMax[] motors;
   private final SparkBaseConfig leaderConfig;
@@ -54,18 +48,15 @@ public class PositionJointIONeo implements PositionJointIO {
   private final Alert[] motorAlerts;
   private final Alert encoderAlert;
 
-  private final PositionJointFeedforward feedforward;
-  private final double feedforward_position_addition;
+  private final TunableSimpleMotorFeedforward feedforward;
 
   private double currentPosition = 0.0;
   private double positionSetpoint = 0.0;
   private double velocitySetpoint = 0.0;
 
-  public PositionJointIONeo(
-      String name, PositionJointHardwareConfig config, DoubleSupplier externalFeedforward) {
+  public AzimuthMotorIOSparkMax(String name, AzimuthMotorHardwareConfig config) {
     this.name = name;
     hardwareConfig = config;
-    this.externalFeedforward = externalFeedforward;
 
     assert config.canIds().length > 0 && (config.canIds().length == config.reversed().length);
 
@@ -186,33 +177,19 @@ public class PositionJointIONeo implements PositionJointIO {
               AlertType.kError);
     }
 
-    if (config.gravity() == GravityType.CONSTANT) {
-      feedforward = new TunableElevatorFeedforward();
-      feedforward_position_addition = 0.0;
-    } else {
-      feedforward = new TunableArmFeedforward();
-      if (config.gravity() == GravityType.SINE) {
-        feedforward_position_addition = -Math.PI / 2;
-      } else {
-        feedforward_position_addition = 0.0;
-      }
-    }
-  }
-
-  public PositionJointIONeo(String name, PositionJointHardwareConfig config) {
-    this(name, config, () -> 0);
+    feedforward = new TunableSimpleMotorFeedforward(0, 0, 0);
   }
 
   @Override
-  public void updateInputs(PositionJointIOInputs inputs) {
+  public void updateInputs(AzimuthMotorIOInputs inputs) {
     currentPosition = motors[0].getEncoder().getPosition();
 
-    inputs.outputPosition = currentPosition;
-    inputs.rotorPosition = currentPosition * hardwareConfig.gearRatio();
-    inputs.desiredPosition = positionSetpoint;
+    inputs.outputPositionRotations = currentPosition;
+    inputs.rotorPositionRotations = currentPosition * hardwareConfig.gearRatio();
+    inputs.desiredPositionRotations = positionSetpoint;
 
-    inputs.velocity = motors[0].getEncoder().getVelocity();
-    inputs.desiredVelocity = velocitySetpoint;
+    inputs.velocityRotationsPerSecond = motors[0].getEncoder().getVelocity();
+    inputs.desiredVelocityRotationsPerSecond = velocitySetpoint;
 
     for (int i = 0; i < motors.length; i++) {
       motorsConnected[i] = motors[i].getLastError() == REVLibError.kOk;
@@ -257,16 +234,13 @@ public class PositionJointIONeo implements PositionJointIO {
   public void setPosition(double desiredPosition, double desiredVelocity) {
     positionSetpoint = desiredPosition;
 
-    double ffposition = currentPosition + feedforward_position_addition;
-
     motors[0]
         .getClosedLoopController()
         .setReference(
             positionSetpoint,
             ControlType.kPosition,
             ClosedLoopSlot.kSlot0,
-            feedforward.calculate(ffposition, velocitySetpoint, desiredVelocity, 0.02)
-                + externalFeedforward.getAsDouble());
+            feedforward.calculate(velocitySetpoint, desiredVelocity));
 
     velocitySetpoint = desiredVelocity;
   }
@@ -277,8 +251,8 @@ public class PositionJointIONeo implements PositionJointIO {
   }
 
   @Override
-  public void setGains(PositionJointGains gains) {
-    feedforward.setGains(gains.kS(), gains.kG(), gains.kV(), gains.kA());
+  public void setGains(AzimuthMotorGains gains) {
+    feedforward.setGains(gains.kS(), gains.kV(), gains.kA());
 
     motors[0].configure(
         leaderConfig.apply(new ClosedLoopConfig().pidf(gains.kP(), gains.kI(), gains.kD(), 0)),
