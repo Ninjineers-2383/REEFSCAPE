@@ -30,7 +30,7 @@ import frc.robot.util.feedforwards.TunableArmFeedforward;
 import frc.robot.util.feedforwards.TunableElevatorFeedforward;
 import java.util.function.DoubleSupplier;
 
-public class PositionJointIONeo implements PositionJointIO {
+public class PositionJointIOSparkMax implements PositionJointIO {
   private final String name;
 
   private final PositionJointHardwareConfig hardwareConfig;
@@ -61,7 +61,7 @@ public class PositionJointIONeo implements PositionJointIO {
   private double positionSetpoint = 0.0;
   private double velocitySetpoint = 0.0;
 
-  public PositionJointIONeo(
+  public PositionJointIOSparkMax(
       String name, PositionJointHardwareConfig config, DoubleSupplier externalFeedforward) {
     this.name = name;
     hardwareConfig = config;
@@ -199,7 +199,7 @@ public class PositionJointIONeo implements PositionJointIO {
     }
   }
 
-  public PositionJointIONeo(String name, PositionJointHardwareConfig config) {
+  public PositionJointIOSparkMax(String name, PositionJointHardwareConfig config) {
     this(name, config, () -> 0);
   }
 

@@ -16,7 +16,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelGains;
 import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelHardwareConfig;
 
-public class FlywheelIONeo implements FlywheelIO {
+public class FlywheelIOSparkMax implements FlywheelIO {
   private final String name;
 
   private final SparkMax[] motors;
@@ -36,7 +36,7 @@ public class FlywheelIONeo implements FlywheelIO {
 
   private FlywheelGains gains;
 
-  public FlywheelIONeo(String name, FlywheelHardwareConfig config) {
+  public FlywheelIOSparkMax(String name, FlywheelHardwareConfig config) {
     this.name = name;
 
     assert config.canIds().length > 0 && (config.canIds().length == config.reversed().length);
