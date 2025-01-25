@@ -16,15 +16,18 @@ import com.revrobotics.spark.config.EncoderConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants.AzimuthMotorGains;
 import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants.AzimuthMotorHardwareConfig;
+import frc.robot.subsystems.drive.odometry_threads.SparkOdometryThread;
 import frc.robot.util.encoder.AbsoluteCancoder;
 import frc.robot.util.encoder.AbsoluteMagEncoder;
 import frc.robot.util.encoder.IAbsoluteEncoder;
 import frc.robot.util.feedforwards.TunableSimpleMotorFeedforward;
+import java.util.Queue;
 
 public class AzimuthMotorIOSparkMax implements AzimuthMotorIO {
   private final String name;
@@ -53,6 +56,10 @@ public class AzimuthMotorIOSparkMax implements AzimuthMotorIO {
   private double currentPosition = 0.0;
   private double positionSetpoint = 0.0;
   private double velocitySetpoint = 0.0;
+
+  // Queue inputs from odometry thread
+  private final Queue<Double> timestampQueue;
+  private final Queue<Double> turnPositionQueue;
 
   public AzimuthMotorIOSparkMax(String name, AzimuthMotorHardwareConfig config) {
     this.name = name;
@@ -178,6 +185,12 @@ public class AzimuthMotorIOSparkMax implements AzimuthMotorIO {
     }
 
     feedforward = new TunableSimpleMotorFeedforward(0, 0, 0);
+
+    timestampQueue = SparkOdometryThread.getInstance().makeTimestampQueue();
+
+    turnPositionQueue =
+        SparkOdometryThread.getInstance()
+            .registerSignal(motors[0], motors[0].getEncoder()::getPosition);
   }
 
   @Override
@@ -228,6 +241,15 @@ public class AzimuthMotorIOSparkMax implements AzimuthMotorIO {
 
     encoderAlert.set(!encoderConnected);
     inputs.encoderConnected = encoderConnected;
+
+    inputs.odometryTimestamps =
+        timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+    inputs.odometryTurnPositions =
+        turnPositionQueue.stream()
+            .map((Double value) -> new Rotation2d(value))
+            .toArray(Rotation2d[]::new);
+    timestampQueue.clear();
+    turnPositionQueue.clear();
   }
 
   @Override

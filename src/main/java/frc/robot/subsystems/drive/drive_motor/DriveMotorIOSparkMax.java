@@ -17,6 +17,8 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.subsystems.drive.drive_motor.DriveMotorConstants.DriveMotorGains;
 import frc.robot.subsystems.drive.drive_motor.DriveMotorConstants.DriveMotorHardwareConfig;
+import frc.robot.subsystems.drive.odometry_threads.SparkOdometryThread;
+import java.util.Queue;
 
 public class DriveMotorIOSparkMax implements DriveMotorIO {
   private final String name;
@@ -37,6 +39,10 @@ public class DriveMotorIOSparkMax implements DriveMotorIO {
   private double velocitySetpoint = 0.0;
 
   private DriveMotorGains gains;
+
+  // Queue inputs from odometry thread
+  private final Queue<Double> timestampQueue;
+  private final Queue<Double> drivePositionQueue;
 
   public DriveMotorIOSparkMax(String name, DriveMotorHardwareConfig config) {
     this.name = name;
@@ -86,6 +92,11 @@ public class DriveMotorIOSparkMax implements DriveMotorIO {
               name + " Follower Motor " + i + " Disconnected! CAN ID: " + config.canIds()[i],
               AlertType.kError);
     }
+
+    timestampQueue = SparkOdometryThread.getInstance().makeTimestampQueue();
+    drivePositionQueue =
+        SparkOdometryThread.getInstance()
+            .registerSignal(motors[0], motors[0].getEncoder()::getPosition);
   }
 
   @Override
@@ -113,6 +124,14 @@ public class DriveMotorIOSparkMax implements DriveMotorIO {
 
     inputs.motorVoltages = motorVoltages;
     inputs.motorCurrents = motorCurrents;
+
+    inputs.odometryTimestamps =
+        timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+    inputs.odometryDrivePositionsRad =
+        drivePositionQueue.stream().mapToDouble((Double value) -> value).toArray();
+
+    timestampQueue.clear();
+    drivePositionQueue.clear();
   }
 
   @Override
