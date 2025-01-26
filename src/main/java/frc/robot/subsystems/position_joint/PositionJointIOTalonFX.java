@@ -136,6 +136,32 @@ public class PositionJointIOTalonFX implements PositionJointIO {
                 .withFeedbackRemoteSensorID(config.encoderID())
                 .withSensorToMechanismRatio(1.0)
                 .withRotorToSensorRatio(config.gearRatio())
+                .withFeedbackSensorSource(FeedbackSensorSourceValue.RemoteCANcoder));
+
+        tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
+        break;
+      case EXTERNAL_CANCODER_PRO:
+        externalEncoder =
+            new AbsoluteCancoder(
+                config.encoderID(),
+                config.canBus(),
+                new CANcoderConfiguration()
+                    .withMagnetSensor(
+                        new MagnetSensorConfigs()
+                            .withSensorDirection(SensorDirectionValue.CounterClockwise_Positive)
+                            .withMagnetOffset(config.encoderOffset().getMeasure())));
+
+        encoderAlert =
+            new Alert(
+                name,
+                name + " CANCoder Disconnected! CAN ID: " + config.encoderID(),
+                AlertType.kError);
+
+        leaderConfig.withFeedback(
+            new FeedbackConfigs()
+                .withFeedbackRemoteSensorID(config.encoderID())
+                .withSensorToMechanismRatio(1.0)
+                .withRotorToSensorRatio(config.gearRatio())
                 .withFeedbackSensorSource(FeedbackSensorSourceValue.FusedCANcoder));
 
         tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
@@ -240,6 +266,9 @@ public class PositionJointIOTalonFX implements PositionJointIO {
         encoderConnected = false;
         break;
       case EXTERNAL_CANCODER:
+        encoderConnected = BaseStatusSignal.refreshAll(rotorPosition).isOK();
+        break;
+      case EXTERNAL_CANCODER_PRO:
         encoderConnected = BaseStatusSignal.refreshAll(rotorPosition).isOK();
         break;
       case EXTERNAL_DIO:

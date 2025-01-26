@@ -13,6 +13,7 @@ public class PositionJointConstants {
   public enum EncoderType {
     INTERNAL,
     EXTERNAL_CANCODER,
+    EXTERNAL_CANCODER_PRO,
     EXTERNAL_DIO,
     EXTERNAL_SPARK
   }

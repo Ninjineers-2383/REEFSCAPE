@@ -118,6 +118,8 @@ public class PositionJointIOSparkMax implements PositionJointIO {
             leaderConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
         motors[0].getEncoder().setPosition(externalEncoder.getAbsoluteAngle().getRotations());
         break;
+      case EXTERNAL_CANCODER_PRO:
+        throw new IllegalArgumentException("EXTERNAL_CANCODER_PRO not supported on SparkMax");
       case EXTERNAL_DIO:
         externalEncoder = new AbsoluteMagEncoder(config.encoderID());
 
@@ -240,6 +242,9 @@ public class PositionJointIOSparkMax implements PositionJointIO {
         break;
       case EXTERNAL_CANCODER:
         encoderConnected = externalEncoder.isConnected();
+        break;
+      case EXTERNAL_CANCODER_PRO:
+        encoderConnected = false;
         break;
       case EXTERNAL_DIO:
         encoderConnected = externalEncoder.isConnected();
