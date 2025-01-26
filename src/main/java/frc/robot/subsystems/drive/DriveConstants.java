@@ -50,7 +50,7 @@ public class DriveConstants {
   // Drive motor configuration
   public static final int driveMotorCurrentLimit = 50;
   public static final double driveMotorGearRatio =
-      1 / ((14.0 / 50.0) * (27.0 / 17.0) * (15.0 / 45.0)); // Mk4i L3 with 14t pinion
+      1 / ((14.0 / 50.0) * (28.0 / 16.0) * (15.0 / 45.0)); // Mk4i L3 with 14t pinion
   public static final DCMotor driveGearbox = DCMotor.getKrakenX60Foc(1);
 
   // Drive encoder configuration
