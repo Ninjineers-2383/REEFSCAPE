@@ -71,5 +71,6 @@
   ],
   "editor.formatOnPaste": true,
   "editor.formatOnSave": true,
-  "java.debug.settings.onBuildFailureProceed": true
+  "java.debug.settings.onBuildFailureProceed": true,
+  "java.import.gradle.annotationProcessing.enabled": false
 }
