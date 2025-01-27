@@ -2,7 +2,8 @@ package frc.robot.subsystems.flywheel;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelGains;
-import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.mechanical_advantage.LinearProfile;
+import frc.robot.util.mechanical_advantage.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 public class Flywheel extends SubsystemBase {
@@ -18,9 +19,14 @@ public class Flywheel extends SubsystemBase {
   private final LoggedTunableNumber kV;
   private final LoggedTunableNumber kA;
 
+  private final LoggedTunableNumber kMaxAccel;
+
   private final LoggedTunableNumber kTolerance;
 
   private final LoggedTunableNumber kSetpoint;
+
+  private final LinearProfile profile;
+  private double velocitySetpoint;
 
   public Flywheel(FlywheelIO io, FlywheelGains gains) {
     flywheel = io;
@@ -34,9 +40,13 @@ public class Flywheel extends SubsystemBase {
     kV = new LoggedTunableNumber(name + "/Gains/kV", gains.kV());
     kA = new LoggedTunableNumber(name + "/Gains/kA", gains.kA());
 
+    kMaxAccel = new LoggedTunableNumber(name + "/Gains/kMaxAccel", gains.kMaxAccel());
+
     kTolerance = new LoggedTunableNumber(name + "/Gains/kTolerance", gains.kTolerance());
 
     kSetpoint = new LoggedTunableNumber(name + "/Gains/kSetpoint", 0.0);
+
+    profile = new LinearProfile(gains.kMaxAccel(), 0.02);
   }
 
   @Override
@@ -44,14 +54,20 @@ public class Flywheel extends SubsystemBase {
     flywheel.updateInputs(inputs);
     Logger.processInputs(name, inputs);
 
+    velocitySetpoint = profile.calculateSetpoint();
+    flywheel.setVelocity(velocitySetpoint);
+
     LoggedTunableNumber.ifChanged(
         hashCode(),
         (values) -> {
           flywheel.setGains(
               new FlywheelGains(
-                  values[0], values[1], values[2], values[3], values[4], values[5], values[6]));
+                  values[0], values[1], values[2], values[3], values[4], values[5], values[6],
+                  values[7]));
 
-          flywheel.setVelocity(values[7]);
+          profile.setGoal(values[8], velocitySetpoint);
+
+          profile.setMaxAcceleration(values[6]);
         },
         kP,
         kI,
@@ -59,12 +75,13 @@ public class Flywheel extends SubsystemBase {
         kS,
         kV,
         kA,
+        kMaxAccel,
         kTolerance,
         kSetpoint);
   }
 
   public void setVelocity(double velocity) {
-    flywheel.setVelocity(velocity);
+    profile.setGoal(velocity, velocitySetpoint);
   }
 
   public void setVoltage(double voltage) {

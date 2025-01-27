@@ -24,6 +24,11 @@ import frc.robot.subsystems.drive.drive_motor.DriveMotorIOTalonFX;
 import frc.robot.subsystems.drive.gyro.GyroIO;
 import frc.robot.subsystems.drive.gyro.GyroIOPigeon2;
 import frc.robot.subsystems.drive.odometry_threads.PhoenixOdometryThread;
+import frc.robot.subsystems.flywheel.Flywheel;
+import frc.robot.subsystems.flywheel.FlywheelConstants;
+import frc.robot.subsystems.flywheel.FlywheelIOReplay;
+import frc.robot.subsystems.flywheel.FlywheelIOSim;
+import frc.robot.subsystems.flywheel.FlywheelIOSparkMax;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
@@ -43,6 +48,8 @@ public class RobotContainer {
 
   @SuppressWarnings("unused")
   private final Vision vision;
+
+  private final Flywheel flywheel;
 
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -94,6 +101,11 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0));
+
+        flywheel =
+            new Flywheel(
+                new FlywheelIOSparkMax("Flywheel", FlywheelConstants.EXAMPLE_CONFIG),
+                FlywheelConstants.EXAMPLE_GAINS);
         break;
 
       case SIM:
@@ -130,6 +142,11 @@ public class RobotContainer {
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(
                     VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
+
+        flywheel =
+            new Flywheel(
+                new FlywheelIOSim("Flywheel", FlywheelConstants.EXAMPLE_CONFIG),
+                FlywheelConstants.EXAMPLE_GAINS);
         break;
 
       default:
@@ -160,6 +177,8 @@ public class RobotContainer {
                 null,
                 null);
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+
+        flywheel = new Flywheel(new FlywheelIOReplay("Flywheel"), FlywheelConstants.EXAMPLE_GAINS);
         break;
     }
 
