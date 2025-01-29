@@ -3,128 +3,215 @@ package frc.robot.subsystems.drive;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
-import frc.robot.subsystems.drive.ModuleIO.ModuleGains;
-import frc.robot.util.LoggedTunableNumber;
+import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants.AzimuthMotorGains;
+import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorIO;
+import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorIOInputsAutoLogged;
+import frc.robot.subsystems.drive.drive_motor.DriveMotorConstants.DriveMotorGains;
+import frc.robot.subsystems.drive.drive_motor.DriveMotorIO;
+import frc.robot.subsystems.drive.drive_motor.DriveMotorIOInputsAutoLogged;
+import frc.robot.util.mechanical_advantage.LinearProfile;
+import frc.robot.util.mechanical_advantage.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 public class Module {
-  private final ModuleIO io;
-  private final ModuleIOInputsAutoLogged inputs = new ModuleIOInputsAutoLogged();
-  private final int index;
+  private final DriveMotorIO driveMotor;
+  private final DriveMotorIOInputsAutoLogged driveInputs = new DriveMotorIOInputsAutoLogged();
 
-  private final Alert driveDisconnectedAlert;
-  private final Alert turnDisconnectedAlert;
-  private final Alert turnEncoderDisconnectedAlert;
+  private final AzimuthMotorIO azimuthMotor;
+  private final AzimuthMotorIOInputsAutoLogged azimuthInputs = new AzimuthMotorIOInputsAutoLogged();
+
+  private final String driveName;
+  private final String azimuthName;
+
+  private final LoggedTunableNumber drivekP;
+  private final LoggedTunableNumber drivekI;
+  private final LoggedTunableNumber drivekD;
+  private final LoggedTunableNumber drivekS;
+  private final LoggedTunableNumber drivekV;
+  private final LoggedTunableNumber drivekA;
+
+  private final LoggedTunableNumber drivekMaxAccel;
+
+  private final LoggedTunableNumber azimuthkP;
+  private final LoggedTunableNumber azimuthkI;
+  private final LoggedTunableNumber azimuthkD;
+  private final LoggedTunableNumber azimuthkS;
+  private final LoggedTunableNumber azimuthkV;
+  private final LoggedTunableNumber azimuthkA;
+
+  private final LoggedTunableNumber azimuthkMaxVelo;
+  private final LoggedTunableNumber azimuthkMaxAccel;
+
+  private final LinearProfile driveProfile;
+
+  private double driveSetpoint = 0.0;
+
+  private TrapezoidProfile.Constraints azimuthConstraints;
+
+  private TrapezoidProfile azimuthProfile;
+
+  private TrapezoidProfile.State azimuthGoal = new TrapezoidProfile.State();
+
+  private TrapezoidProfile.State azimuthSetpoint = new TrapezoidProfile.State();
+
   private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
 
-  private final LoggedTunableNumber kP;
-  private final LoggedTunableNumber kI;
-  private final LoggedTunableNumber kD;
-  private final LoggedTunableNumber kS;
-  private final LoggedTunableNumber kV;
-  private final LoggedTunableNumber kA;
+  public Module(
+      DriveMotorIO driveMotorIO,
+      DriveMotorGains driveGains,
+      AzimuthMotorIO azimuthMotorIO,
+      AzimuthMotorGains azimuthGains) {
+    driveMotor = driveMotorIO;
+    azimuthMotor = azimuthMotorIO;
 
-  public Module(ModuleIO io, int index) {
-    this.io = io;
-    this.index = index;
-    driveDisconnectedAlert =
-        new Alert(
-            "Drive",
-            "Disconnected drive motor on module " + Integer.toString(index) + ".",
-            AlertType.kError);
-    turnDisconnectedAlert =
-        new Alert(
-            "Drive",
-            "Disconnected turn motor on module " + Integer.toString(index) + ".",
-            AlertType.kError);
-    turnEncoderDisconnectedAlert =
-        new Alert(
-            "Drive",
-            "Disconnected turn encoder on module " + Integer.toString(index) + ".",
-            AlertType.kError);
+    driveName = driveMotorIO.getName();
+    azimuthName = azimuthMotorIO.getName();
 
-    ModuleGains gains = io.getGains();
+    drivekP = new LoggedTunableNumber("Drive/" + driveName + "/Gains/kP", driveGains.kP());
+    drivekI = new LoggedTunableNumber("Drive/" + driveName + "/Gains/kI", driveGains.kI());
+    drivekD = new LoggedTunableNumber("Drive/" + driveName + "/Gains/kD", driveGains.kD());
+    drivekS = new LoggedTunableNumber("Drive/" + driveName + "/Gains/kS", driveGains.kS());
+    drivekV = new LoggedTunableNumber("Drive/" + driveName + "/Gains/kV", driveGains.kV());
+    drivekA = new LoggedTunableNumber("Drive/" + driveName + "/Gains/kA", driveGains.kA());
 
-    kP = new LoggedTunableNumber("Drive/" + index + "/Gains/kP", gains.kP());
-    kI = new LoggedTunableNumber("Drive/" + index + "/Gains/kI", gains.kI());
-    kD = new LoggedTunableNumber("Drive/" + index + "/Gains/kD", gains.kD());
-    kS = new LoggedTunableNumber("Drive/" + index + "/Gains/kS", gains.kS());
-    kV = new LoggedTunableNumber("Drive/" + index + "/Gains/kV", gains.kV());
-    kA = new LoggedTunableNumber("Drive/" + index + "/Gains/kA", gains.kA());
+    drivekMaxAccel =
+        new LoggedTunableNumber("Drive/" + driveName + "/Gains/kMaxAccel", driveGains.kMaxAccel());
+
+    azimuthkP = new LoggedTunableNumber("Drive/" + azimuthName + "/Gains/kP", azimuthGains.kP());
+    azimuthkI = new LoggedTunableNumber("Drive/" + azimuthName + "/Gains/kI", azimuthGains.kI());
+    azimuthkD = new LoggedTunableNumber("Drive/" + azimuthName + "/Gains/kD", azimuthGains.kD());
+    azimuthkS = new LoggedTunableNumber("Drive/" + azimuthName + "/Gains/kS", azimuthGains.kS());
+    azimuthkV = new LoggedTunableNumber("Drive/" + azimuthName + "/Gains/kV", azimuthGains.kV());
+    azimuthkA = new LoggedTunableNumber("Drive/" + azimuthName + "/Gains/kA", azimuthGains.kA());
+
+    azimuthkMaxVelo =
+        new LoggedTunableNumber(
+            "Drive/" + azimuthName + "/Gains/kMaxVelo", azimuthGains.kMaxVelo());
+    azimuthkMaxAccel =
+        new LoggedTunableNumber(
+            "Drive/" + azimuthName + "/Gains/kMaxAccel", azimuthGains.kMaxAccel());
+
+    driveProfile = new LinearProfile(driveGains.kMaxAccel(), 0.02);
+
+    azimuthConstraints =
+        new TrapezoidProfile.Constraints(azimuthGains.kMaxVelo(), azimuthGains.kMaxAccel());
+    azimuthProfile = new TrapezoidProfile(azimuthConstraints);
+
+    azimuthGoal = new TrapezoidProfile.State(0, 0);
+    azimuthSetpoint = azimuthGoal;
   }
 
   public void periodic() {
-    io.updateInputs(inputs);
-    Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
+    driveMotor.updateInputs(driveInputs);
+    Logger.processInputs(driveName, driveInputs);
+
+    azimuthMotor.updateInputs(azimuthInputs);
+    Logger.processInputs(azimuthName, azimuthInputs);
 
     // Calculate positions for odometry
-    int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
+    int sampleCount = driveInputs.odometryTimestamps.length; // All signals are sampled together
     odometryPositions = new SwerveModulePosition[sampleCount];
     for (int i = 0; i < sampleCount; i++) {
       double positionMeters =
-          inputs.odometryDrivePositionsRad[i] * DriveConstants.driveWheelRadiusMeters;
-      Rotation2d angle = inputs.odometryTurnPositions[i];
+          driveInputs.odometryDrivePositionsRad[i] * DriveConstants.driveWheelRadiusMeters;
+      Rotation2d angle = azimuthInputs.odometryTurnPositions[i];
       odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
     }
 
-    // Update alerts
-    driveDisconnectedAlert.set(!inputs.driveConnected);
-    turnDisconnectedAlert.set(!inputs.turnConnected);
-    turnEncoderDisconnectedAlert.set(!inputs.turnEncoderConnected);
+    driveSetpoint = driveProfile.calculateSetpoint();
+
+    driveMotor.setVelocity(driveSetpoint);
+
+    azimuthSetpoint = azimuthProfile.calculate(0.02, azimuthSetpoint, azimuthGoal);
+
+    azimuthMotor.setPosition(azimuthSetpoint.position, azimuthSetpoint.velocity);
 
     LoggedTunableNumber.ifChanged(
         hashCode(),
         (values) -> {
-          io.setGains(
-              new ModuleGains(values[0], values[1], values[2], values[3], values[4], values[5]));
+          driveMotor.setGains(
+              new DriveMotorGains(
+                  values[0], values[1], values[2], values[3], values[4], values[5], values[6]));
+
+          driveProfile.setMaxAcceleration(values[6]);
         },
-        kP,
-        kI,
-        kD,
-        kS,
-        kV,
-        kA);
+        drivekP,
+        drivekI,
+        drivekD,
+        drivekS,
+        drivekV,
+        drivekA,
+        drivekMaxAccel);
+
+    LoggedTunableNumber.ifChanged(
+        hashCode(),
+        (values) -> {
+          azimuthMotor.setGains(
+              new AzimuthMotorGains(
+                  values[0], values[1], values[2], values[3], values[4], values[5], values[6],
+                  values[7]));
+
+          azimuthConstraints = new TrapezoidProfile.Constraints(values[6], values[7]);
+          azimuthProfile = new TrapezoidProfile(azimuthConstraints);
+        },
+        azimuthkP,
+        azimuthkI,
+        azimuthkD,
+        azimuthkS,
+        azimuthkV,
+        azimuthkA,
+        azimuthkMaxVelo,
+        azimuthkMaxAccel);
   }
 
   /** Runs the module with the specified setpoint state. Mutates the state to optimize it. */
   public void runSetpoint(SwerveModuleState state) {
     // Optimize velocity setpoint
-    state.optimize(getAngle());
-    state.cosineScale(inputs.turnPosition);
+    state = OnboardModuleState.optimize(state, getAngle());
+    Logger.recordOutput(azimuthName + "/goal", state.angle.getRotations());
+    state.cosineScale(Rotation2d.fromRotations(azimuthInputs.outputPositionRotations));
 
-    // Apply setpoints
-    io.setDriveVelocity(state.speedMetersPerSecond / DriveConstants.driveWheelRadiusMeters);
-    io.setTurnPosition(state.angle);
+    driveProfile.setGoal(
+        Units.radiansToRotations(
+            state.speedMetersPerSecond / DriveConstants.driveWheelRadiusMeters),
+        driveSetpoint);
+
+    azimuthGoal = new TrapezoidProfile.State(state.angle.getRotations(), 0);
+
+    if (Math.abs(azimuthSetpoint.position - azimuthGoal.position) > 0.5) {
+      azimuthSetpoint = azimuthGoal;
+    }
   }
 
   /** Runs the module with the specified output while controlling to zero degrees. */
   public void runCharacterization(double output) {
-    io.setDriveOpenLoop(output);
-    io.setTurnPosition(new Rotation2d());
+    driveMotor.setVoltage(output);
+    azimuthMotor.setPosition(0.0, 0.0);
   }
 
   /** Disables all outputs to motors. */
   public void stop() {
-    io.setDriveOpenLoop(0.0);
-    io.setTurnOpenLoop(0.0);
+    driveMotor.setVoltage(0.0);
+    azimuthMotor.setVoltage(0.0);
   }
 
   /** Returns the current turn angle of the module. */
   public Rotation2d getAngle() {
-    return inputs.turnPosition;
+    return Rotation2d.fromRotations(azimuthInputs.outputPositionRotations);
   }
 
   /** Returns the current drive position of the module in meters. */
   public double getPositionMeters() {
-    return inputs.drivePositionRad * DriveConstants.driveWheelRadiusMeters;
+    return Units.rotationsToRadians(driveInputs.positionRotations)
+        * DriveConstants.driveWheelRadiusMeters;
   }
 
   /** Returns the current drive velocity of the module in meters per second. */
   public double getVelocityMetersPerSec() {
-    return inputs.driveVelocityRadPerSec * DriveConstants.driveWheelRadiusMeters;
+    return Units.rotationsToRadians(driveInputs.velocityRotationsPerSecond)
+        * DriveConstants.driveWheelRadiusMeters;
   }
 
   /** Returns the module position (turn angle and drive position). */
@@ -144,16 +231,16 @@ public class Module {
 
   /** Returns the timestamps of the samples received this cycle. */
   public double[] getOdometryTimestamps() {
-    return inputs.odometryTimestamps;
+    return driveInputs.odometryTimestamps;
   }
 
   /** Returns the module position in radians. */
   public double getWheelRadiusCharacterizationPosition() {
-    return inputs.drivePositionRad;
+    return Units.rotationsToRadians(driveInputs.positionRotations);
   }
 
   /** Returns the module velocity in rotations/sec (Phoenix native units). */
   public double getFFCharacterizationVelocity() {
-    return Units.radiansToRotations(inputs.driveVelocityRadPerSec);
+    return driveInputs.positionRotations;
   }
 }

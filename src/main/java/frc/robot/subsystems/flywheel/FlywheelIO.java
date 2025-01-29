@@ -7,8 +7,9 @@ public interface FlywheelIO {
   @AutoLog
   public static class FlywheelIOInputs {
     public double velocity = 0.0;
-
     public double desiredVelocity = 0.0;
+
+    public double position = 0.0;
 
     public boolean[] motorsConnected = {false};
 

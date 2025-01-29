@@ -30,7 +30,7 @@ import frc.robot.util.feedforwards.TunableArmFeedforward;
 import frc.robot.util.feedforwards.TunableElevatorFeedforward;
 import java.util.function.DoubleSupplier;
 
-public class PositionJointIONeo implements PositionJointIO {
+public class PositionJointIOSparkMax implements PositionJointIO {
   private final String name;
 
   private final PositionJointHardwareConfig hardwareConfig;
@@ -61,7 +61,7 @@ public class PositionJointIONeo implements PositionJointIO {
   private double positionSetpoint = 0.0;
   private double velocitySetpoint = 0.0;
 
-  public PositionJointIONeo(
+  public PositionJointIOSparkMax(
       String name, PositionJointHardwareConfig config, DoubleSupplier externalFeedforward) {
     this.name = name;
     hardwareConfig = config;
@@ -118,6 +118,8 @@ public class PositionJointIONeo implements PositionJointIO {
             leaderConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
         motors[0].getEncoder().setPosition(externalEncoder.getAbsoluteAngle().getRotations());
         break;
+      case EXTERNAL_CANCODER_PRO:
+        throw new IllegalArgumentException("EXTERNAL_CANCODER_PRO not supported on SparkMax");
       case EXTERNAL_DIO:
         externalEncoder = new AbsoluteMagEncoder(config.encoderID());
 
@@ -144,7 +146,7 @@ public class PositionJointIONeo implements PositionJointIO {
             new AbsoluteEncoderConfig()
                 .positionConversionFactor(1.0)
                 .velocityConversionFactor(1.0)
-                .zeroOffset(currentPosition)
+                .zeroOffset(config.encoderOffset().getRotations())
                 .averageDepth(2));
 
         motors[0].configure(
@@ -199,7 +201,7 @@ public class PositionJointIONeo implements PositionJointIO {
     }
   }
 
-  public PositionJointIONeo(String name, PositionJointHardwareConfig config) {
+  public PositionJointIOSparkMax(String name, PositionJointHardwareConfig config) {
     this(name, config, () -> 0);
   }
 
@@ -240,6 +242,9 @@ public class PositionJointIONeo implements PositionJointIO {
         break;
       case EXTERNAL_CANCODER:
         encoderConnected = externalEncoder.isConnected();
+        break;
+      case EXTERNAL_CANCODER_PRO:
+        encoderConnected = false;
         break;
       case EXTERNAL_DIO:
         encoderConnected = externalEncoder.isConnected();

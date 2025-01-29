@@ -30,6 +30,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
+import frc.robot.subsystems.drive.gyro.GyroIO;
+import frc.robot.subsystems.drive.gyro.GyroIOInputsAutoLogged;
+import frc.robot.subsystems.drive.odometry_threads.PhoenixOdometryThread;
+import frc.robot.subsystems.drive.odometry_threads.SparkOdometryThread;
 import frc.robot.util.pathplanner.AdvancedPPHolonomicDriveController;
 import frc.robot.util.pathplanner.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
@@ -60,23 +64,29 @@ public class Drive extends SubsystemBase {
 
   public Drive(
       GyroIO gyroIO,
-      ModuleIO flModuleIO,
-      ModuleIO frModuleIO,
-      ModuleIO blModuleIO,
-      ModuleIO brModuleIO,
-      Thread odometryThread) {
+      Module flModule,
+      Module frModuleIO,
+      Module blModuleIO,
+      Module brModuleIO,
+      PhoenixOdometryThread phoenixOdometryThread,
+      SparkOdometryThread sparkOdometryThread) {
     this.gyroIO = gyroIO;
-    modules[0] = new Module(flModuleIO, 0);
-    modules[1] = new Module(frModuleIO, 1);
-    modules[2] = new Module(blModuleIO, 2);
-    modules[3] = new Module(brModuleIO, 3);
+    modules[0] = flModule;
+    modules[1] = frModuleIO;
+    modules[2] = blModuleIO;
+    modules[3] = brModuleIO;
 
     // Usage reporting for swerve template
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_AdvantageKit);
 
-    // Start odometry thread
-    if (odometryThread != null) {
-      odometryThread.start();
+    // Start phoenix odometry thread
+    if (phoenixOdometryThread != null) {
+      phoenixOdometryThread.start();
+    }
+
+    // Start spark odometry thread
+    if (sparkOdometryThread != null) {
+      sparkOdometryThread.start();
     }
 
     // Configure AutoBuilder for PathPlanner

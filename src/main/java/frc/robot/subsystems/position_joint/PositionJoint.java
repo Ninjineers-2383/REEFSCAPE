@@ -5,7 +5,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointGains;
-import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.mechanical_advantage.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
 
 public class PositionJoint extends SubsystemBase {

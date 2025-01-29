@@ -1,10 +1,11 @@
-package frc.robot.subsystems.position_joint;
+package frc.robot.subsystems.drive.azimuth_motor;
 
 import static frc.robot.util.PhoenixUtil.tryUntilOk;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.ClosedLoopGeneralConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -15,31 +16,30 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
-import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import frc.robot.subsystems.position_joint.PositionJointConstants.GravityType;
-import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointGains;
-import frc.robot.subsystems.position_joint.PositionJointConstants.PositionJointHardwareConfig;
+import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants.AzimuthMotorGains;
+import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorConstants.AzimuthMotorHardwareConfig;
+import frc.robot.subsystems.drive.odometry_threads.PhoenixOdometryThread;
 import frc.robot.util.encoder.AbsoluteCancoder;
 import frc.robot.util.encoder.AbsoluteMagEncoder;
 import frc.robot.util.encoder.IAbsoluteEncoder;
 import java.util.ArrayList;
-import java.util.function.DoubleSupplier;
+import java.util.Queue;
 
-public class PositionJointIOTalonFX implements PositionJointIO {
+public class AzimuthMotorIOTalonFX implements AzimuthMotorIO {
   private final String name;
 
-  private final PositionJointHardwareConfig hardwareConfig;
-
-  private final DoubleSupplier externalFeedforward;
+  private final AzimuthMotorHardwareConfig hardwareConfig;
 
   private final TalonFX[] motors;
   private final TalonFXConfiguration leaderConfig;
@@ -72,13 +72,13 @@ public class PositionJointIOTalonFX implements PositionJointIO {
   private final Alert encoderAlert;
 
   private double positionSetpoint = 0.0;
-  private double velocitySetpoint = 0.0;
 
-  public PositionJointIOTalonFX(
-      String name, PositionJointHardwareConfig config, DoubleSupplier externalFeedforward) {
+  private final Queue<Double> timestampQueue;
+  private final Queue<Double> turnPositionQueue;
+
+  public AzimuthMotorIOTalonFX(String name, AzimuthMotorHardwareConfig config) {
     this.name = name;
     hardwareConfig = config;
-    this.externalFeedforward = externalFeedforward;
 
     assert config.canIds().length > 0 && (config.canIds().length == config.reversed().length);
 
@@ -98,8 +98,9 @@ public class PositionJointIOTalonFX implements PositionJointIO {
                     .withNeutralMode(NeutralModeValue.Brake)
                     .withInverted(
                         config.reversed()[0]
-                            ? InvertedValue.Clockwise_Positive
-                            : InvertedValue.CounterClockwise_Positive));
+                            ? InvertedValue.CounterClockwise_Positive
+                            : InvertedValue.Clockwise_Positive))
+            .withClosedLoopGeneral(new ClosedLoopGeneralConfigs().withContinuousWrap(true));
 
     switch (hardwareConfig.encoderType()) {
       case INTERNAL:
@@ -114,8 +115,6 @@ public class PositionJointIOTalonFX implements PositionJointIO {
                 .withFeedbackSensorSource(FeedbackSensorSourceValue.RotorSensor));
 
         tryUntilOk(5, () -> motors[0].getConfigurator().apply(leaderConfig));
-
-        motors[0].setPosition(config.encoderOffset().getRotations());
         break;
       case EXTERNAL_CANCODER:
         externalEncoder =
@@ -199,7 +198,7 @@ public class PositionJointIOTalonFX implements PositionJointIO {
     positions.add(motors[0].getPosition());
     velocities.add(motors[0].getVelocity());
 
-    voltages.add(motors[0].getMotorVoltage());
+    voltages.add(motors[0].getSupplyVoltage());
     currents.add(motors[0].getStatorCurrent());
 
     motorAlerts[0] =
@@ -221,27 +220,25 @@ public class PositionJointIOTalonFX implements PositionJointIO {
       positions.add(motors[i].getPosition());
       velocities.add(motors[i].getVelocity());
 
-      voltages.add(motors[i].getMotorVoltage());
+      voltages.add(motors[i].getSupplyVoltage());
       currents.add(motors[i].getStatorCurrent());
     }
 
-    // positionSetpoint = config.initialSetpoint();
-  }
+    timestampQueue = PhoenixOdometryThread.getInstance().makeTimestampQueue();
+    turnPositionQueue = PhoenixOdometryThread.getInstance().registerSignal(outputPosition);
 
-  public PositionJointIOTalonFX(String name, PositionJointHardwareConfig config) {
-    this(name, config, () -> 0);
+    BaseStatusSignal.setUpdateFrequencyForAll(DriveConstants.odometryFrequency, outputPosition);
   }
 
   @Override
-  public void updateInputs(PositionJointIOInputs inputs) {
+  public void updateInputs(AzimuthMotorIOInputs inputs) {
     BaseStatusSignal.refreshAll(outputPosition, rotorPosition, velocity);
 
-    inputs.outputPosition = outputPosition.getValueAsDouble();
-    inputs.rotorPosition = rotorPosition.getValueAsDouble();
-    inputs.velocity = velocity.getValueAsDouble();
+    inputs.outputPositionRotations = outputPosition.getValueAsDouble();
+    inputs.rotorPositionRotations = rotorPosition.getValueAsDouble();
+    inputs.velocityRotationsPerSecond = velocity.getValueAsDouble();
 
-    inputs.desiredPosition = positionSetpoint;
-    inputs.desiredVelocity = velocitySetpoint;
+    inputs.desiredVelocityRotationsPerSecond = positionSetpoint;
 
     for (int i = 0; i < motors.length; i++) {
       // Do not refresh the three status signals above
@@ -258,6 +255,8 @@ public class PositionJointIOTalonFX implements PositionJointIO {
 
       motorAlerts[i].set(!motorsConnected[i]);
     }
+
+    inputs.desiredPositionRotations = positionSetpoint;
 
     inputs.motorsConnected = motorsConnected;
 
@@ -287,18 +286,22 @@ public class PositionJointIOTalonFX implements PositionJointIO {
 
     encoderAlert.set(!encoderConnected);
     inputs.encoderConnected = encoderConnected;
+
+    inputs.odometryTimestamps =
+        timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
+    inputs.odometryTurnPositions =
+        turnPositionQueue.stream()
+            .map((Double value) -> Rotation2d.fromRotations(value))
+            .toArray(Rotation2d[]::new);
+    timestampQueue.clear();
+    turnPositionQueue.clear();
   }
 
   @Override
   public void setPosition(double position, double velocity) {
     positionSetpoint = position;
-    velocitySetpoint = velocity;
 
-    motors[0].setControl(
-        positionRequest
-            .withPosition(position)
-            .withVelocity(velocity)
-            .withFeedForward(externalFeedforward.getAsDouble()));
+    motors[0].setControl(positionRequest.withPosition(position).withVelocity(velocity));
   }
 
   @Override
@@ -307,16 +310,7 @@ public class PositionJointIOTalonFX implements PositionJointIO {
   }
 
   @Override
-  public void setGains(PositionJointGains gains) {
-    GravityTypeValue gravity;
-    if (hardwareConfig.gravity() == GravityType.CONSTANT) {
-      gravity = GravityTypeValue.Elevator_Static;
-    } else if (hardwareConfig.gravity() == GravityType.COSINE) {
-      gravity = GravityTypeValue.Arm_Cosine;
-    } else {
-      throw new IllegalArgumentException("SINE gravity is not supported for TalonFX");
-    }
-
+  public void setGains(AzimuthMotorGains gains) {
     motors[0]
         .getConfigurator()
         .apply(
@@ -326,9 +320,7 @@ public class PositionJointIOTalonFX implements PositionJointIO {
                 .withKD(gains.kD())
                 .withKV(gains.kV())
                 .withKA(gains.kA())
-                .withKS(gains.kS())
-                .withKG(gains.kG())
-                .withGravityType(gravity));
+                .withKS(gains.kS()));
 
     System.out.println(name + " gains set to " + gains);
   }

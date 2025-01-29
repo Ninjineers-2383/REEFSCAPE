@@ -15,8 +15,9 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelGains;
 import frc.robot.subsystems.flywheel.FlywheelConstants.FlywheelHardwareConfig;
+import frc.robot.util.feedforwards.TunableSimpleMotorFeedforward;
 
-public class FlywheelIONeo implements FlywheelIO {
+public class FlywheelIOSparkMax implements FlywheelIO {
   private final String name;
 
   private final SparkMax[] motors;
@@ -32,11 +33,11 @@ public class FlywheelIONeo implements FlywheelIO {
 
   private final Alert[] motorAlerts;
 
+  private TunableSimpleMotorFeedforward feedforward;
+
   private double velocitySetpoint = 0.0;
 
-  private FlywheelGains gains;
-
-  public FlywheelIONeo(String name, FlywheelHardwareConfig config) {
+  public FlywheelIOSparkMax(String name, FlywheelHardwareConfig config) {
     this.name = name;
 
     assert config.canIds().length > 0 && (config.canIds().length == config.reversed().length);
@@ -80,6 +81,8 @@ public class FlywheelIONeo implements FlywheelIO {
               name + " Follower Motor " + i + " Disconnected! CAN ID: " + config.canIds()[i],
               AlertType.kError);
     }
+
+    feedforward = new TunableSimpleMotorFeedforward(0, 0, 0);
   }
 
   @Override
@@ -119,7 +122,7 @@ public class FlywheelIONeo implements FlywheelIO {
             velocitySetpoint,
             ControlType.kVelocity,
             ClosedLoopSlot.kSlot0,
-            gains.kS() * Math.signum(velocity));
+            feedforward.calculateWithVelocities(motors[0].getEncoder().getVelocity(), velocity));
   }
 
   @Override
@@ -129,12 +132,12 @@ public class FlywheelIONeo implements FlywheelIO {
 
   @Override
   public void setGains(FlywheelGains gains) {
-    this.gains = gains;
     motors[0].configure(
-        leaderConfig.apply(
-            new ClosedLoopConfig().pidf(gains.kP(), gains.kI(), gains.kD(), gains.kV())),
+        leaderConfig.apply(new ClosedLoopConfig().pid(gains.kP(), gains.kI(), gains.kD())),
         ResetMode.kNoResetSafeParameters,
         PersistMode.kNoPersistParameters);
+
+    feedforward.setGains(gains.kS(), gains.kV(), gains.kA());
 
     System.out.println(name + " gains set to " + gains);
   }

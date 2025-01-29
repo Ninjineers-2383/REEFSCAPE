@@ -11,7 +11,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 
-package frc.robot.subsystems.drive.spark;
+package frc.robot.subsystems.drive.odometry_threads;
 
 import com.revrobotics.REVLibError;
 import com.revrobotics.spark.SparkBase;
