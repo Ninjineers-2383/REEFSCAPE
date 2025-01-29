@@ -91,7 +91,7 @@ public class ModuleIOTalonFX implements ModuleIO {
 
     // Configure CANCoder
     CANcoderConfiguration cancoderConfig = TalonFXModuleConstants.cancoderConfig;
-    cancoderConfig.MagnetSensor.withMagnetOffset(constants.CANCoderOffset());
+    // cancoderConfig.MagnetSensor.withMagnetOffset(constants.CANCoderOffset());
     tryUntilOk(5, () -> cancoder.getConfigurator().apply(cancoderConfig, 0.25));
 
     // Configure turn motor

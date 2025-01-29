@@ -4,9 +4,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.trajectory.TrajectoryUtil;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -17,13 +15,14 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.QuarrelCommands;
+import frc.robot.commands.QuarrelCommands.QuarrelSubsystem;
 import frc.robot.commands.QuarrelPresets;
 import frc.robot.commands.flywheel.FlywheelVoltageCommand;
 import frc.robot.subsystems.components.Components;
 import frc.robot.subsystems.digital_sensor.DigitalSensor;
 import frc.robot.subsystems.digital_sensor.DigitalSensorConstants;
-import frc.robot.subsystems.digital_sensor.DigitalSensorIO;
 import frc.robot.subsystems.digital_sensor.DigitalSensorIODigitialInput;
+import frc.robot.subsystems.digital_sensor.DigitalSensorIOReplay;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
@@ -36,12 +35,12 @@ import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
 import frc.robot.subsystems.drive.talon.TalonFXModuleConstants;
 import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.flywheel.FlywheelConstants;
-import frc.robot.subsystems.flywheel.FlywheelIO;
+import frc.robot.subsystems.flywheel.FlywheelIOReplay;
 import frc.robot.subsystems.flywheel.FlywheelIOSim;
 import frc.robot.subsystems.flywheel.FlywheelIOTalonFX;
 import frc.robot.subsystems.position_joint.PositionJoint;
 import frc.robot.subsystems.position_joint.PositionJointConstants;
-import frc.robot.subsystems.position_joint.PositionJointIO;
+import frc.robot.subsystems.position_joint.PositionJointIOReplay;
 import frc.robot.subsystems.position_joint.PositionJointIOSim;
 import frc.robot.subsystems.position_joint.PositionJointIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
@@ -66,9 +65,12 @@ public class RobotContainer {
   private final Drive drive;
 
   private final PositionJoint elevator;
+  private final PositionJoint pivot;
   private final Flywheel outtake;
+  private final DigitalSensor outtake_top_sensor;
+  private final DigitalSensor outtake_bottom_sensor;
 
-  private final DigitalSensor outtake_sensor;
+  private final QuarrelSubsystem quarrel;
 
   private final PositionJoint climber;
   private final Flywheel climberIntake;
@@ -123,15 +125,25 @@ public class RobotContainer {
                 new PositionJointIOTalonFX("Elevator", PositionJointConstants.ELEVATOR_CONFIG),
                 PositionJointConstants.ELEVATOR_GAINS);
 
+        pivot =
+            new PositionJoint(
+                new PositionJointIOTalonFX("Pivot", PositionJointConstants.PIVOT_CONFIG),
+                PositionJointConstants.PIVOT_GAINS);
+
         outtake =
             new Flywheel(
                 new FlywheelIOTalonFX("Outtake", FlywheelConstants.OUTTAKE_CONFIG),
                 FlywheelConstants.OUTTAKE_GAINS);
 
-        outtake_sensor =
+        outtake_top_sensor =
             new DigitalSensor(
                 new DigitalSensorIODigitialInput(
-                    "Outtake_Sensor", DigitalSensorConstants.OUTTAKE_BREAK_CONFIG));
+                    "Outtake_Top_Sensor", DigitalSensorConstants.OUTTAKE_TOP_BREAK_CONFIG));
+
+        outtake_bottom_sensor =
+            new DigitalSensor(
+                new DigitalSensorIODigitialInput(
+                    "Outtake_Bottom_Sensor", DigitalSensorConstants.OUTTAKE_BOTTOM_BREAK_CONFIG));
 
         climber =
             new PositionJoint(
@@ -178,12 +190,19 @@ public class RobotContainer {
                 new PositionJointIOSim("Elevator", PositionJointConstants.ELEVATOR_CONFIG),
                 PositionJointConstants.ELEVATOR_GAINS);
 
+        pivot =
+            new PositionJoint(
+                new PositionJointIOSim("Pivot", PositionJointConstants.PIVOT_CONFIG),
+                PositionJointConstants.PIVOT_GAINS);
+
         outtake =
             new Flywheel(
                 new FlywheelIOSim("Outtake", FlywheelConstants.OUTTAKE_CONFIG),
                 FlywheelConstants.OUTTAKE_GAINS);
 
-        outtake_sensor = new DigitalSensor(new DigitalSensorIO() {});
+        outtake_top_sensor = new DigitalSensor(new DigitalSensorIOReplay("Outtake_Top_Sensor"));
+        outtake_bottom_sensor =
+            new DigitalSensor(new DigitalSensorIOReplay("Outtake_Bottom_Sensor"));
 
         climber =
             new PositionJoint(
@@ -209,20 +228,34 @@ public class RobotContainer {
         vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
 
         elevator =
-            new PositionJoint(new PositionJointIO() {}, PositionJointConstants.ELEVATOR_GAINS);
+            new PositionJoint(
+                new PositionJointIOReplay("Elevator"), PositionJointConstants.ELEVATOR_GAINS);
 
-        outtake = new Flywheel(new FlywheelIO() {}, FlywheelConstants.OUTTAKE_GAINS);
+        pivot =
+            new PositionJoint(
+                new PositionJointIOReplay("Pivot"), PositionJointConstants.PIVOT_GAINS);
 
-        outtake_sensor = new DigitalSensor(new DigitalSensorIO() {});
+        outtake = new Flywheel(new FlywheelIOReplay("Outtake"), FlywheelConstants.OUTTAKE_GAINS);
 
-        climber = new PositionJoint(new PositionJointIO() {}, PositionJointConstants.CLIMBER_GAINS);
+        outtake_top_sensor = new DigitalSensor(new DigitalSensorIOReplay("Outtake_Top_Sensor"));
+        outtake_bottom_sensor =
+            new DigitalSensor(new DigitalSensorIOReplay("Outtake_Bottom_Sensor"));
 
-        climberIntake = new Flywheel(new FlywheelIO() {}, FlywheelConstants.CLIMBER_INTAKE_GAINS);
+        climber =
+            new PositionJoint(
+                new PositionJointIOReplay("Climber"), PositionJointConstants.CLIMBER_GAINS);
+
+        climberIntake =
+            new Flywheel(
+                new FlywheelIOReplay("Climber_Intake"), FlywheelConstants.CLIMBER_INTAKE_GAINS);
 
         break;
     }
 
     sim_components = new Components(elevator);
+
+    quarrel =
+        new QuarrelSubsystem(elevator, pivot, outtake, outtake_top_sensor, outtake_bottom_sensor);
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -270,10 +303,11 @@ public class RobotContainer {
     try {
 
       drive.setDefaultCommand(
-          DriveCommands.joystickDriveAlongTrajectory(
+          DriveCommands.joystickDrive(
               drive,
-              TrajectoryUtil.fromPathweaverJson(
-                  Filesystem.getDeployDirectory().toPath().resolve("paths/TestPath1.wpilib.json")),
+              //   TrajectoryUtil.fromPathweaverJson(
+              //
+              // Filesystem.getDeployDirectory().toPath().resolve("paths/TestPath1.wpilib.json")),
               () -> -driverController.getLeftY(),
               () -> -driverController.getLeftX(),
               () -> -driverController.getRightX()));
@@ -359,39 +393,35 @@ public class RobotContainer {
                 }));
 
     new Trigger(L1Chooser::get)
-        .onTrue(
-            QuarrelCommands.QuarrelCommand(elevator, outtake, QuarrelPresets::getL1, () -> 0.0));
+        .onTrue(QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getL1));
 
     new Trigger(L2Chooser::get)
-        .onTrue(
-            QuarrelCommands.QuarrelCommand(elevator, outtake, QuarrelPresets::getL2, () -> 0.0));
+        .onTrue(QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getL2));
 
     new Trigger(L3Chooser::get)
-        .onTrue(
-            QuarrelCommands.QuarrelCommand(elevator, outtake, QuarrelPresets::getL3, () -> 0.0));
+        .onTrue(QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getL3));
 
     new Trigger(L4Chooser::get)
         .onTrue(
-            QuarrelCommands.QuarrelCommand(elevator, outtake, QuarrelPresets::getL4, () -> 0.0));
+            QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getL4)
+                .andThen(QuarrelCommands.FlipCommand(quarrel, QuarrelPresets::getL4)));
 
     new Trigger(ZeroChooser::get)
-        .onTrue(
-            QuarrelCommands.QuarrelCommand(elevator, outtake, QuarrelPresets::getZero, () -> 0.0));
+        .onTrue(QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getZero));
 
-    new Trigger(ScoreChooser::get).onTrue(QuarrelCommands.ScoreCommand(elevator, outtake));
+    new Trigger(ScoreChooser::get).onTrue(QuarrelCommands.ScoreCommand(quarrel));
 
-    new Trigger(HighballChooser::get)
-        .onTrue(
-            QuarrelCommands.QuarrelCommand(
-                elevator, outtake, QuarrelPresets::getHighball, () -> -12.0));
+    // new Trigger(HighballChooser::get)
+    //     .onTrue(
+    //         QuarrelCommands.E(
+    //             elevator, outtake, QuarrelPresets::getHighball, () -> -12.0));
 
-    new Trigger(LowballChooser::get)
-        .onTrue(
-            QuarrelCommands.QuarrelCommand(
-                elevator, outtake, QuarrelPresets::getLowball, () -> -12.0));
+    // new Trigger(LowballChooser::get)
+    //     .onTrue(
+    //         QuarrelCommands.QuarrelCommand(
+    //             elevator, outtake, QuarrelPresets::getLowball, () -> -12.0));
 
-    new Trigger(TransferChooser::get)
-        .onTrue(QuarrelCommands.TransferCommand(elevator, outtake, outtake_sensor));
+    new Trigger(TransferChooser::get).onTrue(QuarrelCommands.TransferCommand(quarrel));
   }
 
   /**
@@ -416,7 +446,6 @@ public class RobotContainer {
     Logger.recordOutput(
         "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
     Logger.recordOutput(
-        "FieldSimulation/Coral",
         "FieldSimulation/Coral",
         SimulatedArena.getInstance().getGamePiecesByType("Note").toArray(new Pose3d[0]));
   }

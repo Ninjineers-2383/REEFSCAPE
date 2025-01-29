@@ -209,6 +209,74 @@ public class DriveCommands {
         .beforeStarting(() -> angleController.reset(drive.getRotation().getRadians()));
   }
 
+  public static Command joystickDriveHeadingLock(
+      Drive drive,
+      DoubleSupplier xSupplier,
+      DoubleSupplier ySupplier,
+      DoubleSupplier omegaSupplier) {
+
+    // Create PID controller
+    ProfiledPIDController angleController =
+        new ProfiledPIDController(
+            ANGLE_KP,
+            0.0,
+            ANGLE_KD,
+            new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
+    angleController.enableContinuousInput(-Math.PI, Math.PI);
+
+    // Construct command
+    return new Command() {
+      double desiredHeading = drive.getRotation().getRadians();
+      boolean locked = false;
+
+      {
+        addRequirements(drive);
+      }
+
+      @Override
+      public void initialize() {
+        angleController.reset(drive.getRotation().getRadians());
+      }
+
+      @Override
+      public void execute() {
+        // Get linear velocity
+        Translation2d linearVelocity =
+            getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+
+        // Calculate angular speed
+        double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
+
+        if (Math.abs(omega) != 0.0) {
+          if (!locked) {
+            desiredHeading = drive.getRotation().getRadians();
+            locked = true;
+          }
+          omega = angleController.calculate(drive.getRotation().getRadians(), desiredHeading);
+        } else {
+          locked = false;
+        }
+
+        // Convert to field relative speeds & send command
+        ChassisSpeeds speeds =
+            new ChassisSpeeds(
+                linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                omega);
+        boolean isFlipped =
+            DriverStation.getAlliance().isPresent()
+                && DriverStation.getAlliance().get() == Alliance.Red;
+        speeds =
+            ChassisSpeeds.fromFieldRelativeSpeeds(
+                speeds,
+                isFlipped
+                    ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                    : drive.getRotation());
+        drive.runVelocity(speeds);
+      }
+    };
+  }
+
   protected static double transformDot(Transform2d a, Transform2d b) {
     return a.getX() * b.getX() + a.getY() * b.getY();
   }
@@ -241,7 +309,7 @@ public class DriveCommands {
     }
 
     // Interpolate between states based on distance
-    // TODO: FIx this to actually get the closest point
+    // TODO: Fix this to actually get the closest point
     return trajectory.sample((lowerState.timeSeconds + higherState.timeSeconds) / 2);
   }
 

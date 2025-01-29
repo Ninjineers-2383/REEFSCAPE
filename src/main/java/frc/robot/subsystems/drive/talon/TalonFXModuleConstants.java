@@ -41,7 +41,7 @@ public class TalonFXModuleConstants {
                   .withPeakReverseTorqueCurrent(-slipCurrent.magnitude()));
 
   private static final Slot0Configs turnPIDConfig =
-      new Slot0Configs().withKP(30).withKI(0).withKD(0).withKS(0).withKV(0).withKA(0);
+      new Slot0Configs().withKP(45).withKI(2).withKD(0).withKS(0).withKV(0).withKA(0);
   private static final ClosedLoopGeneralConfigs ContinuousWrap = new ClosedLoopGeneralConfigs();
 
   {
@@ -84,11 +84,11 @@ public class TalonFXModuleConstants {
       boolean invertSteer) {}
 
   public static final ModuleSpecificConfiguration frontLeft =
-      new ModuleSpecificConfiguration(31, 41, 21, Rotations.of(0.400879 - 0.5), false, false);
+      new ModuleSpecificConfiguration(31, 41, 21, Rotations.of(-0.037598), false, false);
   public static final ModuleSpecificConfiguration frontRight =
-      new ModuleSpecificConfiguration(32, 42, 22, Rotations.of(0.380127 - 0.5), false, false);
+      new ModuleSpecificConfiguration(32, 42, 22, Rotations.of(0.472656 - 0.5), false, false);
   public static final ModuleSpecificConfiguration rearLeft =
-      new ModuleSpecificConfiguration(33, 43, 23, Rotations.of(-0.375488 + 0.5), false, false);
+      new ModuleSpecificConfiguration(33, 43, 23, Rotations.of(0.308594), false, false);
   public static final ModuleSpecificConfiguration rearRight =
-      new ModuleSpecificConfiguration(34, 44, 24, Rotations.of(0.468750 - 0.5), false, false);
+      new ModuleSpecificConfiguration(34, 44, 24, Rotations.of(0.497070), false, false);
 }

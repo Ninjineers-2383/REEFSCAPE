@@ -1,9 +1,9 @@
 package frc.robot.commands;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
@@ -13,48 +13,79 @@ import frc.robot.commands.position_joint.PositionJointPositionCommand;
 import frc.robot.subsystems.digital_sensor.DigitalSensor;
 import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.position_joint.PositionJoint;
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 public class QuarrelCommands {
   private QuarrelCommands() {}
 
-  public static Command QuarrelCommand(
+  public static record QuarrelSubsystem(
       PositionJoint elevator,
-      DoubleSupplier elevatorPositionMeters,
-      Supplier<Rotation2d> pivotRotation) {
-    return new ParallelCommandGroup(
-        new PositionJointPositionCommand(elevator, elevatorPositionMeters));
-  }
-
-  public static Command QuarrelCommand(
-      PositionJoint elevator,
+      PositionJoint pivot,
       Flywheel claw,
-      Supplier<QuarrelPosition> position,
-      DoubleSupplier clawVoltage) {
-    return new ParallelCommandGroup(
-        new PositionJointPositionCommand(elevator, () -> position.get().elevatorPositionMeters()),
-        new FlywheelVoltageCommand(claw, clawVoltage));
+      DigitalSensor topBeamBreak,
+      DigitalSensor bottomBeamBreak) {}
+
+  public static Command ElevatorCommand(
+      QuarrelSubsystem subsystem, Supplier<QuarrelPosition> position) {
+    return new PositionJointPositionCommand(
+        subsystem.elevator, () -> position.get().elevatorPositionMeters());
   }
 
-  public static Command ScoreCommand(PositionJoint elevator, Flywheel claw) {
-    // Elevator goes down by a specified amount and feeder outtakes
-    return new ParallelCommandGroup(
-        new SequentialCommandGroup(
-            new WaitCommand(0.5),
-            new FlywheelVoltageCommand(claw, () -> 5.0)
-                .withTimeout(1.0)
-                .andThen(new FlywheelVoltageCommand(claw, () -> 0.0))));
-  }
-
-  public static Command TransferCommand(
-      PositionJoint elevator, Flywheel claw, DigitalSensor sensor) {
+  public static Command FlipCommand(
+      QuarrelSubsystem subsystem, Supplier<QuarrelPosition> position) {
     return new SequentialCommandGroup(
-        new PositionJointPositionCommand(
-            elevator, () -> QuarrelPresets.getTransferUp().elevatorPositionMeters()),
-        new WaitUntilCommand(sensor.getTrigger()),
         new ParallelDeadlineGroup(
-            new WaitUntilCommand(sensor.getTrigger()), new FlywheelVoltageCommand(claw, () -> 1.0)),
-        new FlywheelVoltageCommand(claw, () -> 1.0).withTimeout(0.1));
+            new WaitUntilCommand(
+                subsystem
+                    .bottomBeamBreak
+                    .getTrigger()
+                    .negate()), // Wait until the bottom beam break is untriggered
+            new FlywheelVoltageCommand(subsystem.claw, () -> -3.0)), // Back game piece out of claw
+        new FlywheelVoltageCommand(subsystem.claw, () -> 0.0).withTimeout(0.1), // Stop the claw
+        new ParallelCommandGroup(
+            new PositionJointPositionCommand(
+                subsystem.pivot,
+                () -> position.get().pivotRotation().getRotations()), // Flip the pivot
+            new SequentialCommandGroup(
+                new ParallelDeadlineGroup(
+                    // new WaitUntilCommand(
+                    //     subsystem.topBeamBreak
+                    //         .getTrigger()), // Wait until the top beam break is untriggered
+                    new WaitCommand(0.5),
+                    new FlywheelVoltageCommand(subsystem.claw, () -> 1.0)), // Intake the game piece
+                new FlywheelVoltageCommand(subsystem.claw, () -> 0.0)
+                    .withTimeout(0.02))) // Stop the claw
+        );
+  }
+
+  public static Command ScoreCommand(QuarrelSubsystem subsystem) {
+    // Score by running claw at full speed until beam breaks are no longer triggered
+    return new SequentialCommandGroup(
+        new ParallelDeadlineGroup(
+            new WaitUntilCommand(
+                subsystem
+                    .topBeamBreak
+                    .getTrigger()
+                    .or(subsystem.bottomBeamBreak.getTrigger())
+                    .negate()),
+            new FlywheelVoltageCommand(
+                subsystem.claw, () -> subsystem.pivot.getPosition() > 0.5 ? -3.0 : 3.0)),
+        new WaitCommand(1),
+        new FlywheelVoltageCommand(subsystem.claw, () -> 0.0).withTimeout(0.02));
+  }
+
+  public static Command TransferCommand(QuarrelSubsystem subsystem) {
+    return new SequentialCommandGroup(
+        new PrintCommand("Transfer Command Started"),
+        new PositionJointPositionCommand(
+            subsystem.pivot, () -> QuarrelPresets.getTransferDown().pivotRotation().getRotations()),
+        new PrintCommand("Transfer Command Pivot Finished"),
+        new PositionJointPositionCommand(
+            subsystem.elevator, () -> QuarrelPresets.getTransferDown().elevatorPositionMeters()),
+        new PrintCommand("Transfer Command Move Finished"),
+        new FlywheelVoltageCommand(subsystem.claw, () -> 5.0).withTimeout(0.2),
+        new WaitUntilCommand(subsystem.bottomBeamBreak.getTrigger()),
+        new FlywheelVoltageCommand(subsystem.claw, () -> 0.0).withTimeout(0.2),
+        new PrintCommand("Transfer Command Index Finished"));
   }
 }

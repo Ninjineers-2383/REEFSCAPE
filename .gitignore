@@ -188,3 +188,5 @@ src/main/java/frc/robot/BuildConstants.java
 
 /repos/releases/com/pathplanner/lib/PathplannerLib-cpp
 !/repos/releases/com/pathplanner/lib/PathplannerLib-java/**/*.jar
+
+*.gltf

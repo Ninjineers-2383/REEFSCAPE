@@ -8,7 +8,7 @@ public class FlywheelConstants {
       int[] canIds, boolean[] reversed, double gearRatio, String canBus) {}
 
   public static final FlywheelHardwareConfig OUTTAKE_CONFIG =
-      new FlywheelHardwareConfig(new int[] {14}, new boolean[] {true}, 24.0 / 48.0, "Drive");
+      new FlywheelHardwareConfig(new int[] {16}, new boolean[] {true}, 24.0 / 48.0, "Drive");
 
   public static final FlywheelGains OUTTAKE_GAINS =
       new FlywheelGains(0.2, 0.0, 0.0, 0.0, 0.065, 0.0, 1.0);
