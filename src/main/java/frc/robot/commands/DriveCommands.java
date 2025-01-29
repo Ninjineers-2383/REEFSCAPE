@@ -213,7 +213,8 @@ public class DriveCommands {
       Drive drive,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
-      DoubleSupplier omegaSupplier) {
+      DoubleSupplier omegaSupplier,
+      BooleanSupplier resetHeading) {
 
     // Create PID controller
     ProfiledPIDController angleController =
@@ -247,8 +248,11 @@ public class DriveCommands {
         // Calculate angular speed
         double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
 
-        if (Math.abs(omega) != 0.0) {
+        omega = Math.copySign(omega * omega, omega) * drive.getMaxAngularSpeedRadPerSec();
+
+        if (Math.abs(omega) == 0.0 && !resetHeading.getAsBoolean()) {
           if (!locked) {
+            angleController.reset(drive.getRotation().getRadians());
             desiredHeading = drive.getRotation().getRadians();
             locked = true;
           }
