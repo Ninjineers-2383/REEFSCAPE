@@ -11,6 +11,7 @@ import frc.robot.subsystems.drive.azimuth_motor.AzimuthMotorIOInputsAutoLogged;
 import frc.robot.subsystems.drive.drive_motor.DriveMotorConstants.DriveMotorGains;
 import frc.robot.subsystems.drive.drive_motor.DriveMotorIO;
 import frc.robot.subsystems.drive.drive_motor.DriveMotorIOInputsAutoLogged;
+import frc.robot.util.OnboardModuleState;
 import frc.robot.util.mechanical_advantage.LinearProfile;
 import frc.robot.util.mechanical_advantage.LoggedTunableNumber;
 import org.littletonrobotics.junction.Logger;
