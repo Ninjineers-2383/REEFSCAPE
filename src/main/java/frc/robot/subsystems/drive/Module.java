@@ -169,7 +169,8 @@ public class Module {
   /** Runs the module with the specified setpoint state. Mutates the state to optimize it. */
   public void runSetpoint(SwerveModuleState state) {
     // Optimize velocity setpoint
-    state.optimize(getAngle());
+    state = OnboardModuleState.optimize(state, getAngle());
+    Logger.recordOutput(azimuthName + "/goal", state.angle.getRotations());
     state.cosineScale(Rotation2d.fromRotations(azimuthInputs.outputPositionRotations));
 
     driveProfile.setGoal(
@@ -178,6 +179,10 @@ public class Module {
         driveSetpoint);
 
     azimuthGoal = new TrapezoidProfile.State(state.angle.getRotations(), 0);
+
+    if (Math.abs(azimuthSetpoint.position - azimuthGoal.position) > 0.5) {
+      azimuthSetpoint = azimuthGoal;
+    }
   }
 
   /** Runs the module with the specified output while controlling to zero degrees. */

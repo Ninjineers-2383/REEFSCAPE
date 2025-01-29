@@ -28,14 +28,14 @@ public class DriveMotorConstants {
           new int[] {34}, new boolean[] {false}, DriveConstants.driveMotorGearRatio, canBusName);
 
   public static final DriveMotorGains FRONT_LEFT_GAINS =
-      new DriveMotorGains(0.2, 0, 0, 0, 0.9, 0, 20);
+      new DriveMotorGains(0.2, 0, 0, 0, 0.9, 0, 100);
 
   public static final DriveMotorGains FRONT_RIGHT_GAINS =
-      new DriveMotorGains(0.2, 0, 0, 0, 0.9, 0, 20);
+      new DriveMotorGains(0.2, 0, 0, 0, 0.9, 0, 100);
 
   public static final DriveMotorGains BACK_LEFT_GAINS =
-      new DriveMotorGains(0.2, 0, 0, 0, 0.9, 0, 20);
+      new DriveMotorGains(0.2, 0, 0, 0, 0.9, 0, 100);
 
   public static final DriveMotorGains BACK_RIGHT_GAINS =
-      new DriveMotorGains(0.2, 0, 0, 0, 0.9, 0, 20);
+      new DriveMotorGains(0.2, 0, 0, 0, 0.9, 0, 100);
 }

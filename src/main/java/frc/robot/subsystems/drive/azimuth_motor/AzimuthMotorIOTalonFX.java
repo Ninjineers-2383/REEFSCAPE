@@ -98,8 +98,8 @@ public class AzimuthMotorIOTalonFX implements AzimuthMotorIO {
                     .withNeutralMode(NeutralModeValue.Brake)
                     .withInverted(
                         config.reversed()[0]
-                            ? InvertedValue.Clockwise_Positive
-                            : InvertedValue.CounterClockwise_Positive))
+                            ? InvertedValue.CounterClockwise_Positive
+                            : InvertedValue.Clockwise_Positive))
             .withClosedLoopGeneral(new ClosedLoopGeneralConfigs().withContinuousWrap(true));
 
     switch (hardwareConfig.encoderType()) {
@@ -255,6 +255,8 @@ public class AzimuthMotorIOTalonFX implements AzimuthMotorIO {
 
       motorAlerts[i].set(!motorsConnected[i]);
     }
+
+    inputs.desiredPositionRotations = positionSetpoint;
 
     inputs.motorsConnected = motorsConnected;
 

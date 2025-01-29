@@ -72,14 +72,14 @@ public class AzimuthMotorConstants {
           canBusName);
 
   public static final AzimuthMotorGains FRONT_LEFT_GAINS =
-      new AzimuthMotorGains(10, 0, 0, 0, 2.5, 0, 5, 5);
+      new AzimuthMotorGains(25, 0, 0, 0, 2.5, 0, 5, 5);
 
   public static final AzimuthMotorGains FRONT_RIGHT_GAINS =
-      new AzimuthMotorGains(10, 0, 0, 0, 2.5, 0, 5, 5);
+      new AzimuthMotorGains(25, 0, 0, 0, 2.5, 0, 5, 5);
 
   public static final AzimuthMotorGains BACK_LEFT_GAINS =
-      new AzimuthMotorGains(10, 0, 0, 0, 2.5, 0, 5, 5);
+      new AzimuthMotorGains(25, 0, 0, 0, 2.5, 0, 5, 5);
 
   public static final AzimuthMotorGains BACK_RIGHT_GAINS =
-      new AzimuthMotorGains(10, 0, 0, 0, 2.5, 0, 5, 5);
+      new AzimuthMotorGains(25, 0, 0, 0, 2.5, 0, 5, 5);
 }
