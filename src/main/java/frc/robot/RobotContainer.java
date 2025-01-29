@@ -2,6 +2,7 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -23,15 +24,11 @@ import frc.robot.subsystems.digital_sensor.DigitalSensorConstants;
 import frc.robot.subsystems.digital_sensor.DigitalSensorIODigitialInput;
 import frc.robot.subsystems.digital_sensor.DigitalSensorIOReplay;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.subsystems.drive.GyroIO;
-import frc.robot.subsystems.drive.GyroIOPigeon2;
-import frc.robot.subsystems.drive.GyroIOSim;
-import frc.robot.subsystems.drive.ModuleIO;
-import frc.robot.subsystems.drive.spark.ModuleIOSparkSim;
-import frc.robot.subsystems.drive.talon.ModuleIOTalonFX;
-import frc.robot.subsystems.drive.talon.PhoenixOdometryThread;
-import frc.robot.subsystems.drive.talon.TalonFXModuleConstants;
+import frc.robot.subsystems.drive.Module;
+import frc.robot.subsystems.drive.azimuth_motor.*;
+import frc.robot.subsystems.drive.drive_motor.*;
+import frc.robot.subsystems.drive.gyro.*;
+import frc.robot.subsystems.drive.odometry_threads.PhoenixOdometryThread;
 import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.flywheel.FlywheelConstants;
 import frc.robot.subsystems.flywheel.FlywheelIOReplay;
@@ -47,12 +44,16 @@ import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
  * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
  * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
+ */
+public class RobotContainer {
   // Subsystems
   private final Drive drive;
 
@@ -72,7 +73,6 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
   private final Components sim_components;
 
   // Simulation
-  private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -95,6 +95,7 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     new QuarrelPresets();
+
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -175,13 +176,6 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
         break;
 
       case SIM:
-        // create a maple-sim swerve drive simulation instance
-        driveSimulation =
-            new SwerveDriveSimulation(
-                DriveConstants.mapleSimConfig, new Pose2d(7, 5.5, new Rotation2d()));
-        // add the simulated drivetrain to the simulation field
-        SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
-        // Sim robot, instantiate physics sim IO implementations
         drive =
             new Drive(
                 new GyroIO() {},
@@ -214,9 +208,7 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
                 new VisionIOPhotonVisionSim(
                     VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(
-                    VisionConstants.camera1Name,
-                    VisionConstants.robotToCamera1,
-                    driveSimulation::getSimulatedDriveTrainPose));
+                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
 
         elevator =
             new PositionJoint(
@@ -275,8 +267,15 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
                     AzimuthMotorConstants.BACK_RIGHT_GAINS),
                 null,
                 null);
+
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+
+        pivot =
             new PositionJoint(
                 new PositionJointIOReplay("Pivot"), PositionJointConstants.PIVOT_GAINS);
+        elevator =
+            new PositionJoint(
+                new PositionJointIOReplay("Elevator"), PositionJointConstants.ELEVATOR_GAINS);
 
         outtake = new Flywheel(new FlywheelIOReplay("Outtake"), FlywheelConstants.OUTTAKE_GAINS);
 
