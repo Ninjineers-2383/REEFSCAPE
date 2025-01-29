@@ -1,7 +1,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.mechanical_advantage.LoggedTunableNumber;
 
 public class QuarrelPresets {
   public QuarrelPresets() {}
