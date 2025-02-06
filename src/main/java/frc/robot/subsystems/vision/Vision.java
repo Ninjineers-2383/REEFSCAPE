@@ -103,6 +103,7 @@ public class Vision extends SubsystemBase {
 
         // Add pose to log
         robotPoses.add(observation.pose());
+        rejectPose = false;
         if (rejectPose) {
           robotPosesRejected.add(observation.pose());
         } else {
