@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import org.photonvision.PhotonCamera;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 /** IO implementation for real PhotonVision hardware. */
 public class VisionIOPhotonVisionTrig implements VisionIO {
@@ -45,10 +46,13 @@ public class VisionIOPhotonVisionTrig implements VisionIO {
     for (var result : camera.getAllUnreadResults()) {
       // Update latest target observation
       if (result.hasTargets()) {
+        PhotonTrackedTarget bestTarget = result.getBestTarget();
+
+        double yaw = bestTarget.getYaw();
+        double pitch = bestTarget.getPitch();
+
         inputs.latestTargetObservation =
-            new TargetObservation(
-                Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
-                Rotation2d.fromDegrees(result.getBestTarget().getPitch()));
+            new TargetObservation(Rotation2d.fromDegrees(yaw), Rotation2d.fromDegrees(pitch));
 
         Transform3d bestFieldToCamera = result.getBestTarget().getBestCameraToTarget();
         // Transform3d bestFieldToRobot = bestFieldToCamera.plus(robotToCamera.inverse());
@@ -62,21 +66,15 @@ public class VisionIOPhotonVisionTrig implements VisionIO {
         bestDistances.add(bestDistance);
         worstDistances.add(worstDistance);
 
+        Rotation2d gyro = gyroRotationSupplier.get();
+
         Transform3d fieldToCameraTrig =
             new Transform3d(
                 new Translation3d(
-                    bestDistance
-                        * Math.cos(
-                            Math.toRadians(
-                                result.getBestTarget().getYaw()
-                                    - gyroRotationSupplier.get().getDegrees())),
-                    -bestDistance
-                        * Math.sin(
-                            Math.toRadians(
-                                result.getBestTarget().getYaw()
-                                    - gyroRotationSupplier.get().getDegrees())),
-                    bestDistance * Math.sin(Math.toRadians(result.getBestTarget().getPitch()))),
-                new Rotation3d(gyroRotationSupplier.get()));
+                    -bestDistance * Math.cos(Math.toRadians(yaw - gyro.getDegrees())),
+                    -bestDistance * Math.sin(Math.toRadians(yaw - gyro.getDegrees())),
+                    bestDistance * Math.sin(Math.toRadians(pitch))),
+                new Rotation3d(gyro.plus(robotToCamera.getRotation().toRotation2d())));
 
         Transform3d fieldToRobot = fieldToCameraTrig.plus(robotToCamera.inverse());
 
