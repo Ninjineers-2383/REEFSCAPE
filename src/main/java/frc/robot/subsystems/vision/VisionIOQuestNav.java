@@ -3,9 +3,11 @@ package frc.robot.subsystems.vision;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.DoubleArrayPublisher;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.FloatArraySubscriber;
 import edu.wpi.first.networktables.IntegerPublisher;
@@ -19,13 +21,25 @@ import org.littletonrobotics.junction.Logger;
 
 /** IO implementation for real Limelight hardware. */
 public class VisionIOQuestNav implements VisionIO {
-  public record QuestNavData(Pose3d pose, double batteryPercent, double timestamp) {}
+  public record QuestNavData(
+      Pose3d pose,
+      double batteryPercent,
+      double timestamp,
+      float[] translation,
+      float[] rotation) {}
+
+  private enum QuestNavResetState {
+    RESET_QUEUED,
+    RESETTING,
+    RESET_COMPLETE
+  }
 
   // Configure Network Tables topics (questnav/...) to communicate with the Quest HMD
   private NetworkTableInstance nt4Instance = NetworkTableInstance.getDefault();
   private NetworkTable nt4Table = nt4Instance.getTable("questnav");
   private IntegerSubscriber questMiso = nt4Table.getIntegerTopic("miso").subscribe(0);
   private IntegerPublisher questMosi = nt4Table.getIntegerTopic("mosi").publish();
+  private DoubleArrayPublisher resetPublisher = nt4Table.getDoubleArrayTopic("resetpose").publish();
 
   // Subscribe to the Network Tables questnav data topics
   private DoubleSubscriber questTimestamp = nt4Table.getDoubleTopic("timestamp").subscribe(0.0f);
@@ -36,24 +50,74 @@ public class VisionIOQuestNav implements VisionIO {
   private DoubleSubscriber questBatteryPercent =
       nt4Table.getDoubleTopic("batteryPercent").subscribe(0.0f);
 
-  private boolean resetQueue = false;
+  private QuestNavResetState resetQueue = QuestNavResetState.RESET_COMPLETE;
 
   // Local heading helper variables
-  private Transform3d resetTransform = new Transform3d();
+  private Translation3d resetTranslation = new Translation3d();
+  private Rotation3d resetRotation = new Rotation3d();
 
-  public VisionIOQuestNav() {}
+  private final Transform3d robotToCamera;
+
+  private final VisionIO absoluteVisionIO;
+  private final VisionIOInputsAutoLogged absoluteInputs = new VisionIOInputsAutoLogged();
+
+  public VisionIOQuestNav(Transform3d robotToCamera, VisionIO absoluteVisionIO) {
+    // Initialize the camera to robot transform
+    this.robotToCamera = robotToCamera;
+    this.absoluteVisionIO = absoluteVisionIO;
+  }
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
     QuestNavData[] questNavData = getQuestNavData();
 
+    // Update the absolute vision IO
+    absoluteVisionIO.updateInputs(absoluteInputs);
+    Logger.processInputs("QuestNav/absolute", absoluteInputs);
+
     inputs.connected = connected();
     inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
     inputs.poseObservations = new PoseObservation[questNavData.length];
     for (int i = 0; i < questNavData.length; i++) {
-      if (resetQueue) {
-        resetTransform = new Pose3d().minus(questNavData[i].pose());
-        resetQueue = false;
+      switch (resetQueue) {
+        case RESET_QUEUED:
+          // if (absoluteInputs.poseObservations.length > 0) {
+          Transform2d resetTransform =
+              // new Transform2d(
+              //     absoluteInputs.poseObservations[0].pose().getX(),
+              //     absoluteInputs.poseObservations[0].pose().getY(),
+              //     new
+              // Rotation2d(absoluteInputs.poseObservations[0].pose().getRotation().getZ()));
+              new Transform2d(
+                  13.890498 + Units.inchesToMeters(27 / 2.0 + 3.0),
+                  4.0259 + Units.inchesToMeters(3),
+                  new Rotation2d(Math.PI));
+          resetTransform =
+              resetTransform.plus(
+                  new Transform2d(
+                      robotToCamera.getX(),
+                      robotToCamera.getY(),
+                      new Rotation2d(robotToCamera.getRotation().getZ())));
+          resetPublisher.set(
+              new double[] {
+                resetTransform.getX(),
+                resetTransform.getY(),
+                resetTransform.getRotation().getDegrees()
+              });
+          resetQueue = QuestNavResetState.RESETTING;
+          questMosi.set(3);
+          // }
+          break;
+        case RESETTING:
+          if (questMiso.get() == 97) {
+            questMosi.set(2);
+          } else if (questMiso.get() == 98) {
+            resetQueue = QuestNavResetState.RESET_COMPLETE;
+            questMosi.set(0);
+          }
+          break;
+        case RESET_COMPLETE:
+          break;
       }
       inputs.poseObservations[i] =
           new PoseObservation(
@@ -86,7 +150,11 @@ public class VisionIOQuestNav implements VisionIO {
     for (int i = 0; i < length; i++) {
       data[i] =
           new QuestNavData(
-              getPose(positions[i].value, angles[i].value), battery, timestamps[i].timestamp);
+              getPose(positions[i].value, angles[i].value).plus(robotToCamera.inverse()),
+              battery,
+              timestamps[i].timestamp,
+              positions[i].value,
+              angles[i].value);
     }
 
     return data;
@@ -94,7 +162,10 @@ public class VisionIOQuestNav implements VisionIO {
 
   // Gets the Quest's measured position.
   private Pose3d getPose(float[] position, float[] angles) {
-    return getQuestNavPose(position, angles).transformBy(resetTransform);
+    Pose3d pose = getQuestNavPose(position, angles);
+    return new Pose3d(
+        pose.getTranslation().minus(resetTranslation).rotateBy(resetRotation),
+        pose.getRotation().minus(resetRotation));
   }
 
   // Gets the Rotation of the Quest.
@@ -133,6 +204,7 @@ public class VisionIOQuestNav implements VisionIO {
   }
 
   public void resetPose() {
-    resetQueue = true;
+    questMosi.set(0);
+    resetQueue = QuestNavResetState.RESET_QUEUED;
   }
 }
