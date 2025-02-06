@@ -44,8 +44,9 @@ import frc.robot.subsystems.position_joint.PositionJointIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
 import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionTrig;
+import frc.robot.subsystems.vision.VisionIOQuestNav;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
@@ -135,11 +136,13 @@ public class RobotContainer {
                     AzimuthMotorConstants.BACK_RIGHT_GAINS),
                 PhoenixOdometryThread.getInstance(),
                 null);
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVision(
-                    VisionConstants.camera0Name, VisionConstants.robotToCamera0));
+        VisionIOQuestNav questNav =
+            new VisionIOQuestNav(
+                VisionConstants.robotToCamera0,
+                new VisionIOPhotonVisionTrig(
+                    "OV9281", VisionConstants.robotToCamera1, drive::getRotation));
+        driverController.y().onTrue(Commands.runOnce(questNav::resetPose));
+        vision = new Vision(drive::addVisionMeasurement, questNav);
 
         elevator =
             new PositionJoint(
