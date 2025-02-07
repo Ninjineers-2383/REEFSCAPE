@@ -14,6 +14,7 @@ import edu.wpi.first.networktables.IntegerPublisher;
 import edu.wpi.first.networktables.IntegerSubscriber;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.networktables.TimestampedDouble;
 import edu.wpi.first.networktables.TimestampedFloatArray;
 import edu.wpi.first.wpilibj.RobotController;
@@ -29,7 +30,8 @@ public class VisionIOQuestNav implements VisionIO {
       float[] rotation) {}
 
   private enum QuestNavResetState {
-    RESET_QUEUED,
+    RESET_POSE_QUEUED,
+    RESET_HEADING_QUEUED,
     RESETTING,
     RESET_COMPLETE
   }
@@ -38,7 +40,10 @@ public class VisionIOQuestNav implements VisionIO {
   private NetworkTableInstance nt4Instance = NetworkTableInstance.getDefault();
   private NetworkTable nt4Table = nt4Instance.getTable("questnav");
   private IntegerSubscriber questMiso = nt4Table.getIntegerTopic("miso").subscribe(0);
-  private IntegerPublisher questMosi = nt4Table.getIntegerTopic("mosi").publish();
+  private IntegerPublisher questMosi =
+      nt4Table
+          .getIntegerTopic("mosi")
+          .publish(PubSubOption.keepDuplicates(true), PubSubOption.sendAll(true));
   private DoubleArrayPublisher resetPublisher = nt4Table.getDoubleArrayTopic("resetpose").publish();
 
   // Subscribe to the Network Tables questnav data topics
@@ -52,14 +57,12 @@ public class VisionIOQuestNav implements VisionIO {
 
   private QuestNavResetState resetQueue = QuestNavResetState.RESET_COMPLETE;
 
-  // Local heading helper variables
-  private Translation3d resetTranslation = new Translation3d();
-  private Rotation3d resetRotation = new Rotation3d();
-
   private final Transform3d robotToCamera;
 
   private final VisionIO absoluteVisionIO;
   private final VisionIOInputsAutoLogged absoluteInputs = new VisionIOInputsAutoLogged();
+
+  private int delay = 0;
 
   public VisionIOQuestNav(Transform3d robotToCamera, VisionIO absoluteVisionIO) {
     // Initialize the camera to robot transform
@@ -75,29 +78,42 @@ public class VisionIOQuestNav implements VisionIO {
     absoluteVisionIO.updateInputs(absoluteInputs);
     Logger.processInputs("QuestNav/absolute", absoluteInputs);
 
+    delay++;
+
     inputs.connected = connected();
     inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
     inputs.poseObservations = new PoseObservation[questNavData.length];
-    for (int i = 0; i < questNavData.length; i++) {
-      switch (resetQueue) {
-        case RESET_QUEUED:
-          // if (absoluteInputs.poseObservations.length > 0) {
-          Transform2d resetTransform =
-              // new Transform2d(
-              //     absoluteInputs.poseObservations[0].pose().getX(),
-              //     absoluteInputs.poseObservations[0].pose().getY(),
-              //     new
-              // Rotation2d(absoluteInputs.poseObservations[0].pose().getRotation().getZ()));
-              new Transform2d(
-                  13.890498 + Units.inchesToMeters(27 / 2.0 + 3.0),
-                  4.0259 + Units.inchesToMeters(3),
-                  new Rotation2d(Math.PI));
+    switch (resetQueue) {
+      case RESET_POSE_QUEUED:
+      case RESET_HEADING_QUEUED:
+        if (delay > 2) {
+          Transform2d resetTransform;
+          if (resetQueue == QuestNavResetState.RESET_POSE_QUEUED
+              && absoluteInputs.poseObservations.length > 0) {
+            resetTransform =
+                new Transform2d(
+                    absoluteInputs.poseObservations[0].pose().getX(),
+                    absoluteInputs.poseObservations[0].pose().getY(),
+                    new Rotation2d(absoluteInputs.poseObservations[0].pose().getRotation().getZ()));
+          } else if (resetQueue == QuestNavResetState.RESET_HEADING_QUEUED
+              && questNavData.length > 0) {
+            resetTransform =
+                new Transform2d(
+                    questNavData[0].pose().getTranslation().toTranslation2d(), Rotation2d.kPi);
+          } else {
+            break;
+          }
+
           resetTransform =
               resetTransform.plus(
                   new Transform2d(
                       robotToCamera.getX(),
                       robotToCamera.getY(),
                       new Rotation2d(robotToCamera.getRotation().getZ())));
+
+          if (resetTransform.getX() < 0 || resetTransform.getY() < 0) {
+            resetTransform = new Transform2d(0, 0, resetTransform.getRotation());
+          }
           resetPublisher.set(
               new double[] {
                 resetTransform.getX(),
@@ -105,20 +121,20 @@ public class VisionIOQuestNav implements VisionIO {
                 resetTransform.getRotation().getDegrees()
               });
           resetQueue = QuestNavResetState.RESETTING;
-          questMosi.set(3);
-          // }
-          break;
-        case RESETTING:
-          if (questMiso.get() == 97) {
-            questMosi.set(2);
-          } else if (questMiso.get() == 98) {
-            resetQueue = QuestNavResetState.RESET_COMPLETE;
-            questMosi.set(0);
-          }
-          break;
-        case RESET_COMPLETE:
-          break;
-      }
+        }
+        break;
+      case RESETTING:
+        if (questMiso.get() == 97) {
+          questMosi.set(2);
+        } else if (questMiso.get() == 98) {
+          resetQueue = QuestNavResetState.RESET_COMPLETE;
+          questMosi.set(0);
+        }
+        break;
+      case RESET_COMPLETE:
+        break;
+    }
+    for (int i = 0; i < questNavData.length; i++) {
       inputs.poseObservations[i] =
           new PoseObservation(
               questNavData[i].timestamp(),
@@ -150,7 +166,7 @@ public class VisionIOQuestNav implements VisionIO {
     for (int i = 0; i < length; i++) {
       data[i] =
           new QuestNavData(
-              getPose(positions[i].value, angles[i].value).plus(robotToCamera.inverse()),
+              getQuestNavPose(positions[i].value, angles[i].value).plus(robotToCamera.inverse()),
               battery,
               timestamps[i].timestamp,
               positions[i].value,
@@ -158,22 +174,6 @@ public class VisionIOQuestNav implements VisionIO {
     }
 
     return data;
-  }
-
-  // Gets the Quest's measured position.
-  private Pose3d getPose(float[] position, float[] angles) {
-    Pose3d pose = getQuestNavPose(position, angles);
-    return new Pose3d(
-        pose.getTranslation().minus(resetTranslation).rotateBy(resetRotation),
-        pose.getRotation().minus(resetRotation));
-  }
-
-  // Gets the Rotation of the Quest.
-  public Rotation3d getRotation(float[] angles) {
-    return new Rotation3d(
-        Units.degreesToRadians(-angles[2]),
-        Units.degreesToRadians(angles[0]),
-        Units.degreesToRadians(-angles[1]));
   }
 
   // Gets the battery percent of the Quest.
@@ -197,14 +197,28 @@ public class VisionIOQuestNav implements VisionIO {
     return new Translation3d(position[2], -position[0], position[1]);
   }
 
+  // Gets the Rotation of the Quest.
+  public Rotation3d getQuestNavRotation(float[] angles) {
+    return new Rotation3d(
+        Units.degreesToRadians(-angles[2]),
+        Units.degreesToRadians(angles[0]),
+        Units.degreesToRadians(-angles[1]));
+  }
+
   private Pose3d getQuestNavPose(float[] position, float[] angles) {
-    var oculousPositionCompensated =
-        getQuestNavTranslation(position).minus(new Translation3d(0, 0.1651, 0)); // 6.5
-    return new Pose3d(oculousPositionCompensated, getRotation(angles));
+    var oculousPositionCompensated = getQuestNavTranslation(position); // 6.5
+    return new Pose3d(oculousPositionCompensated, getQuestNavRotation(angles));
   }
 
   public void resetPose() {
-    questMosi.set(0);
-    resetQueue = QuestNavResetState.RESET_QUEUED;
+    questMosi.accept(3);
+    delay = 0;
+    resetQueue = QuestNavResetState.RESET_POSE_QUEUED;
+  }
+
+  public void resetHeading() {
+    questMosi.accept(3);
+    delay = 0;
+    resetQueue = QuestNavResetState.RESET_HEADING_QUEUED;
   }
 }
