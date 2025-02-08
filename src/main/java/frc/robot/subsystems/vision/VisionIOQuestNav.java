@@ -64,6 +64,12 @@ public class VisionIOQuestNav implements VisionIO {
 
   private int delay = 0;
 
+  private Transform3d[] questNavRawToFieldCoordinateSystemQueue = new Transform3d[5];
+  private Transform3d questNavRawToFieldCoordinateSystem = new Transform3d();
+
+  int count = 0;
+  int idx = 0;
+
   public VisionIOQuestNav(Transform3d robotToCamera, VisionIO absoluteVisionIO) {
     // Initialize the camera to robot transform
     this.robotToCamera = robotToCamera;
@@ -83,6 +89,24 @@ public class VisionIOQuestNav implements VisionIO {
     inputs.connected = connected();
     inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
     inputs.poseObservations = new PoseObservation[questNavData.length];
+
+    if (absoluteInputs.poseObservations.length > 0 && questNavData.length > 0) {
+      questNavRawToFieldCoordinateSystemQueue[idx] =
+          new Transform3d(questNavData[0].pose, absoluteInputs.poseObservations[0].pose());
+      questNavRawToFieldCoordinateSystemQueue[idx++] =
+          new Transform3d(questNavRawToFieldCoordinateSystem.getTranslation(), new Rotation3d());
+      count++;
+      if (idx == 5) {
+        idx = 0;
+      }
+      questNavRawToFieldCoordinateSystem = new Transform3d();
+      for (int i = 0; i < Math.min(count, 5); i++) {
+        questNavRawToFieldCoordinateSystem =
+            questNavRawToFieldCoordinateSystem.plus(questNavRawToFieldCoordinateSystemQueue[i]);
+      }
+      questNavRawToFieldCoordinateSystem.div(Math.min(count, 5));
+    }
+
     switch (resetQueue) {
       case RESET_POSE_QUEUED:
       case RESET_HEADING_QUEUED:
@@ -138,7 +162,7 @@ public class VisionIOQuestNav implements VisionIO {
       inputs.poseObservations[i] =
           new PoseObservation(
               questNavData[i].timestamp(),
-              questNavData[i].pose(),
+              questNavData[i].pose().plus(questNavRawToFieldCoordinateSystem),
               0.0,
               -1,
               0.0,
