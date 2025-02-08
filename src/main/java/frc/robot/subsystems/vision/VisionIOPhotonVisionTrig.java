@@ -1,17 +1,18 @@
 package frc.robot.subsystems.vision;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import org.photonvision.PhotonCamera;
-import org.photonvision.targeting.PhotonTrackedTarget;
 
 /** IO implementation for real PhotonVision hardware. */
 public class VisionIOPhotonVisionTrig implements VisionIO {
@@ -40,59 +41,56 @@ public class VisionIOPhotonVisionTrig implements VisionIO {
     Set<Integer> tagIds = new HashSet<>();
     List<PoseObservation> poseObservations = new LinkedList<>();
 
-    Set<Double> bestDistances = new HashSet<>();
-    Set<Double> worstDistances = new HashSet<>();
-
     for (var result : camera.getAllUnreadResults()) {
       // Update latest target observation
       if (result.hasTargets()) {
-        PhotonTrackedTarget bestTarget = result.getBestTarget();
-
-        double yaw = bestTarget.getYaw();
-        double pitch = bestTarget.getPitch();
-
         inputs.latestTargetObservation =
-            new TargetObservation(Rotation2d.fromDegrees(yaw), Rotation2d.fromDegrees(pitch));
+            new TargetObservation(
+                Rotation2d.fromDegrees(result.getBestTarget().getYaw()),
+                Rotation2d.fromDegrees(result.getBestTarget().getPitch()));
 
-        Transform3d bestFieldToCamera = result.getBestTarget().getBestCameraToTarget();
+        Transform3d cameraToTarget = result.getBestTarget().getBestCameraToTarget();
         // Transform3d bestFieldToRobot = bestFieldToCamera.plus(robotToCamera.inverse());
 
-        Transform3d worstFieldToCamera = result.getBestTarget().getAlternateCameraToTarget();
-        // Transform3d worstFieldToRobot = worstFieldToCamera.plus(robotToCamera.inverse());
+        double distance = cameraToTarget.getTranslation().getNorm();
 
-        double bestDistance = bestFieldToCamera.getTranslation().getNorm();
-        double worstDistance = worstFieldToCamera.getTranslation().getNorm();
-
-        bestDistances.add(bestDistance);
-        worstDistances.add(worstDistance);
+        double tx = -Units.degreesToRadians(result.getBestTarget().getYaw());
+        double ty = Units.degreesToRadians(result.getBestTarget().getPitch());
 
         Rotation2d gyro = gyroRotationSupplier.get();
 
-        Transform3d fieldToCameraTrig =
-            new Transform3d(
-                new Translation3d(
-                    -bestDistance * Math.cos(Math.toRadians(yaw - gyro.getDegrees())),
-                    -bestDistance * Math.sin(Math.toRadians(yaw - gyro.getDegrees())),
-                    bestDistance * Math.sin(Math.toRadians(pitch))),
-                new Rotation3d(gyro.plus(robotToCamera.getRotation().toRotation2d())));
+        double distance2d = distance * Math.cos(-robotToCamera.getRotation().getY() - ty);
+        Rotation2d camToTagRotation =
+            gyro.plus(robotToCamera.getRotation().toRotation2d().plus(Rotation2d.fromRadians(-tx)));
 
-        Transform3d fieldToRobot = fieldToCameraTrig.plus(robotToCamera.inverse());
-
-        Pose3d robotPose =
+        Pose2d tagPose2d =
             VisionConstants.aprilTagLayout
                 .getTagPose(result.getBestTarget().fiducialId)
                 .get()
-                .plus(fieldToRobot);
+                .toPose2d();
 
-        tagIds.add(result.getBestTarget().fiducialId);
+        Translation2d fieldToCamTranslation =
+            new Pose2d(tagPose2d.getTranslation(), camToTagRotation.plus(Rotation2d.kPi))
+                .transformBy(new Transform2d(distance2d, 0.0, Rotation2d.kZero))
+                .getTranslation();
+
+        Pose2d robotPose2d =
+            new Pose2d(fieldToCamTranslation, gyro.plus(robotToCamera.getRotation().toRotation2d()))
+                .transformBy(
+                    new Transform2d(
+                        new Pose2d(
+                            robotToCamera.getTranslation().toTranslation2d(),
+                            robotToCamera.getRotation().toRotation2d()),
+                        Pose2d.kZero));
+        robotPose2d = new Pose2d(robotPose2d.getTranslation(), gyro);
 
         poseObservations.add(
             new PoseObservation(
                 result.getTimestampSeconds(),
-                robotPose,
+                new Pose3d(robotPose2d),
                 result.getBestTarget().getPoseAmbiguity(),
                 1,
-                bestDistance,
+                distance,
                 PoseObservationType.PHOTONVISION));
       } else {
         inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
