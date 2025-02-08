@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -10,7 +11,6 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -286,36 +286,34 @@ public class DriveCommands {
     return a.getX() * b.getX() + a.getY() * b.getY();
   }
 
-  protected static Trajectory.State sampleTrajectory(Trajectory trajectory, Pose2d pose) {
-    List<Trajectory.State> states = trajectory.getStates();
+  protected static Pose2d sampleTrajectory(PathPlannerPath trajectory, Pose2d pose) {
+    List<Pose2d> states = trajectory.getPathPoses();
 
     // Find closest point to current pose
-    Trajectory.State lowerState = states.get(0);
-    Trajectory.State higherState = states.get(0);
+    Pose2d lowerState = states.get(0);
+    Pose2d higherState = states.get(0);
     double minDistance = Double.POSITIVE_INFINITY;
     for (int i = 0; i < states.size() - 1; i++) {
-      double distance =
-          states.get(i).poseMeters.getTranslation().getDistance(pose.getTranslation());
+      double distance = states.get(i).getTranslation().getDistance(pose.getTranslation());
       if (distance < minDistance) {
         minDistance = distance;
         lowerState = states.get(i);
         higherState = states.get(i + 1);
-
-        Transform2d lowerToHigher = higherState.poseMeters.minus(lowerState.poseMeters);
-        Transform2d lowerToPose = pose.minus(lowerState.poseMeters);
-
-        double dot = transformDot(lowerToPose, lowerToHigher);
-
-        if (dot < 0) {
-          higherState = lowerState;
-          lowerState = states.get(i + 1);
-        }
       }
     }
 
+    double d = lowerState.getTranslation().getDistance(higherState.getTranslation());
+    double t = (pose.getTranslation().getDistance(lowerState.getTranslation())) / d;
+    t = MathUtil.clamp(t, 0.0, 1.0);
+
     // Interpolate between states based on distance
     // TODO: Fix this to actually get the closest point
-    return trajectory.sample((lowerState.timeSeconds + higherState.timeSeconds) / 2);
+    Pose2d retPose = lowerState.interpolate(higherState, t);
+    Translation2d minusTrans = higherState.getTranslation().minus(lowerState.getTranslation());
+
+    // Get rotation between lower and higher states
+    return new Pose2d(
+        retPose.getTranslation(), new Rotation2d(minusTrans.getX(), minusTrans.getY()));
   }
 
   /**
@@ -324,19 +322,24 @@ public class DriveCommands {
    */
   public static Command joystickDriveAlongTrajectory(
       Drive drive,
-      Trajectory trajectory,
+      PathPlannerPath trajectory,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
       DoubleSupplier omegaSupplier) {
     // Get closest point to drivetrain along trajectory
 
+    Pose2d end = trajectory.getPathPoses().get(trajectory.getPathPoses().size() - 1);
+    Rotation2d endRotation = trajectory.getGoalEndState().rotation();
+
     return new FunctionalCommand(
         () -> {
-          Logger.recordOutput("DriveAlongTrajectory/Trajectory", trajectory);
+          Logger.recordOutput(
+              "DriveAlongTrajectory/Trajectory", trajectory.getPathPoses().toArray(new Pose2d[0]));
         },
         () -> {
-          Trajectory.State goalState = sampleTrajectory(trajectory, drive.getPose());
-          Logger.recordOutput("DriveAlongTrajectory/TrajPose", goalState.poseMeters);
+          Pose2d goalState = sampleTrajectory(trajectory, drive.getPose());
+
+          Logger.recordOutput("DriveAlongTrajectory/TrajPose", goalState);
 
           // Get linear velocity
           Translation2d linearVelocity =
@@ -353,18 +356,17 @@ public class DriveCommands {
           omega = Math.copySign(omega * omega, omega);
 
           ChassisSpeeds trajectoryVelocity =
-              ChassisSpeeds.fromRobotRelativeSpeeds(
-                  1.0, 0.0, 0.0, goalState.poseMeters.getRotation());
-
-          trajectoryVelocity =
-              ChassisSpeeds.fromFieldRelativeSpeeds(
-                  trajectoryVelocity, new Rotation2d(isFlipped ? Math.PI : 0));
+              ChassisSpeeds.fromRobotRelativeSpeeds(1.0, 0.0, 0.0, goalState.getRotation());
 
           ChassisSpeeds driverVelocity =
               new ChassisSpeeds(
                   linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
                   linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
                   omega * drive.getMaxAngularSpeedRadPerSec());
+
+          driverVelocity =
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  driverVelocity, isFlipped ? Rotation2d.kPi : Rotation2d.kZero);
 
           Transform2d Vtraj =
               new Transform2d(
@@ -382,20 +384,18 @@ public class DriveCommands {
 
           Logger.recordOutput("DriveAlongTrajectory/Dot", dot);
 
-          Transform2d errorTransform = goalState.poseMeters.minus(drive.getPose());
+          Translation2d errorTranslation =
+              goalState.getTranslation().minus(drive.getPose().getTranslation());
 
           ChassisSpeeds error =
-              new ChassisSpeeds(errorTransform.getX(), errorTransform.getY(), 0.0).times(2);
-
-          error =
-              ChassisSpeeds.fromFieldRelativeSpeeds(error, new Rotation2d(isFlipped ? Math.PI : 0));
+              new ChassisSpeeds(errorTranslation.getX(), errorTranslation.getY(), 0.0).times(0.5);
 
           ChassisSpeeds speeds;
 
-          if (dot > 0.5 && errorTransform.getTranslation().getNorm() < 1) {
+          if (dot > 0.5 && errorTranslation.getNorm() < 1) {
             speeds =
-                (trajectoryVelocity.times(dot * dot).times(Vdrive.getTranslation().getNorm()))
-                    .plus(driverVelocity.times((1 - dot) * (1 - dot)))
+                (trajectoryVelocity.times(dot * dot * dot).times(Vdrive.getTranslation().getNorm()))
+                    .plus(driverVelocity.times((1 - dot) * (1 - dot) * (1 - dot)))
                     .plus(error);
 
             Logger.recordOutput("DriveAlongTrajectory/Enabled", true);
@@ -405,16 +405,21 @@ public class DriveCommands {
             Logger.recordOutput("DriveAlongTrajectory/Enabled", false);
           }
 
-          speeds =
+          Logger.recordOutput("DriveAlongTrajectory/EndGoal", end);
+
+          drive.runVelocity(
               ChassisSpeeds.fromFieldRelativeSpeeds(
-                  speeds,
-                  isFlipped
-                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
-                      : drive.getRotation());
-          drive.runVelocity(speeds);
+                  new ChassisSpeeds(
+                      speeds.vxMetersPerSecond,
+                      speeds.vyMetersPerSecond,
+                      driverVelocity.omegaRadiansPerSecond
+                          - drive.getRotation().minus(endRotation).getRadians() * 1),
+                  drive.getRotation()));
         },
         (interrupted) -> {},
-        () -> false,
+        () -> {
+          return drive.getPose().getTranslation().getDistance(end.getTranslation()) < 0.75;
+        },
         drive);
   }
 
