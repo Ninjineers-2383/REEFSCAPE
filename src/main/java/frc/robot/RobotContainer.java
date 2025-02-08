@@ -1,17 +1,19 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.trajectory.TrajectoryUtil;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -68,17 +70,20 @@ public class RobotContainer {
 
   private final QuarrelSubsystem quarrel;
 
-  private final PositionJoint climber;
-  private final Flywheel climberIntake;
+  //   private final PositionJoint climber;
+  //   private final Flywheel climberIntake;
 
+  @SuppressWarnings("unused")
   private final Vision vision;
 
+  @SuppressWarnings("unused")
   private final Components sim_components;
 
   // Simulation
 
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
+  private final CommandGenericHID buttonBoard1 = new CommandGenericHID(1);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -141,7 +146,10 @@ public class RobotContainer {
                 VisionConstants.robotToCamera0,
                 new VisionIOPhotonVisionTrig(
                     "OV9281", VisionConstants.robotToCamera1, drive::getRotation));
-        driverController.y().onTrue(Commands.runOnce(questNav::resetPose));
+        driverController.y().onTrue(Commands.runOnce(questNav::resetPose).ignoringDisable(true));
+        // Reset gyro to 0° when B button is pressed
+        driverController.b().onTrue(Commands.runOnce(questNav::resetHeading).ignoringDisable(true));
+
         vision = new Vision(drive::addVisionMeasurement, questNav);
 
         elevator =
@@ -169,15 +177,15 @@ public class RobotContainer {
                 new DigitalSensorIODigitialInput(
                     "Outtake_Bottom_Sensor", DigitalSensorConstants.OUTTAKE_BOTTOM_BREAK_CONFIG));
 
-        climber =
-            new PositionJoint(
-                new PositionJointIOTalonFX("Climber", PositionJointConstants.CLIMBER_CONFIG),
-                PositionJointConstants.CLIMBER_GAINS);
+        // climber =
+        //     new PositionJoint(
+        //         new PositionJointIOTalonFX("Climber", PositionJointConstants.CLIMBER_CONFIG),
+        //         PositionJointConstants.CLIMBER_GAINS);
 
-        climberIntake =
-            new Flywheel(
-                new FlywheelIOTalonFX("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
-                FlywheelConstants.CLIMBER_INTAKE_GAINS);
+        // climberIntake =
+        //     new Flywheel(
+        //         new FlywheelIOTalonFX("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
+        //         FlywheelConstants.CLIMBER_INTAKE_GAINS);
         break;
 
       case SIM:
@@ -234,15 +242,15 @@ public class RobotContainer {
         outtake_bottom_sensor =
             new DigitalSensor(new DigitalSensorIOReplay("Outtake_Bottom_Sensor"));
 
-        climber =
-            new PositionJoint(
-                new PositionJointIOSim("Climber", PositionJointConstants.CLIMBER_CONFIG),
-                PositionJointConstants.CLIMBER_GAINS);
+        // climber =
+        //     new PositionJoint(
+        //         new PositionJointIOSim("Climber", PositionJointConstants.CLIMBER_CONFIG),
+        //         PositionJointConstants.CLIMBER_GAINS);
 
-        climberIntake =
-            new Flywheel(
-                new FlywheelIOSim("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
-                FlywheelConstants.CLIMBER_INTAKE_GAINS);
+        // climberIntake =
+        //     new Flywheel(
+        //         new FlywheelIOSim("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
+        //         FlywheelConstants.CLIMBER_INTAKE_GAINS);
         break;
 
       default:
@@ -288,13 +296,13 @@ public class RobotContainer {
         outtake_bottom_sensor =
             new DigitalSensor(new DigitalSensorIOReplay("Outtake_Bottom_Sensor"));
 
-        climber =
-            new PositionJoint(
-                new PositionJointIOReplay("Climber"), PositionJointConstants.CLIMBER_GAINS);
+        // climber =
+        //     new PositionJoint(
+        //         new PositionJointIOReplay("Climber"), PositionJointConstants.CLIMBER_GAINS);
 
-        climberIntake =
-            new Flywheel(
-                new FlywheelIOReplay("Climber_Intake"), FlywheelConstants.CLIMBER_INTAKE_GAINS);
+        // climberIntake =
+        //     new Flywheel(
+        //         new FlywheelIOReplay("Climber_Intake"), FlywheelConstants.CLIMBER_INTAKE_GAINS);
         break;
     }
 
@@ -349,44 +357,45 @@ public class RobotContainer {
     try {
 
       drive.setDefaultCommand(
-          DriveCommands.joystickDriveAlongTrajectory(
+          DriveCommands.joystickDrive(
               drive,
-              TrajectoryUtil.fromPathweaverJson(
-                  Filesystem.getDeployDirectory().toPath().resolve("paths/TestPath2.wpilib.json")),
+              //   PathPlannerPath.fromPathFile("L to 1").flipPath(),
               () -> -driverController.getLeftY(),
               () -> -driverController.getLeftX(),
-              () -> -driverController.getRightX()));
+              () -> -driverController.getRightX()
+              //   () -> driverController.b().getAsBoolean()
+              ));
 
     } catch (Exception e) {
       e.printStackTrace();
     }
     // Lock to 0° when A button is held
-    driverController
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -driverController.getLeftY(),
-                () -> -driverController.getLeftX(),
-                () -> new Rotation2d()));
+    try {
+
+      driverController
+          .a()
+          .onTrue(
+              DriveCommands.joystickDriveAlongTrajectory(
+                      drive,
+                      PathPlannerPath.fromPathFile("L to 2").flipPath(),
+                      () -> -driverController.getLeftY(),
+                      () -> -driverController.getLeftX(),
+                      () -> -driverController.getRightX()
+                      //   () -> driverController.b().getAsBoolean()
+                      )
+                  .andThen(
+                      Commands.parallel(
+                              AutoBuilder.pathfindToPose(
+                                  new Pose2d(13.81, 4.89, Rotation2d.fromDegrees(-120)),
+                                  new PathConstraints(1, 1, 1, 1)),
+                              QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getL3))
+                          .andThen(QuarrelCommands.ScoreCommand(quarrel))));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
     // Switch to X pattern when X button is pressed
     driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
-
-    // // // Reset gyro / odometry
-    final Runnable resetGyro =
-        () ->
-            drive.setPose(
-                new Pose2d(
-                    drive.getPose().getTranslation(),
-                    DriverStation.getAlliance().isPresent()
-                        ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red
-                            ? new Rotation2d(Math.PI)
-                            : new Rotation2d())
-                        : new Rotation2d())); // zero gyro
-
-    // Reset gyro to 0° when B button is pressed
-    driverController.b().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 
     driverController
         .rightBumper()
@@ -461,6 +470,23 @@ public class RobotContainer {
     //             elevator, outtake, QuarrelPresets::getLowball, () -> -12.0));
 
     new Trigger(TransferChooser::get).onTrue(QuarrelCommands.TransferCommand(quarrel));
+
+    buttonBoard1
+        .button(1)
+        .onTrue(
+            AutoBuilder.pathfindToPose(
+                new Pose2d(
+                    13.890498 + Units.inchesToMeters(27 / 2.0 + 3.0),
+                    4.0259 + Units.inchesToMeters(3),
+                    new Rotation2d(Math.PI)),
+                PathConstraints.unlimitedConstraints(12)));
+
+    NamedCommands.registerCommand(
+        "L4",
+        QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getL4)
+            .andThen(QuarrelCommands.FlipCommand(quarrel, QuarrelPresets::getL4)));
+
+    NamedCommands.registerCommand("Score", QuarrelCommands.ScoreCommand(quarrel));
   }
 
   /**
