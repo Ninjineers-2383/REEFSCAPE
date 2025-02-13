@@ -64,8 +64,8 @@ public class VisionIOQuestNav implements VisionIO {
 
   private int delay = 0;
 
-  private Transform3d[] questNavRawToFieldCoordinateSystemQueue = new Transform3d[5];
-  private Transform3d questNavRawToFieldCoordinateSystem = new Transform3d();
+  private Translation3d[] questNavRawToFieldCoordinateSystemQueue = new Translation3d[5];
+  private Translation3d questNavRawToFieldCoordinateSystem = new Translation3d();
 
   int count = 0;
   int idx = 0;
@@ -92,19 +92,25 @@ public class VisionIOQuestNav implements VisionIO {
 
     if (absoluteInputs.poseObservations.length > 0 && questNavData.length > 0) {
       questNavRawToFieldCoordinateSystemQueue[idx] =
-          new Transform3d(questNavData[0].pose, absoluteInputs.poseObservations[0].pose());
-      questNavRawToFieldCoordinateSystemQueue[idx++] =
-          new Transform3d(questNavRawToFieldCoordinateSystem.getTranslation(), new Rotation3d());
-      count++;
-      if (idx == 5) {
+          absoluteInputs
+              .poseObservations[0]
+              .pose()
+              .getTranslation()
+              .minus(questNavData[0].pose.getTranslation());
+      count += 1;
+      idx += 1;
+      if (idx == questNavRawToFieldCoordinateSystemQueue.length) {
         idx = 0;
       }
-      questNavRawToFieldCoordinateSystem = new Transform3d();
-      for (int i = 0; i < Math.min(count, 5); i++) {
+      questNavRawToFieldCoordinateSystem = new Translation3d();
+      for (int i = 0; i < Math.min(count, questNavRawToFieldCoordinateSystemQueue.length); i++) {
         questNavRawToFieldCoordinateSystem =
             questNavRawToFieldCoordinateSystem.plus(questNavRawToFieldCoordinateSystemQueue[i]);
       }
-      questNavRawToFieldCoordinateSystem.div(Math.min(count, 5));
+      questNavRawToFieldCoordinateSystem =
+          questNavRawToFieldCoordinateSystem.div(
+              Math.min(count, questNavRawToFieldCoordinateSystemQueue.length));
+      Logger.recordOutput("QuestNav/RawToField", questNavRawToFieldCoordinateSystem);
     }
 
     switch (resetQueue) {
@@ -136,7 +142,7 @@ public class VisionIOQuestNav implements VisionIO {
                       new Rotation2d(robotToCamera.getRotation().getZ())));
 
           if (resetTransform.getX() < 0 || resetTransform.getY() < 0) {
-            resetTransform = new Transform2d(0, 0, resetTransform.getRotation());
+            resetTransform = new Transform2d(1.0, 1.0, resetTransform.getRotation());
           }
           resetPublisher.set(
               new double[] {
@@ -162,7 +168,9 @@ public class VisionIOQuestNav implements VisionIO {
       inputs.poseObservations[i] =
           new PoseObservation(
               questNavData[i].timestamp(),
-              questNavData[i].pose().plus(questNavRawToFieldCoordinateSystem),
+              new Pose3d(
+                  questNavData[i].pose().getTranslation().plus(questNavRawToFieldCoordinateSystem),
+                  questNavData[i].pose().getRotation()),
               0.0,
               -1,
               0.0,
