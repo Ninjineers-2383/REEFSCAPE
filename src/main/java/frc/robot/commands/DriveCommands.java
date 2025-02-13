@@ -388,7 +388,7 @@ public class DriveCommands {
               goalState.getTranslation().minus(drive.getPose().getTranslation());
 
           ChassisSpeeds error =
-              new ChassisSpeeds(errorTranslation.getX(), errorTranslation.getY(), 0.0).times(0.5);
+              new ChassisSpeeds(errorTranslation.getX(), errorTranslation.getY(), 0.0).times(1);
 
           ChassisSpeeds speeds;
 
@@ -405,7 +405,8 @@ public class DriveCommands {
             Logger.recordOutput("DriveAlongTrajectory/Enabled", false);
           }
 
-          Logger.recordOutput("DriveAlongTrajectory/EndGoal", end);
+          Logger.recordOutput(
+              "DriveAlongTrajectory/EndGoal", new Pose2d(end.getTranslation(), endRotation));
 
           drive.runVelocity(
               ChassisSpeeds.fromFieldRelativeSpeeds(
