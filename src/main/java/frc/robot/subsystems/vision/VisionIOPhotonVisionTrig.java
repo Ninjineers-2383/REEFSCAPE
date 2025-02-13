@@ -54,7 +54,7 @@ public class VisionIOPhotonVisionTrig implements VisionIO {
 
         double distance = cameraToTarget.getTranslation().getNorm();
 
-        double tx = -Units.degreesToRadians(result.getBestTarget().getYaw());
+        double tx = Units.degreesToRadians(result.getBestTarget().getYaw());
         double ty = Units.degreesToRadians(result.getBestTarget().getPitch());
 
         Rotation2d gyro = gyroRotationSupplier.get();

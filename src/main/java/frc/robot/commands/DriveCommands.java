@@ -34,8 +34,8 @@ import org.littletonrobotics.junction.Logger;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
-  private static final double ANGLE_KP = 5.0;
-  private static final double ANGLE_KD = 0.4;
+  private static final double ANGLE_KP = 2.0;
+  private static final double ANGLE_KD = 0.0;
   private static final double ANGLE_MAX_VELOCITY = 8.0;
   private static final double ANGLE_MAX_ACCELERATION = 20.0;
   private static final double FF_START_DELAY = 2.0; // Secs
@@ -316,6 +316,10 @@ public class DriveCommands {
         retPose.getTranslation(), new Rotation2d(minusTrans.getX(), minusTrans.getY()));
   }
 
+  public static Command driveToPose(Drive drive, Supplier<Pose2d> pose) {
+    return new DriveToPose(drive, pose);
+  }
+
   /**
    * @param drive
    * @return
@@ -325,7 +329,8 @@ public class DriveCommands {
       PathPlannerPath trajectory,
       DoubleSupplier xSupplier,
       DoubleSupplier ySupplier,
-      DoubleSupplier omegaSupplier) {
+      DoubleSupplier omegaSupplier,
+      boolean invertPath) {
     // Get closest point to drivetrain along trajectory
 
     Pose2d end = trajectory.getPathPoses().get(trajectory.getPathPoses().size() - 1);
@@ -356,7 +361,11 @@ public class DriveCommands {
           omega = Math.copySign(omega * omega, omega);
 
           ChassisSpeeds trajectoryVelocity =
-              ChassisSpeeds.fromRobotRelativeSpeeds(1.0, 0.0, 0.0, goalState.getRotation());
+              ChassisSpeeds.fromRobotRelativeSpeeds(
+                  1.0,
+                  0.0,
+                  0.0,
+                  goalState.getRotation().rotateBy(invertPath ? Rotation2d.kPi : Rotation2d.kZero));
 
           ChassisSpeeds driverVelocity =
               new ChassisSpeeds(

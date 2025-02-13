@@ -2,18 +2,13 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.path.PathConstraints;
-import com.pathplanner.lib.path.PathPlannerPath;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -21,11 +16,14 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.commands.QuarrelCommands;
 import frc.robot.commands.QuarrelCommands.QuarrelSubsystem;
 import frc.robot.commands.QuarrelPresets;
+import frc.robot.commands.QuarrelPresets.QuarrelPosition;
 import frc.robot.commands.flywheel.FlywheelVoltageCommand;
+import frc.robot.commands.position_joint.PositionJointPositionCommand;
+import frc.robot.commands.position_joint.PositionJointVelocityCommand;
 import frc.robot.subsystems.components.Components;
 import frc.robot.subsystems.digital_sensor.DigitalSensor;
 import frc.robot.subsystems.digital_sensor.DigitalSensorConstants;
-import frc.robot.subsystems.digital_sensor.DigitalSensorIODigitialInput;
+import frc.robot.subsystems.digital_sensor.DigitalSensorIODigitalInput;
 import frc.robot.subsystems.digital_sensor.DigitalSensorIOReplay;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.Module;
@@ -37,11 +35,13 @@ import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.flywheel.FlywheelConstants;
 import frc.robot.subsystems.flywheel.FlywheelIOReplay;
 import frc.robot.subsystems.flywheel.FlywheelIOSim;
+import frc.robot.subsystems.flywheel.FlywheelIOSparkMax;
 import frc.robot.subsystems.flywheel.FlywheelIOTalonFX;
 import frc.robot.subsystems.position_joint.PositionJoint;
 import frc.robot.subsystems.position_joint.PositionJointConstants;
 import frc.robot.subsystems.position_joint.PositionJointIOReplay;
 import frc.robot.subsystems.position_joint.PositionJointIOSim;
+import frc.robot.subsystems.position_joint.PositionJointIOSparkMax;
 import frc.robot.subsystems.position_joint.PositionJointIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
@@ -65,13 +65,15 @@ public class RobotContainer {
   private final PositionJoint elevator;
   private final PositionJoint pivot;
   private final Flywheel outtake;
-  private final DigitalSensor outtake_top_sensor;
   private final DigitalSensor outtake_bottom_sensor;
 
   private final QuarrelSubsystem quarrel;
 
-  //   private final PositionJoint climber;
-  //   private final Flywheel climberIntake;
+  private final PositionJoint climber;
+  private final Flywheel climberIntake;
+
+  private final PositionJoint funnelPivot;
+  private final Flywheel funnelIntake;
 
   @SuppressWarnings("unused")
   private final Vision vision;
@@ -83,7 +85,6 @@ public class RobotContainer {
 
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
-  private final CommandGenericHID buttonBoard1 = new CommandGenericHID(1);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -145,7 +146,7 @@ public class RobotContainer {
             new VisionIOQuestNav(
                 VisionConstants.robotToCamera0,
                 new VisionIOPhotonVisionTrig(
-                    "OV9281", VisionConstants.robotToCamera1, drive::getRotation));
+                    "OV9281-12", VisionConstants.robotToCamera1, drive::getRotation));
         driverController.y().onTrue(Commands.runOnce(questNav::resetPose).ignoringDisable(true));
         // Reset gyro to 0° when B button is pressed
         driverController.b().onTrue(Commands.runOnce(questNav::resetHeading).ignoringDisable(true));
@@ -167,25 +168,32 @@ public class RobotContainer {
                 new FlywheelIOTalonFX("Outtake", FlywheelConstants.OUTTAKE_CONFIG),
                 FlywheelConstants.OUTTAKE_GAINS);
 
-        outtake_top_sensor =
-            new DigitalSensor(
-                new DigitalSensorIODigitialInput(
-                    "Outtake_Top_Sensor", DigitalSensorConstants.OUTTAKE_TOP_BREAK_CONFIG));
-
         outtake_bottom_sensor =
             new DigitalSensor(
-                new DigitalSensorIODigitialInput(
+                new DigitalSensorIODigitalInput(
                     "Outtake_Bottom_Sensor", DigitalSensorConstants.OUTTAKE_BOTTOM_BREAK_CONFIG));
 
-        // climber =
-        //     new PositionJoint(
-        //         new PositionJointIOTalonFX("Climber", PositionJointConstants.CLIMBER_CONFIG),
-        //         PositionJointConstants.CLIMBER_GAINS);
+        climber =
+            new PositionJoint(
+                new PositionJointIOTalonFX("Climber", PositionJointConstants.CLIMBER_CONFIG),
+                PositionJointConstants.CLIMBER_GAINS);
 
-        // climberIntake =
-        //     new Flywheel(
-        //         new FlywheelIOTalonFX("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
-        //         FlywheelConstants.CLIMBER_INTAKE_GAINS);
+        climberIntake =
+            new Flywheel(
+                new FlywheelIOTalonFX("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
+                FlywheelConstants.CLIMBER_INTAKE_GAINS);
+
+        funnelPivot =
+            new PositionJoint(
+                new PositionJointIOSparkMax(
+                    "FunnelPivot", PositionJointConstants.FUNNEL_PIVOT_CONFIG, () -> 0, false),
+                PositionJointConstants.FUNNEL_PIVOT_GAINS);
+
+        funnelIntake =
+            new Flywheel(
+                new FlywheelIOSparkMax(
+                    "FunnelIntake", FlywheelConstants.FUNNEL_INTAKE_CONFIG, false),
+                FlywheelConstants.FUNNEL_INTAKE_GAINS);
         break;
 
       case SIM:
@@ -238,19 +246,29 @@ public class RobotContainer {
                 new FlywheelIOSim("Outtake", FlywheelConstants.OUTTAKE_CONFIG),
                 FlywheelConstants.OUTTAKE_GAINS);
 
-        outtake_top_sensor = new DigitalSensor(new DigitalSensorIOReplay("Outtake_Top_Sensor"));
         outtake_bottom_sensor =
             new DigitalSensor(new DigitalSensorIOReplay("Outtake_Bottom_Sensor"));
 
-        // climber =
-        //     new PositionJoint(
-        //         new PositionJointIOSim("Climber", PositionJointConstants.CLIMBER_CONFIG),
-        //         PositionJointConstants.CLIMBER_GAINS);
+        climber =
+            new PositionJoint(
+                new PositionJointIOSim("Climber", PositionJointConstants.CLIMBER_CONFIG),
+                PositionJointConstants.CLIMBER_GAINS);
 
-        // climberIntake =
-        //     new Flywheel(
-        //         new FlywheelIOSim("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
-        //         FlywheelConstants.CLIMBER_INTAKE_GAINS);
+        climberIntake =
+            new Flywheel(
+                new FlywheelIOSim("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
+                FlywheelConstants.CLIMBER_INTAKE_GAINS);
+
+        funnelPivot =
+            new PositionJoint(
+                new PositionJointIOSim("FunnelPivot", PositionJointConstants.FUNNEL_PIVOT_CONFIG),
+                PositionJointConstants.FUNNEL_PIVOT_GAINS);
+
+        funnelIntake =
+            new Flywheel(
+                new FlywheelIOSim("FunnelIntake", FlywheelConstants.FUNNEL_INTAKE_CONFIG),
+                FlywheelConstants.FUNNEL_INTAKE_GAINS);
+
         break;
 
       default:
@@ -281,7 +299,7 @@ public class RobotContainer {
                 null,
                 null);
 
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
 
         pivot =
             new PositionJoint(
@@ -292,24 +310,33 @@ public class RobotContainer {
 
         outtake = new Flywheel(new FlywheelIOReplay("Outtake"), FlywheelConstants.OUTTAKE_GAINS);
 
-        outtake_top_sensor = new DigitalSensor(new DigitalSensorIOReplay("Outtake_Top_Sensor"));
         outtake_bottom_sensor =
             new DigitalSensor(new DigitalSensorIOReplay("Outtake_Bottom_Sensor"));
 
-        // climber =
-        //     new PositionJoint(
-        //         new PositionJointIOReplay("Climber"), PositionJointConstants.CLIMBER_GAINS);
+        climber =
+            new PositionJoint(
+                new PositionJointIOReplay("Climber"), PositionJointConstants.CLIMBER_GAINS);
 
-        // climberIntake =
-        //     new Flywheel(
-        //         new FlywheelIOReplay("Climber_Intake"), FlywheelConstants.CLIMBER_INTAKE_GAINS);
+        climberIntake =
+            new Flywheel(
+                new FlywheelIOReplay("Climber_Intake"), FlywheelConstants.CLIMBER_INTAKE_GAINS);
+
+        funnelPivot =
+            new PositionJoint(
+                new PositionJointIOReplay("FunnelPivot"),
+                PositionJointConstants.FUNNEL_PIVOT_GAINS);
+
+        funnelIntake =
+            new Flywheel(
+                new FlywheelIOReplay("FunnelIntake"), FlywheelConstants.FUNNEL_INTAKE_GAINS);
         break;
     }
 
     sim_components = new Components(elevator);
 
     quarrel =
-        new QuarrelSubsystem(elevator, pivot, outtake, outtake_top_sensor, outtake_bottom_sensor);
+        new QuarrelSubsystem(
+            elevator, pivot, outtake, funnelPivot, funnelIntake, outtake_bottom_sensor);
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -354,48 +381,46 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
-    try {
 
-      drive.setDefaultCommand(
-          DriveCommands.joystickDrive(
-              drive,
-              //   PathPlannerPath.fromPathFile("L to 1").flipPath(),
-              () -> -driverController.getLeftY(),
-              () -> -driverController.getLeftX(),
-              () -> -driverController.getRightX()
-              //   () -> driverController.b().getAsBoolean()
-              ));
+    drive.setDefaultCommand(
+        DriveCommands.joystickDrive(
+            drive,
+            () -> -driverController.getLeftY(),
+            () -> -driverController.getLeftX(),
+            () -> -driverController.getRightX()));
 
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    // Lock to 0° when A button is held
-    try {
+    new ReefControls(
+            quarrel,
+            drive,
+            (path) ->
+                DriveCommands.joystickDriveAlongTrajectory(
+                    drive,
+                    path.flipPath(),
+                    () -> -driverController.getLeftY(),
+                    () -> -driverController.getLeftX(),
+                    () -> -driverController.getRightX(),
+                    false))
+        .init();
 
-      driverController
-          .a()
-          .onTrue(
-              DriveCommands.joystickDriveAlongTrajectory(
-                      drive,
-                      PathPlannerPath.fromPathFile("L to 2").flipPath(),
-                      () -> -driverController.getLeftY(),
-                      () -> -driverController.getLeftX(),
-                      () -> -driverController.getRightX()
-                      //   () -> driverController.b().getAsBoolean()
-                      )
-                  .andThen(
-                      Commands.parallel(
-                              AutoBuilder.pathfindToPose(
-                                  new Pose2d(13.81, 4.89, Rotation2d.fromDegrees(-120)),
-                                  new PathConstraints(1, 1, 1, 1)),
-                              QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getL3))
-                          .andThen(QuarrelCommands.ScoreCommand(quarrel))));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    driverController
+        .a()
+        .onTrue(
+            Commands.parallel(
+                QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getBargeHigh),
+                new FlywheelVoltageCommand(outtake, () -> 4)));
 
-    // Switch to X pattern when X button is pressed
-    driverController.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
+    driverController
+        .x()
+        .onTrue(
+            Commands.parallel(
+                QuarrelCommands.PresetCommand(
+                    quarrel, () -> new QuarrelPosition(0, Rotation2d.kZero)),
+                new PositionJointPositionCommand(funnelPivot, () -> 0.4),
+                new FlywheelVoltageCommand(climberIntake, () -> 12.0).withTimeout(0.2),
+                new PositionJointPositionCommand(climber, () -> 290)));
+
+    // outtake.setDefaultCommand(new FlywheelVoltageCommand(outtake, () -> 0));
+    funnelIntake.setDefaultCommand(new FlywheelVoltageCommand(funnelIntake, () -> 0));
 
     driverController
         .rightBumper()
@@ -406,12 +431,19 @@ public class RobotContainer {
         .onTrue(new FlywheelVoltageCommand(outtake, () -> -3.0))
         .onFalse(new FlywheelVoltageCommand(outtake, () -> 0.0));
 
-    outtake.setDefaultCommand(
-        new FlywheelVoltageCommand(
-            outtake,
+    climber.setDefaultCommand(
+        new PositionJointVelocityCommand(
+            climber,
             () ->
                 (driverController.getRightTriggerAxis() - driverController.getLeftTriggerAxis())
-                    * 12.0));
+                    * 2.0));
+
+    driverController
+        .pov(180)
+        .onTrue(
+            Commands.parallel(
+                new FlywheelVoltageCommand(climberIntake, () -> 0.0).withTimeout(0.2),
+                new PositionJointPositionCommand(climber, () -> 120)));
 
     new Trigger(L1Chooser::get)
         .or(L2Chooser::get)
@@ -441,21 +473,26 @@ public class RobotContainer {
                 }));
 
     new Trigger(L1Chooser::get)
-        .onTrue(QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getL1));
+        .onTrue(QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL1));
 
     new Trigger(L2Chooser::get)
-        .onTrue(QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getL2));
+        .onTrue(QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL2));
 
     new Trigger(L3Chooser::get)
-        .onTrue(QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getL3));
+        .onTrue(QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL3));
 
     new Trigger(L4Chooser::get)
         .onTrue(
-            QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getL4)
-                .andThen(QuarrelCommands.FlipCommand(quarrel, QuarrelPresets::getL4)));
+            Commands.parallel(
+                Commands.sequence(
+                    Commands.waitUntil(() -> elevator.getPosition() > 0.6),
+                    new PositionJointPositionCommand(
+                        pivot, () -> QuarrelPresets.getL4().pivotRotation().getRotations())),
+                new PositionJointPositionCommand(
+                    elevator, () -> QuarrelPresets.getL4().elevatorPositionMeters())));
 
     new Trigger(ZeroChooser::get)
-        .onTrue(QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getZero));
+        .onTrue(QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getZero));
 
     new Trigger(ScoreChooser::get).onTrue(QuarrelCommands.ScoreCommand(quarrel));
 
@@ -471,20 +508,18 @@ public class RobotContainer {
 
     new Trigger(TransferChooser::get).onTrue(QuarrelCommands.TransferCommand(quarrel));
 
-    buttonBoard1
-        .button(1)
-        .onTrue(
-            AutoBuilder.pathfindToPose(
-                new Pose2d(
-                    13.890498 + Units.inchesToMeters(27 / 2.0 + 3.0),
-                    4.0259 + Units.inchesToMeters(3),
-                    new Rotation2d(Math.PI)),
-                PathConstraints.unlimitedConstraints(12)));
+    // buttonBoard1
+    //     .button(1)
+    //     .onTrue(
+    //         AutoBuilder.pathfindToPose(
+    //             new Pose2d(
+    //                 13.890498 + Units.inchesToMeters(27 / 2.0 + 3.0),
+    //                 4.0259 + Units.inchesToMeters(3),
+    //                 new Rotation2d(Math.PI)),
+    //             PathConstraints.unlimitedConstraints(12)));
 
     NamedCommands.registerCommand(
-        "L4",
-        QuarrelCommands.ElevatorCommand(quarrel, QuarrelPresets::getL4)
-            .andThen(QuarrelCommands.FlipCommand(quarrel, QuarrelPresets::getL4)));
+        "L4", QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL4));
 
     NamedCommands.registerCommand("Score", QuarrelCommands.ScoreCommand(quarrel));
   }
