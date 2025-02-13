@@ -299,11 +299,17 @@ public class PositionJointIOTalonFX implements PositionJointIO {
             .withPosition(position)
             .withVelocity(velocity)
             .withFeedForward(externalFeedforward.getAsDouble()));
+    for (int i = 1; i < motors.length; i++) {
+      motors[i].setControl(new Follower(motors[0].getDeviceID(), hardwareConfig.reversed()[i]));
+    }
   }
 
   @Override
   public void setVoltage(double voltage) {
     motors[0].setControl(voltageRequest.withOutput(voltage));
+    for (int i = 1; i < motors.length; i++) {
+      motors[i].setControl(new Follower(motors[0].getDeviceID(), hardwareConfig.reversed()[i]));
+    }
   }
 
   @Override
@@ -331,6 +337,11 @@ public class PositionJointIOTalonFX implements PositionJointIO {
                 .withGravityType(gravity));
 
     System.out.println(name + " gains set to " + gains);
+  }
+
+  @Override
+  public void resetPosition() {
+    motors[0].setPosition(0);
   }
 
   @Override

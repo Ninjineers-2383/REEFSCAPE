@@ -28,6 +28,8 @@ public class Flywheel extends SubsystemBase {
   private final LinearProfile profile;
   private double velocitySetpoint;
 
+  private boolean voltageMode = false;
+
   public Flywheel(FlywheelIO io, FlywheelGains gains) {
     super(io.getName());
 
@@ -56,8 +58,10 @@ public class Flywheel extends SubsystemBase {
     flywheel.updateInputs(inputs);
     Logger.processInputs(name, inputs);
 
-    velocitySetpoint = profile.calculateSetpoint();
-    flywheel.setVelocity(velocitySetpoint);
+    if (!voltageMode) {
+      velocitySetpoint = profile.calculateSetpoint();
+      flywheel.setVelocity(velocitySetpoint);
+    }
 
     LoggedTunableNumber.ifChanged(
         hashCode(),
@@ -83,10 +87,12 @@ public class Flywheel extends SubsystemBase {
   }
 
   public void setVelocity(double velocity) {
+    voltageMode = false;
     profile.setGoal(velocity, velocitySetpoint);
   }
 
   public void setVoltage(double voltage) {
+    voltageMode = true;
     flywheel.setVoltage(voltage);
   }
 

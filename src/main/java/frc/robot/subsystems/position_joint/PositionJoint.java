@@ -150,4 +150,9 @@ public class PositionJoint extends SubsystemBase {
   public boolean isFinished() {
     return Math.abs(inputs.outputPosition - goal.position) < kTolerance.get();
   }
+
+  public void resetPosition() {
+    positionJoint.resetPosition();
+    goal.position = 0;
+  }
 }

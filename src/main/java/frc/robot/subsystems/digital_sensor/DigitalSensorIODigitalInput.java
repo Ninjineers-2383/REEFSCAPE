@@ -3,14 +3,14 @@ package frc.robot.subsystems.digital_sensor;
 import edu.wpi.first.wpilibj.DigitalInput;
 import frc.robot.subsystems.digital_sensor.DigitalSensorConstants.DigitalSensorConfig;
 
-public class DigitalSensorIODigitialInput implements DigitalSensorIO {
+public class DigitalSensorIODigitalInput implements DigitalSensorIO {
   private final String name;
 
   private final DigitalInput digitalSensor;
 
   private final boolean invert;
 
-  public DigitalSensorIODigitialInput(String name, DigitalSensorConfig config) {
+  public DigitalSensorIODigitalInput(String name, DigitalSensorConfig config) {
     this.name = name;
 
     digitalSensor = new DigitalInput(config.id());
