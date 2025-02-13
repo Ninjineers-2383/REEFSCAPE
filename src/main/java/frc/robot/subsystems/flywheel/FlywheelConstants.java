@@ -25,4 +25,10 @@ public class FlywheelConstants {
 
   public static final FlywheelGains CLIMBER_INTAKE_GAINS =
       new FlywheelGains(0.2, 0.0, 0.0, 0.0, 0.065, 0.0, 1.0, 1.0);
+
+  public static final FlywheelHardwareConfig FUNNEL_INTAKE_CONFIG =
+      new FlywheelHardwareConfig(new int[] {9}, new boolean[] {true}, 1.0, "");
+
+  public static final FlywheelGains FUNNEL_INTAKE_GAINS =
+      new FlywheelGains(0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 }
