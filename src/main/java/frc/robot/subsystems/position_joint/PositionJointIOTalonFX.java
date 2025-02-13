@@ -327,6 +327,11 @@ public class PositionJointIOTalonFX implements PositionJointIO {
   }
 
   @Override
+  public void resetPosition() {
+    motors[0].setPosition(0);
+  }
+
+  @Override
   public String getName() {
     return name;
   }
