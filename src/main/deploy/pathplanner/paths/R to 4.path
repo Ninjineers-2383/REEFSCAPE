@@ -3,29 +3,45 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.1766477272727274,
-        "y": 7.001519886363636
+        "x": 1.342622950819672,
+        "y": 1.2618340163934432
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.3853637167104615,
-        "y": 6.591446818623314
+        "x": 2.214856700581326,
+        "y": 1.446845409982281
       },
       "isLocked": false,
-      "linkedName": "Human Player Left"
+      "linkedName": "Human Player Right"
     },
     {
       "anchor": {
-        "x": 2.5028693181818182,
-        "y": 4.049928977272727
+        "x": 5.4903688524590155,
+        "y": 2.1249487704918035
       },
       "prevControl": {
-        "x": 2.350276631794862,
-        "y": 4.2479579450052585
+        "x": 5.132861760074043,
+        "y": 1.821869472531579
+      },
+      "nextControl": {
+        "x": 6.001006912367947,
+        "y": 2.5578459856953457
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 6.6651639344262295,
+        "y": 3.9950307377049183
+      },
+      "prevControl": {
+        "x": 6.45130419529938,
+        "y": 3.8655548249620617
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "1 Out"
+      "linkedName": "4 Out"
     }
   ],
   "rotationTargets": [],
@@ -42,13 +58,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 180.0
   },
   "reversed": false,
   "folder": "Teleop Paths",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -53.44752724790845
+    "rotation": 55.0
   },
   "useDefaultConstraints": true
 }

@@ -8,24 +8,40 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.3853637167104615,
-        "y": 6.591446818623314
+        "x": 2.3306445390176354,
+        "y": 6.681570994436174
       },
       "isLocked": false,
       "linkedName": "Human Player Left"
     },
     {
       "anchor": {
-        "x": 2.5028693181818182,
-        "y": 4.049928977272727
+        "x": 5.41844262295082,
+        "y": 5.841137295081967
       },
       "prevControl": {
-        "x": 2.350276631794862,
-        "y": 4.2479579450052585
+        "x": 4.94472532691645,
+        "y": 6.125717919141006
+      },
+      "nextControl": {
+        "x": 5.6327459197422245,
+        "y": 5.712396870256137
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 6.6651639344262295,
+        "y": 3.9950307377049183
+      },
+      "prevControl": {
+        "x": 6.312961667223875,
+        "y": 4.518533651472947
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "1 Out"
+      "linkedName": "4 Out"
     }
   ],
   "rotationTargets": [],
@@ -42,7 +58,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": 180.0
   },
   "reversed": false,
   "folder": "Teleop Paths",
