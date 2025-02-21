@@ -54,7 +54,7 @@ public class PositionJointConstants {
       new PositionJointHardwareConfig(
           new int[] {10, 11},
           new boolean[] {true, false},
-          69.5 / Units.inchesToMeters(56 - 2.5),
+          (59.373046875 + 7.27001953125) / Units.inchesToMeters(61 - 9),
           40,
           GravityType.CONSTANT,
           EncoderType.INTERNAL,
@@ -68,13 +68,13 @@ public class PositionJointConstants {
   public static final PositionJointHardwareConfig PIVOT_CONFIG =
       new PositionJointHardwareConfig(
           new int[] {17},
-          new boolean[] {false},
-          (26.5 - 19.5) / (1 / 4.0),
+          new boolean[] {true},
+          46 + (2.0 / 3.0),
           40,
           GravityType.CONSTANT,
           EncoderType.EXTERNAL_CANCODER_PRO,
           17,
-          Rotation2d.fromRotations(0.344727 + 0.25),
+          Rotation2d.fromRotations(0.49365234375 + 0.25),
           "Drive");
 
   public static final PositionJointGains CLIMBER_GAINS =
