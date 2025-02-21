@@ -55,7 +55,7 @@ public class QuarrelCommands {
                     .or(subsystem.bottomBeamBreak.getTrigger())
                     .negate()),
             new FlywheelVoltageCommand(
-                subsystem.claw, () -> subsystem.pivot.getPosition() > 0.5 ? -7.0 : 7.0)),
+                subsystem.claw, () -> subsystem.pivot.getPosition() > 0.5 ? -10 : 10.0)),
         new WaitCommand(0.5),
         new FlywheelVoltageCommand(subsystem.claw, () -> 0.0).withTimeout(0.02));
   }
@@ -76,7 +76,7 @@ public class QuarrelCommands {
         new SequentialCommandGroup(
             Commands.parallel(
                 new FlywheelVoltageCommand(subsystem.claw, () -> 5.0).withTimeout(0.2),
-                new FlywheelVoltageCommand(subsystem.funnel, () -> 12.0).withTimeout(0.2)),
+                new FlywheelVoltageCommand(subsystem.funnel, () -> 8.0).withTimeout(0.2)),
             new WaitUntilCommand(subsystem.bottomBeamBreak.getTrigger()),
             new WaitCommand(0.2),
             Commands.parallel(
