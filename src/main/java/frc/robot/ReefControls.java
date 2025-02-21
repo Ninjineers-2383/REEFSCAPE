@@ -212,7 +212,7 @@ public class ReefControls {
         .onFalse(
             Commands.parallel(
                 new PositionJointVelocityCommand(quarrelerSubsystem.elevator(), () -> 0.0),
-                Commands.runOnce(() -> quarrelerSubsystem.elevator().endReset())));
+                Commands.runOnce(() -> quarrelerSubsystem.elevator().resetPosition())));
 
     branchControls
         .button(Constants.OperatorButtons.RIGHT.PROCESSOR)
