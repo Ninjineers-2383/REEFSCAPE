@@ -317,7 +317,11 @@ public class DriveCommands {
   }
 
   public static Command driveToPose(Drive drive, Supplier<Pose2d> pose) {
-    return new DriveToPose(drive, pose);
+    Supplier<Pose2d> pose1 =
+        () -> {
+          return pose.get().transformBy(new Transform2d(-0.1, 0.0, new Rotation2d()));
+        };
+    return Commands.sequence(new DriveToPose(drive, pose1), new DriveToPose(drive, pose));
   }
 
   /**
