@@ -147,7 +147,6 @@ public class RobotContainer {
                 VisionConstants.robotToCamera0,
                 new VisionIOPhotonVisionTrig(
                     "OV9281-12", VisionConstants.robotToCamera1, drive::getRotation));
-        driverController.y().onTrue(Commands.runOnce(questNav::resetPose).ignoringDisable(true));
         // Reset gyro to 0° when B button is pressed
         driverController.b().onTrue(Commands.runOnce(questNav::resetHeading).ignoringDisable(true));
 
@@ -338,9 +337,6 @@ public class RobotContainer {
         new QuarrelSubsystem(
             elevator, pivot, outtake, funnelPivot, funnelIntake, outtake_bottom_sensor);
 
-    // Set up auto routines
-    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
-
     L1Chooser = new LoggedNetworkBoolean("/Coral Choosers/L1", false);
     L2Chooser = new LoggedNetworkBoolean("/Coral Choosers/L2", false);
     L3Chooser = new LoggedNetworkBoolean("/Coral Choosers/L3", false);
@@ -351,6 +347,13 @@ public class RobotContainer {
     HighballChooser = new LoggedNetworkBoolean("/Coral Choosers/Highball", false);
 
     TransferChooser = new LoggedNetworkBoolean("/Coral Choosers/Transfer", false);
+
+    // Configure the button bindings
+    configureButtonBindings();
+
+    // Set up auto routines
+    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+
     // Set up SysId routines
     autoChooser.addOption(
         "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
@@ -366,9 +369,6 @@ public class RobotContainer {
         "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-
-    // Configure the button bindings
-    configureButtonBindings();
 
     Logger.recordOutput("Components", new Pose3d[] {new Pose3d()});
   }
@@ -437,6 +437,15 @@ public class RobotContainer {
             () ->
                 (driverController.getRightTriggerAxis() - driverController.getLeftTriggerAxis())
                     * 2.0));
+
+    driverController
+        .pov(0)
+        .onTrue(
+            Commands.parallel(
+                new FlywheelVoltageCommand(climberIntake, () -> -12.0).withTimeout(0.2),
+                new PositionJointPositionCommand(climber, () -> 290),
+                new PositionJointPositionCommand(pivot, () -> 0),
+                new PositionJointPositionCommand(funnelPivot, () -> 0.4)));
 
     driverController
         .pov(180)
@@ -519,9 +528,28 @@ public class RobotContainer {
     //             PathConstraints.unlimitedConstraints(12)));
 
     NamedCommands.registerCommand(
-        "L4", QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL4));
+        "L4_5",
+        Commands.sequence(
+            ReefControls.getScoreSequence(
+                () -> {
+                  return ReefControls.LOCATION.REEF_BACK_LEFT;
+                },
+                ReefControls.QUEUED_EVENT.LEFT_L4,
+                drive,
+                quarrel)));
+    NamedCommands.registerCommand(
+        "L4_6",
+        Commands.sequence(
+            ReefControls.getScoreSequence(
+                () -> {
+                  return ReefControls.LOCATION.REEF_FRONT_LEFT;
+                },
+                ReefControls.QUEUED_EVENT.LEFT_L4,
+                drive,
+                quarrel)));
 
     NamedCommands.registerCommand("Score", QuarrelCommands.ScoreCommand(quarrel));
+    NamedCommands.registerCommand("Transfer", QuarrelCommands.TransferCommand(quarrel));
   }
 
   /**

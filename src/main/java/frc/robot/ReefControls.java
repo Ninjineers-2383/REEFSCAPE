@@ -15,12 +15,13 @@ import frc.robot.commands.position_joint.PositionJointVelocityCommand;
 import frc.robot.subsystems.drive.Drive;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class ReefControls {
-  protected enum QUEUED_EVENT {
+  public static enum QUEUED_EVENT {
     NONE,
     LEFT_L1,
     LEFT_L2,
@@ -34,7 +35,7 @@ public class ReefControls {
     ALGAE_LOW
   }
 
-  protected enum LOCATION {
+  public static enum LOCATION {
     NONE,
     REEF_FRONT,
     REEF_BACK,
@@ -50,6 +51,7 @@ public class ReefControls {
   protected Drive drive;
 
   protected LOCATION queuedLocation = LOCATION.NONE;
+  protected LOCATION latestHumanPlayer = LOCATION.NONE;
   protected QUEUED_EVENT queuedEvent = QUEUED_EVENT.NONE;
   protected boolean driveAlongTrajDoneInt = false;
   protected Trigger driveAlongTrajDone = new Trigger(() -> driveAlongTrajDoneInt);
@@ -84,7 +86,7 @@ public class ReefControls {
   protected Trigger algaeLow = branchControls.button(Constants.OperatorButtons.RIGHT.ALGAE_LOW);
 
   protected Map<QUEUED_EVENT, Command> queuedCommands = new HashMap<>();
-  protected Map<QUEUED_EVENT, Supplier<QuarrelPosition>> queuedPresets =
+  protected static Map<QUEUED_EVENT, Supplier<QuarrelPosition>> queuedPresets =
       new HashMap<>() {
         {
           put(QUEUED_EVENT.LEFT_L1, QuarrelPresets::getL1);
@@ -113,28 +115,36 @@ public class ReefControls {
 
   public void init() {
     queuedCommands.put(
-        QUEUED_EVENT.LEFT_L1, getScoreSequence(() -> queuedLocation, QUEUED_EVENT.LEFT_L1));
+        QUEUED_EVENT.LEFT_L1,
+        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.LEFT_L1, drive, quarrelerSubsystem));
 
     queuedCommands.put(
-        QUEUED_EVENT.LEFT_L2, getScoreSequence(() -> queuedLocation, QUEUED_EVENT.LEFT_L2));
+        QUEUED_EVENT.LEFT_L2,
+        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.LEFT_L2, drive, quarrelerSubsystem));
 
     queuedCommands.put(
-        QUEUED_EVENT.LEFT_L3, getScoreSequence(() -> queuedLocation, QUEUED_EVENT.LEFT_L3));
+        QUEUED_EVENT.LEFT_L3,
+        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.LEFT_L3, drive, quarrelerSubsystem));
 
     queuedCommands.put(
-        QUEUED_EVENT.LEFT_L4, getScoreSequence(() -> queuedLocation, QUEUED_EVENT.LEFT_L4));
+        QUEUED_EVENT.LEFT_L4,
+        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.LEFT_L4, drive, quarrelerSubsystem));
 
     queuedCommands.put(
-        QUEUED_EVENT.RIGHT_L1, getScoreSequence(() -> queuedLocation, QUEUED_EVENT.RIGHT_L1));
+        QUEUED_EVENT.RIGHT_L1,
+        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.RIGHT_L1, drive, quarrelerSubsystem));
 
     queuedCommands.put(
-        QUEUED_EVENT.RIGHT_L2, getScoreSequence(() -> queuedLocation, QUEUED_EVENT.RIGHT_L2));
+        QUEUED_EVENT.RIGHT_L2,
+        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.RIGHT_L2, drive, quarrelerSubsystem));
 
     queuedCommands.put(
-        QUEUED_EVENT.RIGHT_L3, getScoreSequence(() -> queuedLocation, QUEUED_EVENT.RIGHT_L3));
+        QUEUED_EVENT.RIGHT_L3,
+        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.RIGHT_L3, drive, quarrelerSubsystem));
 
     queuedCommands.put(
-        QUEUED_EVENT.RIGHT_L4, getScoreSequence(() -> queuedLocation, QUEUED_EVENT.RIGHT_L4));
+        QUEUED_EVENT.RIGHT_L4,
+        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.RIGHT_L4, drive, quarrelerSubsystem));
 
     queuedCommands.put(
         QUEUED_EVENT.ALGAE_HIGH,
@@ -222,10 +232,10 @@ public class ReefControls {
         .button(Constants.OperatorButtons.RIGHT.BARGE)
         .onTrue(QuarrelCommands.PresetCommand(quarrelerSubsystem, QuarrelPresets::getBargeLow));
 
-    reefControls
-        .button(Constants.OperatorButtons.LEFT.HUMAN_LEFT)
-        .or(reefControls.button(Constants.OperatorButtons.LEFT.HUMAN_RIGHT))
-        .onTrue(QuarrelCommands.TransferCommand(quarrelerSubsystem));
+    humanLeft.onTrue(Commands.runOnce(() -> latestHumanPlayer = LOCATION.HUMAN_LEFT));
+    humanRight.onTrue(Commands.runOnce(() -> latestHumanPlayer = LOCATION.HUMAN_RIGHT));
+
+    humanLeft.or(humanRight).onTrue(QuarrelCommands.TransferCommand(quarrelerSubsystem));
   }
 
   public void periodic() {
@@ -239,22 +249,32 @@ public class ReefControls {
   }
 
   protected Command getDriveTrajCommand(LOCATION reefLocation) {
-    PathPlannerPath trajectory;
-    try {
-      int idx = getReefSideIndex(reefLocation);
-      trajectory = PathPlannerPath.fromPathFile("L to " + (idx + 1));
-      return Commands.sequence(
-          Commands.runOnce(() -> driveAlongTrajDoneInt = false),
-          Commands.runOnce(() -> this.queuedLocation = reefLocation),
-          driveTrajCommand.apply(trajectory),
-          Commands.runOnce(() -> driveAlongTrajDoneInt = true));
-    } catch (Exception e) {
-      Logger.recordOutput("Controls/DriveTrajCommand", e.toString());
-      return null;
-    }
+    int idx = getReefSideIndex(reefLocation);
+    return Commands.defer(
+        () -> {
+          PathPlannerPath trajectory;
+          try {
+            trajectory =
+                PathPlannerPath.fromPathFile(
+                    (latestHumanPlayer == LOCATION.HUMAN_RIGHT ? "R" : "L") + " to " + (idx + 1));
+          } catch (Exception e) {
+            Logger.recordOutput("Controls/DriveTrajCommand", e.toString());
+            return null;
+          }
+          return Commands.sequence(
+              Commands.runOnce(() -> driveAlongTrajDoneInt = false),
+              Commands.runOnce(() -> this.queuedLocation = reefLocation),
+              driveTrajCommand.apply(trajectory),
+              Commands.runOnce(() -> driveAlongTrajDoneInt = true));
+        },
+        Set.of(drive));
   }
 
-  protected Command getScoreSequence(Supplier<LOCATION> reefLocation, QUEUED_EVENT event) {
+  public static Command getScoreSequence(
+      Supplier<LOCATION> reefLocation,
+      QUEUED_EVENT event,
+      Drive drive,
+      QuarrelSubsystem quarrelerSubsystem) {
     return Commands.sequence(
         Commands.parallel(
             DriveCommands.driveToPose(drive, () -> getScorePose(reefLocation.get(), event)),
@@ -264,7 +284,7 @@ public class ReefControls {
         QuarrelCommands.TransferPose(quarrelerSubsystem));
   }
 
-  protected Pose2d getScorePose(LOCATION reefLocation, QUEUED_EVENT event) {
+  public static Pose2d getScorePose(LOCATION reefLocation, QUEUED_EVENT event) {
     boolean isLeft = false;
     switch (event) {
       case LEFT_L1:
@@ -329,7 +349,7 @@ public class ReefControls {
     }
   }
 
-  protected int getReefSideIndex(LOCATION reefLocation) {
+  public static int getReefSideIndex(LOCATION reefLocation) {
     int location;
 
     switch (reefLocation) {
