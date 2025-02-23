@@ -280,8 +280,7 @@ public class ReefControls {
             DriveCommands.driveToPose(drive, () -> getScorePose(reefLocation.get(), event)),
             QuarrelCommands.PresetCommand(
                 quarrelerSubsystem, () -> queuedPresets.get(event).get())),
-        QuarrelCommands.ScoreCommand(quarrelerSubsystem),
-        QuarrelCommands.TransferPose(quarrelerSubsystem));
+        QuarrelCommands.ScoreCommand(quarrelerSubsystem));
   }
 
   public static Pose2d getScorePose(LOCATION reefLocation, QUEUED_EVENT event) {

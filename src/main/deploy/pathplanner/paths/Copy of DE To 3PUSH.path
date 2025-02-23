@@ -3,45 +3,45 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 1.1068589743589738,
-        "y": 0.8875641025641028
+        "x": 8.000961538461539,
+        "y": 1.8886538461538465
       },
       "prevControl": null,
       "nextControl": {
-        "x": 1.9790927241206278,
-        "y": 1.0725754961529406
-      },
-      "isLocked": false,
-      "linkedName": "Human Player Right"
-    },
-    {
-      "anchor": {
-        "x": 5.090576923076923,
-        "y": 1.9918589743589745
-      },
-      "prevControl": {
-        "x": 4.65338569015499,
-        "y": 1.8229441798209547
-      },
-      "nextControl": {
-        "x": 5.99878205128205,
-        "y": 2.342756410256411
+        "x": 5.978141025641026,
+        "y": 4.4068589743589754
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.174230769230769,
-        "y": 3.9837179487179486
+        "x": 6.463205128205129,
+        "y": 1.713205128205127
       },
       "prevControl": {
-        "x": 6.6799358974358976,
-        "y": 3.9630769230769234
+        "x": 7.072115384615383,
+        "y": 1.7648076923076905
+      },
+      "nextControl": {
+        "x": 5.896110486870582,
+        "y": 1.6651462602954203
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.100897435897436,
+        "y": 2.662692307692307
+      },
+      "prevControl": {
+        "x": 5.534358974358974,
+        "y": 2.0228205128205126
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "4 Out"
+      "linkedName": "3 Out"
     }
   ],
   "rotationTargets": [],
@@ -49,8 +49,8 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 1.5,
-    "maxAcceleration": 1.5,
+    "maxVelocity": 1.25,
+    "maxAcceleration": 1.25,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
     "nominalVoltage": 12.0,
@@ -58,13 +58,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 119.99999999999999
   },
   "reversed": false,
-  "folder": "Teleop Paths",
+  "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 55.0
+    "rotation": 133.95837332399017
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

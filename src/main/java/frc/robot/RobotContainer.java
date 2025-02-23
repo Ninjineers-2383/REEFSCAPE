@@ -443,7 +443,7 @@ public class RobotContainer {
         .onTrue(
             Commands.parallel(
                 new FlywheelVoltageCommand(climberIntake, () -> -12.0).withTimeout(0.2),
-                new PositionJointPositionCommand(climber, () -> 290),
+                new PositionJointPositionCommand(climber, () -> 225),
                 new PositionJointPositionCommand(pivot, () -> 0),
                 new PositionJointPositionCommand(funnelPivot, () -> 0.4)));
 
@@ -452,7 +452,7 @@ public class RobotContainer {
         .onTrue(
             Commands.parallel(
                 new FlywheelVoltageCommand(climberIntake, () -> 0.0).withTimeout(0.2),
-                new PositionJointPositionCommand(climber, () -> 120)));
+                new PositionJointPositionCommand(climber, () -> 100)));
 
     new Trigger(L1Chooser::get)
         .or(L2Chooser::get)
@@ -538,6 +538,16 @@ public class RobotContainer {
                 drive,
                 quarrel)));
     NamedCommands.registerCommand(
+        "L4_5",
+        Commands.sequence(
+            ReefControls.getScoreSequence(
+                () -> {
+                  return ReefControls.LOCATION.REEF_BACK_LEFT;
+                },
+                ReefControls.QUEUED_EVENT.LEFT_L4,
+                drive,
+                quarrel)));
+    NamedCommands.registerCommand(
         "L4_6",
         Commands.sequence(
             ReefControls.getScoreSequence(
@@ -548,8 +558,60 @@ public class RobotContainer {
                 drive,
                 quarrel)));
 
+    NamedCommands.registerCommand(
+        "L4_6R",
+        Commands.sequence(
+            ReefControls.getScoreSequence(
+                () -> {
+                  return ReefControls.LOCATION.REEF_FRONT_RIGHT;
+                },
+                ReefControls.QUEUED_EVENT.RIGHT_L4,
+                drive,
+                quarrel)));
+
+    NamedCommands.registerCommand(
+        "L4_3",
+        Commands.sequence(
+            ReefControls.getScoreSequence(
+                () -> {
+                  return ReefControls.LOCATION.REEF_BACK_RIGHT;
+                },
+                ReefControls.QUEUED_EVENT.LEFT_L4,
+                drive,
+                quarrel)));
+    NamedCommands.registerCommand(
+        "L4_2",
+        Commands.sequence(
+            ReefControls.getScoreSequence(
+                () -> {
+                  return ReefControls.LOCATION.REEF_FRONT_RIGHT;
+                },
+                ReefControls.QUEUED_EVENT.LEFT_L4,
+                drive,
+                quarrel)));
+    NamedCommands.registerCommand(
+        "L4_2R",
+        Commands.sequence(
+            ReefControls.getScoreSequence(
+                () -> {
+                  return ReefControls.LOCATION.REEF_FRONT_RIGHT;
+                },
+                ReefControls.QUEUED_EVENT.RIGHT_L4,
+                drive,
+                quarrel)));
+
+    NamedCommands.registerCommand(
+        "MidPointReady",
+        Commands.sequence(QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getMID)));
+
     NamedCommands.registerCommand("Score", QuarrelCommands.ScoreCommand(quarrel));
     NamedCommands.registerCommand("Transfer", QuarrelCommands.TransferCommand(quarrel));
+
+    NamedCommands.registerCommand(
+        "TransferUP",
+        Commands.sequence(
+            QuarrelCommands.TransferCommand(quarrel),
+            QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getMID)));
   }
 
   /**

@@ -78,7 +78,7 @@ public class QuarrelCommands {
                 new FlywheelVoltageCommand(subsystem.claw, () -> 5.0).withTimeout(0.2),
                 new FlywheelVoltageCommand(subsystem.funnel, () -> 8.0).withTimeout(0.2)),
             new WaitUntilCommand(subsystem.bottomBeamBreak.getTrigger()),
-            new WaitCommand(0.2),
+            new WaitCommand(0.1),
             Commands.parallel(
                 new FlywheelVoltageCommand(subsystem.claw, () -> 0.0).withTimeout(0.2),
                 new FlywheelVoltageCommand(subsystem.funnel, () -> 0.0).withTimeout(0.2)),

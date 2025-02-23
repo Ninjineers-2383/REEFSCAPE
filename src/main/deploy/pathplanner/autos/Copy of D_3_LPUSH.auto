@@ -11,13 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "C To 5"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "MidPointReady"
+                  "pathName": "Copy of DE To 3PUSH"
                 }
               }
             ]
@@ -26,7 +20,7 @@
         {
           "type": "named",
           "data": {
-            "name": "L4_5"
+            "name": "L4_3"
           }
         },
         {
@@ -46,13 +40,13 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "5 to L"
+                        "pathName": "3 To R"
                       }
                     },
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "L to 6"
+                        "pathName": "R to 2"
                       }
                     }
                   ]
@@ -64,7 +58,7 @@
         {
           "type": "named",
           "data": {
-            "name": "L4_6"
+            "name": "L4_2"
           }
         },
         {
@@ -74,13 +68,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "Transfer"
-                }
-              },
-              {
-                "type": "sequential",
-                "data": {
-                  "commands": []
+                  "name": "TransferUP"
                 }
               }
             ]

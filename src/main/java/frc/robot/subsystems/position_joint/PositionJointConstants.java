@@ -53,7 +53,7 @@ public class PositionJointConstants {
   public static final PositionJointHardwareConfig ELEVATOR_CONFIG =
       new PositionJointHardwareConfig(
           new int[] {10, 11},
-          new boolean[] {true, false},
+          new boolean[] {false, false},
           (59.373046875 + 7.27001953125) / Units.inchesToMeters(61 - 9),
           40,
           GravityType.CONSTANT,
@@ -74,7 +74,7 @@ public class PositionJointConstants {
           GravityType.CONSTANT,
           EncoderType.EXTERNAL_CANCODER_PRO,
           17,
-          Rotation2d.fromRotations(0.332764 + 0.25),
+          Rotation2d.fromRotations(0.426514 + 0.25),
           "Drive");
 
   public static final PositionJointGains CLIMBER_GAINS =

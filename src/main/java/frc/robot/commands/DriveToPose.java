@@ -13,8 +13,7 @@ import org.littletonrobotics.junction.Logger;
 public class DriveToPose extends Command {
   private final Drive drive;
   private final Supplier<Pose2d> endPoseSupplier;
-  private TrapezoidProfile profile =
-      new TrapezoidProfile(new TrapezoidProfile.Constraints(500, 0.5));
+  private TrapezoidProfile profile = new TrapezoidProfile(new TrapezoidProfile.Constraints(500, 1));
 
   private Pose2d endPose;
 
@@ -103,6 +102,6 @@ public class DriveToPose extends Command {
   @Override
   public boolean isFinished() {
     return drive.getPose().getTranslation().getDistance(endPose.getTranslation()) < 0.04
-        || timer.hasElapsed(0.5);
+        || timer.hasElapsed(0.4);
   }
 }
