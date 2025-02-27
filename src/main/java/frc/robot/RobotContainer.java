@@ -636,7 +636,7 @@ public class RobotContainer {
   public void autoInit() {
     CommandScheduler.getInstance()
         .schedule(
-            Commands.waitSeconds(0.5)
-                .andThen(new PositionJointPositionCommand(funnelPivot, () -> -0.1)));
+            Commands.waitSeconds(0.2)
+                .andThen(new PositionJointPositionCommand(funnelPivot, () -> -0.4)));
   }
 }
