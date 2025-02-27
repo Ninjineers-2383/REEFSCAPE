@@ -2,6 +2,8 @@ package frc.robot;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
@@ -269,7 +271,10 @@ public class ReefControls {
           return Commands.sequence(
               Commands.runOnce(() -> driveAlongTrajDoneInt = false),
               Commands.runOnce(() -> this.queuedLocation = reefLocation),
-              driveTrajCommand.apply(trajectory),
+              driveTrajCommand.apply(
+                  DriverStation.getAlliance().get() == Alliance.Blue
+                      ? trajectory.flipPath()
+                      : trajectory),
               Commands.runOnce(() -> driveAlongTrajDoneInt = true));
         },
         Set.of(drive));
