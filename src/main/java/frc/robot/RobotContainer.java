@@ -633,7 +633,7 @@ public class RobotContainer {
     return autoChooser.get();
   }
 
-  public void teleopInit() {
+  public void autoInit() {
     CommandScheduler.getInstance()
         .schedule(
             Commands.waitSeconds(0.5)

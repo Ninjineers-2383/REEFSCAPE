@@ -114,6 +114,7 @@ public class Robot extends LoggedRobot {
       autonomousCommand.schedule();
     }
     // robotContainer.resetSimulationField();
+    robotContainer.autoInit();
   }
 
   /** This function is called periodically during autonomous. */
