@@ -2,6 +2,7 @@ package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -372,6 +373,15 @@ public class RobotContainer {
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
     Logger.recordOutput("Components", new Pose3d[] {new Pose3d()});
+
+    Pose2d[] poses = new Pose2d[12];
+
+    for (int i = 0; i < 6; i++) {
+      poses[i * 2] = REEFLocations.getInstance().getBranchScorePose(i * 2);
+      poses[i * 2 + 1] = REEFLocations.getInstance().getBranchScorePose(i * 2 + 1);
+
+      Logger.recordOutput("BranchPoses", poses);
+    }
   }
 
   /**
