@@ -5,8 +5,6 @@ import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -155,15 +153,15 @@ public class RobotContainer {
         driverController
             .b()
             .onTrue(
-                Commands.runOnce(
-                        () ->
-                            drive.setPose(
-                                new Pose2d(
-                                    drive.getPose().getTranslation(),
-                                    DriverStation.getAlliance().get() == Alliance.Red
-                                        ? Rotation2d.kPi
-                                        : Rotation2d.kZero)))
-                    .ignoringDisable(true));
+                // Commands.runOnce(
+                //         () ->
+                //             drive.setPose(
+                //                 new Pose2d(
+                //                     drive.getPose().getTranslation(),
+                //                     DriverStation.getAlliance().get() == Alliance.Red
+                //                         ? Rotation2d.kPi
+                //                         : Rotation2d.kZero)))
+                Commands.runOnce(questNav::resetHeading).ignoringDisable(true));
 
         CommandScheduler.getInstance()
             .schedule(
