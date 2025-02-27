@@ -379,9 +379,8 @@ public class RobotContainer {
     for (int i = 0; i < 6; i++) {
       poses[i * 2] = REEFLocations.getInstance().getBranchScorePose(i * 2);
       poses[i * 2 + 1] = REEFLocations.getInstance().getBranchScorePose(i * 2 + 1);
-
-      Logger.recordOutput("BranchPoses", poses);
     }
+    Logger.recordOutput("BranchPoses", poses);
   }
 
   /**
