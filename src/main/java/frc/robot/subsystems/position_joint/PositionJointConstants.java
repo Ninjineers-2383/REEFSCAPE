@@ -93,7 +93,7 @@ public class PositionJointConstants {
           "Drive");
 
   public static final PositionJointGains FUNNEL_PIVOT_GAINS =
-      new PositionJointGains(1, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 0.4, 0, 0.0);
+      new PositionJointGains(1, 0, 0, 0.5, 0, 0, 0, 0, 0, 0, 0.4, 0, 0.4);
 
   public static final PositionJointHardwareConfig FUNNEL_PIVOT_CONFIG =
       new PositionJointHardwareConfig(
@@ -104,6 +104,6 @@ public class PositionJointConstants {
           GravityType.CONSTANT,
           EncoderType.INTERNAL,
           -1,
-          new Rotation2d(),
+          new Rotation2d(-0.1),
           "");
 }

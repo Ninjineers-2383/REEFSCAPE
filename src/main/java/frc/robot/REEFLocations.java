@@ -7,6 +7,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.util.mechanical_advantage.LoggedTunableNumber;
+import org.littletonrobotics.junction.Logger;
 
 public class REEFLocations {
   protected static REEFLocations instance = new REEFLocations();
@@ -34,6 +35,15 @@ public class REEFLocations {
           new LoggedTunableNumber("REEFLocations/" + (blue ? "BLUE" : "RED") + "/X/" + i % 12, 0.0);
       y[i] =
           new LoggedTunableNumber("REEFLocations/" + (blue ? "BLUE" : "RED") + "/Y/" + i % 12, 0.0);
+    }
+
+    Pose2d[] poses = new Pose2d[12];
+
+    for (int i = 0; i < 6; i++) {
+      poses[i * 2] = getBranchScorePose(i * 2);
+      poses[i * 2 + 1] = getBranchScorePose(i * 2 + 1);
+
+      Logger.recordOutput("BranchPoses", poses);
     }
   }
 
