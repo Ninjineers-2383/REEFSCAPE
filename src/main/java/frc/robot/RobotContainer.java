@@ -167,7 +167,7 @@ public class RobotContainer {
             .schedule(
                 Commands.sequence(
                     Commands.waitSeconds(1),
-                    Commands.runOnce(questNav::resetHeading).ignoringDisable(true)));
+                    Commands.runOnce(questNav::resetBlue).ignoringDisable(true)));
 
         vision = new Vision(drive::addVisionMeasurement, questNav);
 

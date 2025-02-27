@@ -209,4 +209,8 @@ public class VisionIOQuestNav implements VisionIO {
     resetHeading(
         DriverStation.getAlliance().get() == Alliance.Red ? Rotation2d.kPi : Rotation2d.kZero);
   }
+
+  public void resetBlue() {
+    resetHeading(Rotation2d.kZero);
+  }
 }
