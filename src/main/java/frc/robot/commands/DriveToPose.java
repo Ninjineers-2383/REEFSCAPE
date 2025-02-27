@@ -31,6 +31,16 @@ public class DriveToPose extends Command {
 
   Timer timer = new Timer();
 
+  private double trapezoidalRotationGoal(double goal, double current) {
+    if (goal - current > Math.PI) {
+      return goal - 2 * Math.PI;
+    } else if (goal - current < -Math.PI) {
+      return goal + 2 * Math.PI;
+    } else {
+      return goal;
+    }
+  }
+
   public DriveToPose(Drive drive, Supplier<Pose2d> pose) {
     this.drive = drive;
     this.endPoseSupplier = pose;
@@ -51,7 +61,11 @@ public class DriveToPose extends Command {
 
     goalX = new TrapezoidProfile.State(endPose.getTranslation().getX(), 0);
     goalY = new TrapezoidProfile.State(endPose.getTranslation().getY(), 0);
-    goalTheta = new TrapezoidProfile.State(endPose.getRotation().getRadians(), 0);
+    goalTheta =
+        new TrapezoidProfile.State(
+            trapezoidalRotationGoal(
+                endPose.getRotation().getRadians(), currentPose.getRotation().getRadians()),
+            0);
 
     currentX =
         new TrapezoidProfile.State(currentPose.getTranslation().getX(), speeds.vxMetersPerSecond);
