@@ -424,11 +424,11 @@ public class RobotContainer {
 
     driverController
         .rightBumper()
-        .onTrue(new FlywheelVoltageCommand(outtake, () -> 3.0))
+        .onTrue(new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? -3.0 : 3.0))
         .onFalse(new FlywheelVoltageCommand(outtake, () -> 0.0));
     driverController
         .leftBumper()
-        .onTrue(new FlywheelVoltageCommand(outtake, () -> -3.0))
+        .onTrue(new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? 3.0 : -3.0))
         .onFalse(new FlywheelVoltageCommand(outtake, () -> 0.0));
 
     climber.setDefaultCommand(
