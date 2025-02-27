@@ -171,11 +171,7 @@ public class RobotContainer {
                     Commands.waitSeconds(1),
                     Commands.runOnce(questNav::resetHeading).ignoringDisable(true)));
 
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVisionTrig(
-                    "OV9281-12", VisionConstants.robotToCamera1, drive::getRotation));
+        vision = new Vision(drive::addVisionMeasurement, questNav);
 
         elevator =
             new PositionJoint(
