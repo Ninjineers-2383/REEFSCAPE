@@ -2,6 +2,7 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -13,6 +14,7 @@ import frc.robot.commands.position_joint.PositionJointPositionCommand;
 import frc.robot.subsystems.digital_sensor.DigitalSensor;
 import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.position_joint.PositionJoint;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class QuarrelCommands {
@@ -39,7 +41,12 @@ public class QuarrelCommands {
                 Commands.none(),
                 () -> position.get().pivotRotation().getDegrees() > 98),
             new PositionJointPositionCommand(
-                subsystem.pivot, () -> position.get().pivotRotation().getRotations())),
+                subsystem.pivot, () -> position.get().pivotRotation().getRotations()),
+            new DeferredCommand(
+                () ->
+                    Commands.waitSeconds(
+                        position.get().pivotRotation().getRotations() > 0.5 ? 0.5 : 0.0),
+                Set.of())),
         new PositionJointPositionCommand(
             subsystem.elevator, () -> position.get().elevatorPositionMeters()));
   }
