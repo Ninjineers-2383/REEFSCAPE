@@ -235,7 +235,12 @@ public class ReefControls {
     humanLeft.onTrue(Commands.runOnce(() -> latestHumanPlayer = LOCATION.HUMAN_LEFT));
     humanRight.onTrue(Commands.runOnce(() -> latestHumanPlayer = LOCATION.HUMAN_RIGHT));
 
-    humanLeft.or(humanRight).onTrue(QuarrelCommands.TransferCommand(quarrelerSubsystem));
+    humanLeft
+        .or(humanRight)
+        .onTrue(
+            Commands.sequence(
+                QuarrelCommands.TransferCommand(quarrelerSubsystem),
+                QuarrelCommands.PresetCommand(quarrelerSubsystem, QuarrelPresets::getL3)));
   }
 
   public void periodic() {
