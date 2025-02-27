@@ -152,6 +152,12 @@ public class RobotContainer {
         // Reset gyro to 0° when B button is pressed
         driverController.b().onTrue(Commands.runOnce(questNav::resetHeading).ignoringDisable(true));
 
+        CommandScheduler.getInstance()
+            .schedule(
+                Commands.sequence(
+                    Commands.waitSeconds(1),
+                    Commands.runOnce(questNav::resetHeading).ignoringDisable(true)));
+
         vision = new Vision(drive::addVisionMeasurement, questNav);
 
         elevator =
