@@ -220,7 +220,7 @@ public class ReefControls extends SubsystemBase {
         .onTrue(
             Commands.sequence(
                 QuarrelCommands.TransferCommand(quarrelerSubsystem),
-                QuarrelCommands.PresetCommand(quarrelerSubsystem, QuarrelPresets::getL3)));
+                QuarrelCommands.PresetCommand(quarrelerSubsystem, QuarrelPresets::getL2)));
   }
 
   @Override
