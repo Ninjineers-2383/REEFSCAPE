@@ -1,11 +1,13 @@
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveCommands;
@@ -22,7 +24,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
-public class ReefControls {
+public class ReefControls extends SubsystemBase {
   public static enum QUEUED_EVENT {
     NONE,
     LEFT_L1,
@@ -60,6 +62,7 @@ public class ReefControls {
 
   protected CommandGenericHID reefControls = new CommandGenericHID(1);
   protected CommandGenericHID branchControls = new CommandGenericHID(2);
+  protected CommandGenericHID switchControls = new CommandGenericHID(3);
 
   protected Trigger reefFront = reefControls.button(Constants.OperatorButtons.LEFT.REEF_FRONT);
   protected Trigger reefBack = reefControls.button(Constants.OperatorButtons.LEFT.REEF_BACK);
@@ -87,6 +90,9 @@ public class ReefControls {
   protected Trigger algaeHigh = branchControls.button(Constants.OperatorButtons.RIGHT.ALGAE_HIGH);
   protected Trigger algaeLow = branchControls.button(Constants.OperatorButtons.RIGHT.ALGAE_LOW);
 
+  protected Trigger autoLineupEnable = switchControls.button(12);
+  protected Trigger fullAutoDriveEnabled = switchControls.button(11);
+
   protected Map<QUEUED_EVENT, Command> queuedCommands = new HashMap<>();
   protected static Map<QUEUED_EVENT, Supplier<QuarrelPosition>> queuedPresets =
       new HashMap<>() {
@@ -113,6 +119,13 @@ public class ReefControls {
     this.quarrelerSubsystem = subsystem;
     this.drive = drive;
     this.driveTrajCommand = driveTrajCommand;
+  }
+
+  protected Command getScoreBranchButtonPressedCommand(QUEUED_EVENT event) {
+    return Commands.either(
+        Commands.runOnce(() -> setQueuedEvent(event)),
+        QuarrelCommands.PresetCommand(quarrelerSubsystem, () -> queuedPresets.get(event).get()),
+        autoLineupEnable);
   }
 
   public void init() {
@@ -156,60 +169,25 @@ public class ReefControls {
         QUEUED_EVENT.ALGAE_LOW,
         getAlgaeIntakeSequence(() -> queuedLocation, QUEUED_EVENT.ALGAE_LOW));
 
-    leftL1.onTrue(
-        Commands.runOnce(
-            () -> {
-              scoreSidePressed(queuedLocation, QUEUED_EVENT.LEFT_L1);
-            }));
-    leftL2.onTrue(
-        Commands.runOnce(
-            () -> {
-              scoreSidePressed(queuedLocation, QUEUED_EVENT.LEFT_L2);
-            }));
-    leftL3.onTrue(
-        Commands.runOnce(
-            () -> {
-              scoreSidePressed(queuedLocation, QUEUED_EVENT.LEFT_L3);
-            }));
-    leftL4.onTrue(
-        Commands.runOnce(
-            () -> {
-              scoreSidePressed(queuedLocation, QUEUED_EVENT.LEFT_L4);
-            }));
-    rightL1.onTrue(
-        Commands.runOnce(
-            () -> {
-              scoreSidePressed(queuedLocation, QUEUED_EVENT.RIGHT_L1);
-            }));
-    rightL2.onTrue(
-        Commands.runOnce(
-            () -> {
-              scoreSidePressed(queuedLocation, QUEUED_EVENT.RIGHT_L2);
-            }));
-    rightL3.onTrue(
-        Commands.runOnce(
-            () -> {
-              scoreSidePressed(queuedLocation, QUEUED_EVENT.RIGHT_L3);
-            }));
-    rightL4.onTrue(
-        Commands.runOnce(
-            () -> {
-              scoreSidePressed(queuedLocation, QUEUED_EVENT.RIGHT_L4);
-            }));
+    leftL1.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.LEFT_L1));
+    leftL2.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.LEFT_L2));
+    leftL3.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.LEFT_L3));
+    leftL4.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.LEFT_L4));
 
-    algaeHigh.onTrue(
-        Commands.runOnce(
-            () -> {
-              scoreSidePressed(queuedLocation, QUEUED_EVENT.ALGAE_HIGH);
-            }));
+    rightL1.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.RIGHT_L1));
+    rightL2.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.RIGHT_L2));
+    rightL3.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.RIGHT_L3));
+    rightL4.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.RIGHT_L4));
 
-    algaeLow.onTrue(
-        Commands.runOnce(
-            () -> {
-              scoreSidePressed(queuedLocation, QUEUED_EVENT.ALGAE_LOW);
-            }));
+    algaeHigh.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.ALGAE_HIGH));
+    algaeLow.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.ALGAE_LOW));
 
-    driveAlongTrajDone.onTrue(Commands.select(queuedCommands, () -> queuedEvent));
+    driveAlongTrajDone.onTrue(
+        Commands.either(
+            Commands.select(
+                queuedCommands, () -> getSideTransformedEvent(queuedLocation, queuedEvent)),
+            Commands.none(),
+            autoLineupEnable));
 
     reefFront.onTrue(getDriveTrajCommand(LOCATION.REEF_FRONT));
     reefBack.onTrue(getDriveTrajCommand(LOCATION.REEF_BACK));
@@ -245,9 +223,9 @@ public class ReefControls {
                 QuarrelCommands.PresetCommand(quarrelerSubsystem, QuarrelPresets::getL3)));
   }
 
+  @Override
   public void periodic() {
-
-    // Update the controls
+    Logger.recordOutput("Controls/AutoLineupEnabled", autoLineupEnable.getAsBoolean());
   }
 
   protected void setQueuedEvent(QUEUED_EVENT event) {
@@ -271,10 +249,16 @@ public class ReefControls {
           return Commands.sequence(
               Commands.runOnce(() -> driveAlongTrajDoneInt = false),
               Commands.runOnce(() -> this.queuedLocation = reefLocation),
-              driveTrajCommand.apply(
-                  DriverStation.getAlliance().get() == Alliance.Blue
-                      ? trajectory.flipPath()
-                      : trajectory),
+              Commands.either(
+                  AutoBuilder.followPath(
+                      DriverStation.getAlliance().get() == Alliance.Blue
+                          ? trajectory.flipPath()
+                          : trajectory),
+                  driveTrajCommand.apply(
+                      DriverStation.getAlliance().get() == Alliance.Blue
+                          ? trajectory.flipPath()
+                          : trajectory),
+                  fullAutoDriveEnabled),
               Commands.runOnce(() -> driveAlongTrajDoneInt = true));
         },
         Set.of(drive));
@@ -309,41 +293,30 @@ public class ReefControls {
         .getBranchScorePose(getReefSideIndex(reefLocation) * 2 + (isLeft ? 0 : 1));
   }
 
-  protected void scoreSidePressed(LOCATION reefLocation, QUEUED_EVENT event) {
+  protected QUEUED_EVENT getSideTransformedEvent(LOCATION reefLocation, QUEUED_EVENT event) {
     if (isCloseSide(reefLocation)) {
-      setQueuedEvent(event);
+      return event;
     } else {
-      QUEUED_EVENT flippedEvent;
       switch (event) {
         case LEFT_L1:
-          flippedEvent = QUEUED_EVENT.RIGHT_L1;
-          break;
+          return QUEUED_EVENT.RIGHT_L1;
         case LEFT_L2:
-          flippedEvent = QUEUED_EVENT.RIGHT_L2;
-          break;
+          return QUEUED_EVENT.RIGHT_L2;
         case LEFT_L3:
-          flippedEvent = QUEUED_EVENT.RIGHT_L3;
-          break;
+          return QUEUED_EVENT.RIGHT_L3;
         case LEFT_L4:
-          flippedEvent = QUEUED_EVENT.RIGHT_L4;
-          break;
+          return QUEUED_EVENT.RIGHT_L4;
         case RIGHT_L1:
-          flippedEvent = QUEUED_EVENT.LEFT_L1;
-          break;
+          return QUEUED_EVENT.LEFT_L1;
         case RIGHT_L2:
-          flippedEvent = QUEUED_EVENT.LEFT_L2;
-          break;
+          return QUEUED_EVENT.LEFT_L2;
         case RIGHT_L3:
-          flippedEvent = QUEUED_EVENT.LEFT_L3;
-          break;
+          return QUEUED_EVENT.LEFT_L3;
         case RIGHT_L4:
-          flippedEvent = QUEUED_EVENT.LEFT_L4;
-          break;
+          return QUEUED_EVENT.LEFT_L4;
         default:
-          flippedEvent = event;
-          break;
+          return event;
       }
-      setQueuedEvent(flippedEvent);
     }
   }
 

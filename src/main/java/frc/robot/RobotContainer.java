@@ -83,8 +83,7 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private final Components sim_components;
 
-  // Simulation
-
+  private ReefControls reefControls;
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
 
@@ -416,7 +415,8 @@ public class RobotContainer {
             () -> -driverController.getLeftX(),
             () -> -driverController.getRightX()));
 
-    new ReefControls(
+    reefControls =
+        new ReefControls(
             quarrel,
             drive,
             (path) ->
@@ -426,8 +426,9 @@ public class RobotContainer {
                     () -> -driverController.getLeftY(),
                     () -> -driverController.getLeftX(),
                     () -> -driverController.getRightX(),
-                    false))
-        .init();
+                    false));
+
+    reefControls.init();
 
     driverController
         .a()
@@ -479,7 +480,7 @@ public class RobotContainer {
         .onTrue(
             Commands.parallel(
                 new FlywheelVoltageCommand(climberIntake, () -> 0.0).withTimeout(0.2),
-                new PositionJointPositionCommand(climber, () -> 100)));
+                new PositionJointPositionCommand(climber, () -> 90)));
 
     new Trigger(L1Chooser::get)
         .or(L2Chooser::get)

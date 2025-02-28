@@ -74,7 +74,7 @@ public class PositionJointConstants {
           GravityType.CONSTANT,
           EncoderType.EXTERNAL_CANCODER_PRO,
           17,
-          Rotation2d.fromRotations(0.426514 + 0.25),
+          Rotation2d.fromRotations(0.197266 + 0.25),
           "Drive");
 
   public static final PositionJointGains CLIMBER_GAINS =
