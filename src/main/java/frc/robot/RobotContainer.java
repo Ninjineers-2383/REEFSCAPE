@@ -482,6 +482,10 @@ public class RobotContainer {
                 new FlywheelVoltageCommand(climberIntake, () -> 0.0).withTimeout(0.2),
                 new PositionJointPositionCommand(climber, () -> 90)));
 
+    driverController.pov(90).whileTrue(new PositionJointVelocityCommand(climber, () -> 20));
+
+    driverController.pov(270).whileTrue(new PositionJointVelocityCommand(climber, () -> -20));
+
     new Trigger(L1Chooser::get)
         .or(L2Chooser::get)
         .or(L3Chooser::get)

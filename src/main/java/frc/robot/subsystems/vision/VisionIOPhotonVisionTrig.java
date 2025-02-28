@@ -92,6 +92,8 @@ public class VisionIOPhotonVisionTrig implements VisionIO {
                 1,
                 distance,
                 PoseObservationType.PHOTONVISION));
+
+        tagIds.add(result.getBestTarget().fiducialId);
       } else {
         inputs.latestTargetObservation = new TargetObservation(new Rotation2d(), new Rotation2d());
       }
