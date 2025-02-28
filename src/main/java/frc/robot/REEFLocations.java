@@ -19,9 +19,9 @@ public class REEFLocations {
       new LoggedTunableNumber("REEFLocations/GLOBAL/L/Y", 0.25);
 
   protected final LoggedTunableNumber GLOBAL_R_X =
-      new LoggedTunableNumber("REEFLocations/GLOBAL/R/X", -0.42);
+      new LoggedTunableNumber("REEFLocations/GLOBAL/R/X", -0.39);
   protected final LoggedTunableNumber GLOBAL_R_Y =
-      new LoggedTunableNumber("REEFLocations/GLOBAL/R/Y", -0.1);
+      new LoggedTunableNumber("REEFLocations/GLOBAL/R/Y", -0.05);
 
   protected final AprilTagFieldLayout fieldLayout;
 

@@ -13,12 +13,12 @@ public class QuarrelPresets {
       new LoggedTunableNumber("QuarrelPresets/L1/Elevator", 0.2);
 
   public static final LoggedTunableNumber L2_PIVOT =
-      new LoggedTunableNumber("QuarrelPresets/L2/Pivot", 90.0);
+      new LoggedTunableNumber("QuarrelPresets/L2/Pivot", 80.0);
   public static final LoggedTunableNumber L2_ELEVATOR =
-      new LoggedTunableNumber("QuarrelPresets/L2/Elevator", 0.60);
+      new LoggedTunableNumber("QuarrelPresets/L2/Elevator", 0.7);
 
   public static final LoggedTunableNumber L3_PIVOT =
-      new LoggedTunableNumber("QuarrelPresets/L3/Pivot", 90);
+      new LoggedTunableNumber("QuarrelPresets/L3/Pivot", 80.0);
   public static final LoggedTunableNumber L3_ELEVATOR =
       new LoggedTunableNumber("QuarrelPresets/L3/Elevator", 1);
 
