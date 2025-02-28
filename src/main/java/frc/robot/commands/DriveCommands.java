@@ -407,11 +407,9 @@ public class DriveCommands {
 
           if (dot > 0.5 && errorTranslation.getNorm() < 1) {
             speeds =
-                // (trajectoryVelocity.times(dot * dot *
-                // dot).times(Vdrive.getTranslation().getNorm()))
-                //     .plus(driverVelocity.times((1 - dot) * (1 - dot) * (1 - dot)))
-                //     .plus(error);
-                driverVelocity;
+                (trajectoryVelocity.times(dot * dot * dot).times(Vdrive.getTranslation().getNorm()))
+                    .plus(driverVelocity.times((1 - dot) * (1 - dot) * (1 - dot)))
+                    .plus(error);
 
             Logger.recordOutput("DriveAlongTrajectory/Enabled", true);
 
