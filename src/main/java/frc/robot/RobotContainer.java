@@ -448,7 +448,6 @@ public class RobotContainer {
                 new PositionJointPositionCommand(climber, () -> 290)));
 
     // outtake.setDefaultCommand(new FlywheelVoltageCommand(outtake, () -> 0));
-    funnelIntake.setDefaultCommand(new FlywheelVoltageCommand(funnelIntake, () -> 0));
 
     driverController
         .rightBumper()
