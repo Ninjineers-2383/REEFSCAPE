@@ -37,7 +37,7 @@ public final class Constants {
       public static final int EMERGENCY_ELEVATOR_RESET = 9;
 
       public static final int EMERGENCY_DRIVE = 11;
-      public static final int EMERGENCY_ELEVATOR = 12;
+      public static final int SCORE = 12;
     }
 
     public static final class RIGHT {

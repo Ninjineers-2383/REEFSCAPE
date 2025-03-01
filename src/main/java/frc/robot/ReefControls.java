@@ -89,6 +89,7 @@ public class ReefControls extends SubsystemBase {
 
   protected Trigger algaeHigh = branchControls.button(Constants.OperatorButtons.RIGHT.ALGAE_HIGH);
   protected Trigger algaeLow = branchControls.button(Constants.OperatorButtons.RIGHT.ALGAE_LOW);
+  protected Trigger score = reefControls.button(Constants.OperatorButtons.LEFT.SCORE);
 
   protected Trigger autoLineupEnable = switchControls.button(12);
   protected Trigger fullAutoDriveEnabled = switchControls.button(11);
@@ -225,6 +226,8 @@ public class ReefControls extends SubsystemBase {
             Commands.sequence(
                 QuarrelCommands.TransferCommand(quarrelerSubsystem),
                 QuarrelCommands.PresetCommand(quarrelerSubsystem, QuarrelPresets::getL2)));
+
+    score.onTrue(QuarrelCommands.ScoreCommand(quarrelerSubsystem));
   }
 
   @Override
@@ -273,12 +276,9 @@ public class ReefControls extends SubsystemBase {
       QUEUED_EVENT event,
       Drive drive,
       QuarrelSubsystem quarrelerSubsystem) {
-    return Commands.sequence(
-        Commands.parallel(
-            DriveCommands.driveToPose(drive, () -> getScorePose(reefLocation.get(), event)),
-            QuarrelCommands.PresetCommand(
-                quarrelerSubsystem, () -> queuedPresets.get(event).get())),
-        QuarrelCommands.ScoreCommand(quarrelerSubsystem));
+    return Commands.parallel(
+        DriveCommands.driveToPose(drive, () -> getScorePose(reefLocation.get(), event)),
+        QuarrelCommands.PresetCommand(quarrelerSubsystem, () -> queuedPresets.get(event).get()));
   }
 
   public static Pose2d getScorePose(LOCATION reefLocation, QUEUED_EVENT event) {
