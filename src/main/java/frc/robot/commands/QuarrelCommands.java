@@ -82,7 +82,7 @@ public class QuarrelCommands {
     Command transfer =
         new SequentialCommandGroup(
             Commands.parallel(
-                new FlywheelVoltageCommand(subsystem.claw, () -> 5.0).withTimeout(0.2),
+                new FlywheelVoltageCommand(subsystem.claw, () -> 3.0).withTimeout(0.2),
                 new FlywheelVoltageCommand(subsystem.funnel, () -> 8.0).withTimeout(0.2)),
             new WaitUntilCommand(subsystem.bottomBeamBreak.getTrigger()),
             new WaitCommand(0.2),
