@@ -55,7 +55,7 @@ public class AzimuthMotorConstants {
           new boolean[] {false},
           DriveConstants.steerMotorGearRatio,
           40,
-          EncoderType.INTERNAL,
+          EncoderType.EXTERNAL_CANCODER,
           23,
           Rotation2d.fromRotations(0.118408),
           canBusName);
