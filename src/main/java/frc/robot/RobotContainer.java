@@ -454,7 +454,7 @@ public class RobotContainer {
         .rightBumper()
         .onTrue(
             Commands.parallel(
-                new FlywheelVoltageCommand(funnelIntake, () -> 3.0),
+                new FlywheelVoltageCommand(funnelIntake, () -> 8.0),
                 new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? -3.0 : 3.0)))
         .onFalse(
             Commands.parallel(
@@ -464,7 +464,7 @@ public class RobotContainer {
         .leftBumper()
         .onTrue(
             Commands.parallel(
-                new FlywheelVoltageCommand(funnelIntake, () -> -3.0),
+                new FlywheelVoltageCommand(funnelIntake, () -> -8.0),
                 new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? 3.0 : -3.0)))
         .onFalse(
             Commands.parallel(
