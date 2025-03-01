@@ -124,7 +124,11 @@ public class ReefControls extends SubsystemBase {
   protected Command getScoreBranchButtonPressedCommand(QUEUED_EVENT event) {
     return Commands.either(
         Commands.runOnce(() -> setQueuedEvent(event)),
-        QuarrelCommands.PresetCommand(quarrelerSubsystem, () -> queuedPresets.get(event).get()),
+        Commands.defer(
+            () ->
+                QuarrelCommands.PresetCommand(
+                    quarrelerSubsystem, () -> queuedPresets.get(event).get()),
+            Set.of()),
         autoLineupEnable);
   }
 
