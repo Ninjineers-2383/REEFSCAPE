@@ -281,6 +281,16 @@ public class ReefControls extends SubsystemBase {
         QuarrelCommands.PresetCommand(quarrelerSubsystem, () -> queuedPresets.get(event).get()));
   }
 
+  public static Command getAutoScoreSequence(
+      Supplier<LOCATION> reefLocation,
+      QUEUED_EVENT event,
+      Drive drive,
+      QuarrelSubsystem quarrelerSubsystem) {
+    return Commands.sequence(
+        getScoreSequence(reefLocation, event, drive, quarrelerSubsystem),
+        QuarrelCommands.ScoreCommand(quarrelerSubsystem));
+  }
+
   public static Pose2d getScorePose(LOCATION reefLocation, QUEUED_EVENT event) {
     boolean isLeft = false;
     switch (event) {

@@ -573,7 +573,7 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "L4_5",
         Commands.sequence(
-            ReefControls.getScoreSequence(
+            ReefControls.getAutoScoreSequence(
                 () -> {
                   return ReefControls.LOCATION.REEF_BACK_LEFT;
                 },
@@ -583,7 +583,7 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "L4_5",
         Commands.sequence(
-            ReefControls.getScoreSequence(
+            ReefControls.getAutoScoreSequence(
                 () -> {
                   return ReefControls.LOCATION.REEF_BACK_LEFT;
                 },
@@ -593,7 +593,7 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "L4_6",
         Commands.sequence(
-            ReefControls.getScoreSequence(
+            ReefControls.getAutoScoreSequence(
                 () -> {
                   return ReefControls.LOCATION.REEF_FRONT_LEFT;
                 },
@@ -604,7 +604,7 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "L4_6R",
         Commands.sequence(
-            ReefControls.getScoreSequence(
+            ReefControls.getAutoScoreSequence(
                 () -> {
                   return ReefControls.LOCATION.REEF_FRONT_RIGHT;
                 },
@@ -615,7 +615,7 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "L4_3",
         Commands.sequence(
-            ReefControls.getScoreSequence(
+            ReefControls.getAutoScoreSequence(
                 () -> {
                   return ReefControls.LOCATION.REEF_BACK_RIGHT;
                 },
@@ -625,7 +625,7 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "L4_2",
         Commands.sequence(
-            ReefControls.getScoreSequence(
+            ReefControls.getAutoScoreSequence(
                 () -> {
                   return ReefControls.LOCATION.REEF_FRONT_RIGHT;
                 },
@@ -635,7 +635,7 @@ public class RobotContainer {
     NamedCommands.registerCommand(
         "L4_2R",
         Commands.sequence(
-            ReefControls.getScoreSequence(
+            ReefControls.getAutoScoreSequence(
                 () -> {
                   return ReefControls.LOCATION.REEF_FRONT_RIGHT;
                 },
