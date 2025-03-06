@@ -20,6 +20,7 @@ import frc.robot.subsystems.drive.Drive;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -93,6 +94,7 @@ public class ReefControls extends SubsystemBase {
 
   protected Trigger autoLineupEnable = switchControls.button(12);
   protected Trigger fullAutoDriveEnabled = switchControls.button(11);
+  protected Trigger autoScoreEnabled = switchControls.button(10);
 
   protected Map<QUEUED_EVENT, Command> queuedCommands = new HashMap<>();
   protected static Map<QUEUED_EVENT, Supplier<QuarrelPosition>> queuedPresets =
@@ -136,35 +138,75 @@ public class ReefControls extends SubsystemBase {
   public void init() {
     queuedCommands.put(
         QUEUED_EVENT.LEFT_L1,
-        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.LEFT_L1, drive, quarrelerSubsystem));
+        getScoreSequence(
+            () -> queuedLocation,
+            QUEUED_EVENT.LEFT_L1,
+            drive,
+            quarrelerSubsystem,
+            autoScoreEnabled));
 
     queuedCommands.put(
         QUEUED_EVENT.LEFT_L2,
-        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.LEFT_L2, drive, quarrelerSubsystem));
+        getScoreSequence(
+            () -> queuedLocation,
+            QUEUED_EVENT.LEFT_L2,
+            drive,
+            quarrelerSubsystem,
+            autoScoreEnabled));
 
     queuedCommands.put(
         QUEUED_EVENT.LEFT_L3,
-        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.LEFT_L3, drive, quarrelerSubsystem));
+        getScoreSequence(
+            () -> queuedLocation,
+            QUEUED_EVENT.LEFT_L3,
+            drive,
+            quarrelerSubsystem,
+            autoScoreEnabled));
 
     queuedCommands.put(
         QUEUED_EVENT.LEFT_L4,
-        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.LEFT_L4, drive, quarrelerSubsystem));
+        getScoreSequence(
+            () -> queuedLocation,
+            QUEUED_EVENT.LEFT_L4,
+            drive,
+            quarrelerSubsystem,
+            autoScoreEnabled));
 
     queuedCommands.put(
         QUEUED_EVENT.RIGHT_L1,
-        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.RIGHT_L1, drive, quarrelerSubsystem));
+        getScoreSequence(
+            () -> queuedLocation,
+            QUEUED_EVENT.RIGHT_L1,
+            drive,
+            quarrelerSubsystem,
+            autoScoreEnabled));
 
     queuedCommands.put(
         QUEUED_EVENT.RIGHT_L2,
-        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.RIGHT_L2, drive, quarrelerSubsystem));
+        getScoreSequence(
+            () -> queuedLocation,
+            QUEUED_EVENT.RIGHT_L2,
+            drive,
+            quarrelerSubsystem,
+            autoScoreEnabled));
 
     queuedCommands.put(
         QUEUED_EVENT.RIGHT_L3,
-        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.RIGHT_L3, drive, quarrelerSubsystem));
+        getScoreSequence(
+            () -> queuedLocation,
+            QUEUED_EVENT.RIGHT_L3,
+            drive,
+            quarrelerSubsystem,
+            autoScoreEnabled));
 
     queuedCommands.put(
         QUEUED_EVENT.RIGHT_L4,
-        getScoreSequence(() -> queuedLocation, QUEUED_EVENT.RIGHT_L4, drive, quarrelerSubsystem));
+        getScoreSequence(
+            () -> queuedLocation,
+            QUEUED_EVENT.RIGHT_L4,
+            drive,
+            quarrelerSubsystem,
+            autoScoreEnabled));
 
     queuedCommands.put(
         QUEUED_EVENT.ALGAE_HIGH,
@@ -275,10 +317,15 @@ public class ReefControls extends SubsystemBase {
       Supplier<LOCATION> reefLocation,
       QUEUED_EVENT event,
       Drive drive,
-      QuarrelSubsystem quarrelerSubsystem) {
-    return Commands.parallel(
-        DriveCommands.driveToPose(drive, () -> getScorePose(reefLocation.get(), event)),
-        QuarrelCommands.PresetCommand(quarrelerSubsystem, () -> queuedPresets.get(event).get()));
+      QuarrelSubsystem quarrelerSubsystem,
+      BooleanSupplier autoScore) {
+    return Commands.sequence(
+        Commands.parallel(
+            DriveCommands.driveToPose(drive, () -> getScorePose(reefLocation.get(), event)),
+            QuarrelCommands.PresetCommand(
+                quarrelerSubsystem, () -> queuedPresets.get(event).get())),
+        Commands.either(
+            QuarrelCommands.ScoreCommand(quarrelerSubsystem), Commands.none(), autoScore));
   }
 
   public static Command getAutoScoreSequence(
@@ -286,9 +333,7 @@ public class ReefControls extends SubsystemBase {
       QUEUED_EVENT event,
       Drive drive,
       QuarrelSubsystem quarrelerSubsystem) {
-    return Commands.sequence(
-        getScoreSequence(reefLocation, event, drive, quarrelerSubsystem),
-        QuarrelCommands.ScoreCommand(quarrelerSubsystem));
+    return getScoreSequence(reefLocation, event, drive, quarrelerSubsystem, () -> true);
   }
 
   public static Pose2d getScorePose(LOCATION reefLocation, QUEUED_EVENT event) {
