@@ -1,8 +1,10 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -295,14 +297,21 @@ public class ReefControls extends SubsystemBase {
             Logger.recordOutput("Controls/DriveTrajCommand", e.toString());
             return null;
           }
+          Pose2d end =
+              trajectory.flipPath().getPathPoses().get(trajectory.getPathPoses().size() - 1);
+          Rotation2d endRotation = trajectory.flipPath().getGoalEndState().rotation();
           return Commands.sequence(
               Commands.runOnce(() -> driveAlongTrajDoneInt = false),
               Commands.runOnce(() -> this.queuedLocation = reefLocation),
               Commands.either(
-                  AutoBuilder.followPath(
-                      DriverStation.getAlliance().get() == Alliance.Blue
-                          ? trajectory.flipPath()
-                          : trajectory),
+                  // AutoBuilder.followPath(
+                  //     DriverStation.getAlliance().get() == Alliance.Blue
+                  //         ? trajectory.flipPath()
+
+                  //         : trajectory),
+                  AutoBuilder.pathfindToPose(
+                      new Pose2d(end.getTranslation(), endRotation),
+                      new PathConstraints(1.5, 3, 170, 540)),
                   driveTrajCommand.apply(
                       DriverStation.getAlliance().get() == Alliance.Blue
                           ? trajectory.flipPath()
@@ -321,6 +330,12 @@ public class ReefControls extends SubsystemBase {
       BooleanSupplier autoScore) {
     return Commands.sequence(
         Commands.parallel(
+            // Commands.defer(
+            //     () ->
+            //         AutoBuilder.pathfindToPose(
+            //             getScorePose(reefLocation.get(), event),
+            //             new PathConstraints(1.5, 1.5, 540, 720)),
+            //     Set.of(drive)),
             DriveCommands.driveToPose(drive, () -> getScorePose(reefLocation.get(), event)),
             QuarrelCommands.PresetCommand(
                 quarrelerSubsystem, () -> queuedPresets.get(event).get())),

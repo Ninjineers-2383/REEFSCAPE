@@ -52,7 +52,7 @@ public class VisionIOQuestNav implements VisionIO {
   private final VisionIO absoluteVisionIO;
   private final VisionIOInputsAutoLogged absoluteInputs = new VisionIOInputsAutoLogged();
 
-  private Translation3d[] questNavRawToFieldCoordinateSystemQueue = new Translation3d[5];
+  private Translation3d[] questNavRawToFieldCoordinateSystemQueue = new Translation3d[15];
   private Translation3d questNavRawToFieldCoordinateSystem = new Translation3d();
 
   int count = 0;

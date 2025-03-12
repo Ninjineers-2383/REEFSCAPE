@@ -1,6 +1,5 @@
 package frc.robot.subsystems.drive;
 
-import static edu.wpi.first.units.Units.FeetPerSecond;
 import static edu.wpi.first.units.Units.Kilogram;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Meters;
@@ -44,8 +43,7 @@ public class DriveConstants {
   public static final double kSteerInertia = 0.004;
   public static final double kDriveInertia = 0.025;
 
-  public static final LinearVelocity maxSpeedAt12Volts =
-      FeetPerSecond.of(12 * 1.14); // MK4i 16.5 ft/s L3 Kraken FOC With 16t pinion
+  public static final LinearVelocity maxSpeedAt12Volts = MetersPerSecond.of(4.7); // MK4i L1+ Kraken
 
   // Drive motor configuration
   public static final int driveMotorCurrentLimit = 50;
