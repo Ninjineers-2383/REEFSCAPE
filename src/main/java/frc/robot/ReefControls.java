@@ -5,6 +5,7 @@ import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -17,6 +18,7 @@ import frc.robot.commands.QuarrelCommands;
 import frc.robot.commands.QuarrelCommands.QuarrelSubsystem;
 import frc.robot.commands.QuarrelPresets;
 import frc.robot.commands.QuarrelPresets.QuarrelPosition;
+import frc.robot.commands.flywheel.FlywheelVoltageCommand;
 import frc.robot.commands.position_joint.PositionJointVelocityCommand;
 import frc.robot.subsystems.drive.Drive;
 import java.util.HashMap;
@@ -116,14 +118,17 @@ public class ReefControls extends SubsystemBase {
       };
 
   protected Function<PathPlannerPath, Command> driveTrajCommand;
+  protected Command driveIntakeCommand;
 
   public ReefControls(
       QuarrelSubsystem subsystem,
       Drive drive,
-      Function<PathPlannerPath, Command> driveTrajCommand) {
+      Function<PathPlannerPath, Command> driveTrajCommand,
+      Command driveIntakeCommand) {
     this.quarrelerSubsystem = subsystem;
     this.drive = drive;
     this.driveTrajCommand = driveTrajCommand;
+    this.driveIntakeCommand = driveIntakeCommand;
   }
 
   protected Command getScoreBranchButtonPressedCommand(QUEUED_EVENT event) {
@@ -329,18 +334,26 @@ public class ReefControls extends SubsystemBase {
       QuarrelSubsystem quarrelerSubsystem,
       BooleanSupplier autoScore) {
     return Commands.sequence(
-        Commands.parallel(
-            // Commands.defer(
-            //     () ->
-            //         AutoBuilder.pathfindToPose(
-            //             getScorePose(reefLocation.get(), event),
-            //             new PathConstraints(1.5, 1.5, 540, 720)),
-            //     Set.of(drive)),
-            DriveCommands.driveToPose(drive, () -> getScorePose(reefLocation.get(), event)),
-            QuarrelCommands.PresetCommand(
-                quarrelerSubsystem, () -> queuedPresets.get(event).get())),
         Commands.either(
-            QuarrelCommands.ScoreCommand(quarrelerSubsystem), Commands.none(), autoScore));
+            Commands.none(),
+            Commands.parallel(
+                QuarrelCommands.TransferCommand(quarrelerSubsystem),
+                Commands.runOnce(() -> drive.runVelocity(new ChassisSpeeds()), drive)),
+            quarrelerSubsystem.bottomBeamBreak().getTrigger()),
+        Commands.sequence(
+            new FlywheelVoltageCommand(quarrelerSubsystem.claw(), () -> 0.0).withTimeout(0.2),
+            Commands.parallel(
+                // Commands.defer(
+                //     () ->
+                //         AutoBuilder.pathfindToPose(
+                //             getScorePose(reefLocation.get(), event),
+                //             new PathConstraints(1.5, 1.5, 540, 720)),
+                //     Set.of(drive)),
+                DriveCommands.driveToPose(drive, () -> getScorePose(reefLocation.get(), event)),
+                QuarrelCommands.PresetCommand(
+                    quarrelerSubsystem, () -> queuedPresets.get(event).get())),
+            Commands.either(
+                QuarrelCommands.ScoreCommand(quarrelerSubsystem), Commands.none(), autoScore)));
   }
 
   public static Command getAutoScoreSequence(

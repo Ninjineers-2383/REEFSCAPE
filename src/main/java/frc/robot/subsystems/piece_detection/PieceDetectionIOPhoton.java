@@ -56,7 +56,7 @@ public class PieceDetectionIOPhoton implements PieceDetectionIO {
                     new Transform3d(
                         new Translation3d(
                             inputs.distance * Math.cos(Math.toRadians(inputs.pitch)),
-                            inputs.distance * Math.sin(Math.toRadians(inputs.yaw)),
+                            inputs.distance * -Math.sin(Math.toRadians(inputs.yaw)),
                             config.robotToCameraTransform().getZ()
                                 - inputs.distance * Math.sin(Math.toRadians(inputs.pitch))),
                         new Rotation3d()));

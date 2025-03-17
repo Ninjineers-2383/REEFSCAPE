@@ -24,8 +24,8 @@ public class QuarrelCommands {
       PositionJoint elevator,
       PositionJoint pivot,
       Flywheel claw,
-      PositionJoint funnelPivot,
-      Flywheel funnel,
+      PositionJoint intakePivot,
+      Flywheel groundIntake,
       DigitalSensor bottomBeamBreak) {}
 
   //   Commands.sequence(
@@ -37,7 +37,8 @@ public class QuarrelCommands {
     return Commands.parallel(
         Commands.sequence(
             Commands.either(
-                Commands.waitUntil(() -> subsystem.elevator.getPosition() > 0.6),
+                // Commands.waitUntil(() -> subsystem.elevator.getPosition() > 0.6),
+                Commands.none(),
                 Commands.none(),
                 () -> position.get().pivotRotation().getDegrees() > 98),
             new PositionJointPositionCommand(
@@ -62,38 +63,49 @@ public class QuarrelCommands {
                     .or(subsystem.bottomBeamBreak.getTrigger())
                     .negate()),
             new FlywheelVoltageCommand(
-                subsystem.claw, () -> subsystem.pivot.getPosition() > 0.5 ? -10 : 10.0)),
+                subsystem.claw,
+                () ->
+                    (subsystem.pivot.getPosition() > 0.5 || subsystem.pivot.getPosition() < 0.0)
+                        ? -10
+                        : 10.0)),
         new WaitCommand(0.5),
         new FlywheelVoltageCommand(subsystem.claw, () -> 0.0).withTimeout(0.02));
   }
 
   public static Command TransferPose(QuarrelSubsystem subsystem) {
-    return Commands.sequence(
-        new PrintCommand("Transfer Command Started"),
-        new PositionJointPositionCommand(
-            subsystem.pivot, () -> QuarrelPresets.getTransferDown().pivotRotation().getRotations()),
-        new PrintCommand("Transfer Command Pivot Finished"),
-        new PositionJointPositionCommand(
-            subsystem.elevator, () -> QuarrelPresets.getTransferDown().elevatorPositionMeters()),
-        new PrintCommand("Transfer Command Move Finished"));
+    return Commands.parallel(
+        new PositionJointPositionCommand(subsystem.intakePivot, () -> -1),
+        Commands.sequence(
+            new PrintCommand("Transfer Command Started"),
+            new WaitUntilCommand(() -> subsystem.intakePivot.getPosition() < 0.1),
+            new PositionJointPositionCommand(
+                subsystem.pivot,
+                () -> QuarrelPresets.getTransferDown().pivotRotation().getRotations()),
+            new PrintCommand("Transfer Command Pivot Finished"),
+            new PositionJointPositionCommand(
+                subsystem.elevator,
+                () -> QuarrelPresets.getTransferDown().elevatorPositionMeters()),
+            new PrintCommand("Transfer Command Move Finished")));
   }
 
   public static Command TransferCommand(QuarrelSubsystem subsystem) {
     Command transfer =
         new SequentialCommandGroup(
             Commands.parallel(
-                new FlywheelVoltageCommand(subsystem.claw, () -> 3.0).withTimeout(0.2),
-                new FlywheelVoltageCommand(subsystem.funnel, () -> 8.0).withTimeout(0.2)),
+                new FlywheelVoltageCommand(subsystem.claw, () -> -3.0).withTimeout(0.2),
+                new FlywheelVoltageCommand(subsystem.groundIntake, () -> 12.0).withTimeout(0.2)),
             new WaitUntilCommand(subsystem.bottomBeamBreak.getTrigger()),
-            new WaitCommand(0.25),
+            new WaitCommand(0.15),
             Commands.parallel(
                 new FlywheelVoltageCommand(subsystem.claw, () -> 0.0).withTimeout(0.2),
-                new FlywheelVoltageCommand(subsystem.funnel, () -> 0.0).withTimeout(0.2)),
+                new FlywheelVoltageCommand(subsystem.groundIntake, () -> 0.0).withTimeout(0.2)),
             new PrintCommand("Transfer Command Index Finished"));
 
     return Commands.sequence(
         TransferPose(subsystem),
-        Commands.either(Commands.none(), transfer, subsystem.bottomBeamBreak.getTrigger()));
+        Commands.either(Commands.none(), transfer, subsystem.bottomBeamBreak.getTrigger())
+        // new ForkCommand(new PositionJointPositionCommand(subsystem.intakePivot, () -> 0.22))
+        );
   }
 
   public static Command IntakeAlgaeCommand(QuarrelSubsystem subsystem) {

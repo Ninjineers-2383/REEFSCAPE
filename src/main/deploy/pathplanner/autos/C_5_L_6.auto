@@ -17,7 +17,7 @@
               {
                 "type": "named",
                 "data": {
-                  "name": "MidPointReady"
+                  "name": "L3Ready"
                 }
               }
             ]
@@ -30,32 +30,38 @@
           }
         },
         {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "5 to L"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "HP Feed"
+                }
+              }
+            ]
+          }
+        },
+        {
           "type": "parallel",
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "path",
                 "data": {
-                  "name": "TransferUP"
+                  "pathName": "L to 6"
                 }
               },
               {
-                "type": "sequential",
+                "type": "named",
                 "data": {
-                  "commands": [
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "5 to L"
-                      }
-                    },
-                    {
-                      "type": "path",
-                      "data": {
-                        "pathName": "L to 6"
-                      }
-                    }
-                  ]
+                  "name": "Transfer"
                 }
               }
             ]
@@ -72,15 +78,15 @@
           "data": {
             "commands": [
               {
-                "type": "named",
+                "type": "path",
                 "data": {
-                  "name": "Transfer"
+                  "pathName": "6 To Open"
                 }
               },
               {
-                "type": "sequential",
+                "type": "named",
                 "data": {
-                  "commands": []
+                  "name": "Transfer"
                 }
               }
             ]

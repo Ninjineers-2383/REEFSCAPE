@@ -87,7 +87,7 @@ public class DriveCommands {
               new ChassisSpeeds(
                   linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
                   linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
-                  omega * drive.getMaxAngularSpeedRadPerSec());
+                  omega * drive.getMaxAngularSpeedRadPerSec() * 0.5);
           boolean isFlipped =
               DriverStation.getAlliance().isPresent()
                   && DriverStation.getAlliance().get() == Alliance.Red;
@@ -140,16 +140,31 @@ public class DriveCommands {
                       ? drive.getRotation().plus(new Rotation2d(Math.PI))
                       : drive.getRotation());
 
-          if (Math.abs(speeds.vyMetersPerSecond) > 0.1
-              && Math.abs(speeds.vyMetersPerSecond) < 0.3
-              && speeds.vxMetersPerSecond < 0.1) {
-            speeds.vyMetersPerSecond =
-                speeds.vyMetersPerSecond
-                    + new Transform3d(
-                                new Pose3d(drive.getPose()), pieceDetection.getGamePiecePose())
-                            .getY()
-                        * PIECE_DETECTION_P.get();
-          }
+          Transform3d robotToPiece =
+              new Transform3d(new Pose3d(drive.getPose()), pieceDetection.getGamePiecePose());
+
+          Transform2d robotToPiece2d =
+              new Transform2d(
+                  robotToPiece.getTranslation().toTranslation2d(),
+                  robotToPiece.getRotation().toRotation2d());
+          robotToPiece2d = robotToPiece2d.div(robotToPiece2d.getTranslation().getNorm());
+
+          Transform2d speeds2d =
+              new Transform2d(
+                  new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond),
+                  new Rotation2d());
+          speeds2d = speeds2d.div(speeds2d.getTranslation().getNorm());
+
+          double dot = transformDot(robotToPiece2d, speeds2d);
+
+          Logger.recordOutput("DriveToPiece/Dot", dot);
+
+          if (dot > 0.5)
+            speeds.vyMetersPerSecond +=
+                Math.hypot(speeds.vyMetersPerSecond, speeds.vxMetersPerSecond)
+                    * robotToPiece.getY()
+                    * PIECE_DETECTION_P.get();
+
           drive.runVelocity(speeds);
         },
         drive);

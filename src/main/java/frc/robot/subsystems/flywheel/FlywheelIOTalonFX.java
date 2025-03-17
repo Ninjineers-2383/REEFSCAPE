@@ -91,7 +91,7 @@ public class FlywheelIOTalonFX implements FlywheelIO {
     positions.add(motors[0].getPosition());
     velocities.add(motors[0].getVelocity());
 
-    voltages.add(motors[0].getSupplyVoltage());
+    voltages.add(motors[0].getMotorVoltage());
     currents.add(motors[0].getStatorCurrent());
 
     motorAlerts[0] =
@@ -113,7 +113,7 @@ public class FlywheelIOTalonFX implements FlywheelIO {
       positions.add(motors[i].getPosition());
       velocities.add(motors[i].getVelocity());
 
-      voltages.add(motors[i].getSupplyVoltage());
+      voltages.add(motors[i].getMotorVoltage());
       currents.add(motors[i].getStatorCurrent());
     }
   }

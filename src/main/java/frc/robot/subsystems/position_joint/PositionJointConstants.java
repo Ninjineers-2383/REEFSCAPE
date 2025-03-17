@@ -63,7 +63,7 @@ public class PositionJointConstants {
           "Drive");
 
   public static final PositionJointGains PIVOT_GAINS =
-      new PositionJointGains(45.0, 1.2, 0.0, 0.0, 0.0, 0.0, 0.0, 1, 3, -0.5, 1, 0.1, 0.25);
+      new PositionJointGains(45.0, 1.2, 0.0, 0.0, 0.0, 0.0, 0.0, 1, 3, -0.5, 1, 0.1, -0.25);
 
   public static final PositionJointHardwareConfig PIVOT_CONFIG =
       new PositionJointHardwareConfig(
@@ -74,7 +74,7 @@ public class PositionJointConstants {
           GravityType.CONSTANT,
           EncoderType.EXTERNAL_CANCODER_PRO,
           17,
-          Rotation2d.fromRotations(0.197266 + 0.25),
+          Rotation2d.fromRotations(0.430908 - 0.25),
           "Drive");
 
   public static final PositionJointGains CLIMBER_GAINS =
@@ -92,18 +92,18 @@ public class PositionJointConstants {
           new Rotation2d(),
           "Drive");
 
-  public static final PositionJointGains FUNNEL_PIVOT_GAINS =
-      new PositionJointGains(1, 0, 0, 0.5, 0, 0, 0, 0, 0, -0.4, 0.4, 0, 0.4);
+  public static final PositionJointGains INTAKE_PIVOT_GAINS =
+      new PositionJointGains(25, 0, 0, 0.5, 0, 0, 0, 1.5, 5, -0.161, 0.354, 0.05, 0.354);
 
-  public static final PositionJointHardwareConfig FUNNEL_PIVOT_CONFIG =
+  public static final PositionJointHardwareConfig INTAKE_PIVOT_CONFIG =
       new PositionJointHardwareConfig(
           new int[] {8},
           new boolean[] {true},
-          1.0,
+          1 / ((14.0 / 64.0) * (20.0 / 64.0) * (18.0 / 44.0)),
           40,
           GravityType.CONSTANT,
           EncoderType.INTERNAL,
           -1,
-          new Rotation2d(-0.1),
-          "");
+          Rotation2d.fromRotations(0.354),
+          "Drive");
 }

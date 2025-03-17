@@ -37,13 +37,15 @@ import frc.robot.subsystems.flywheel.Flywheel;
 import frc.robot.subsystems.flywheel.FlywheelConstants;
 import frc.robot.subsystems.flywheel.FlywheelIOReplay;
 import frc.robot.subsystems.flywheel.FlywheelIOSim;
-import frc.robot.subsystems.flywheel.FlywheelIOSparkMax;
 import frc.robot.subsystems.flywheel.FlywheelIOTalonFX;
+import frc.robot.subsystems.piece_detection.PieceDetection;
+import frc.robot.subsystems.piece_detection.PieceDetectionConstants;
+import frc.robot.subsystems.piece_detection.PieceDetectionIOPhoton;
+import frc.robot.subsystems.piece_detection.PieceDetectionIOReplay;
 import frc.robot.subsystems.position_joint.PositionJoint;
 import frc.robot.subsystems.position_joint.PositionJointConstants;
 import frc.robot.subsystems.position_joint.PositionJointIOReplay;
 import frc.robot.subsystems.position_joint.PositionJointIOSim;
-import frc.robot.subsystems.position_joint.PositionJointIOSparkMax;
 import frc.robot.subsystems.position_joint.PositionJointIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionConstants;
@@ -74,14 +76,16 @@ public class RobotContainer {
   private final PositionJoint climber;
   private final Flywheel climberIntake;
 
-  private final PositionJoint funnelPivot;
-  private final Flywheel funnelIntake;
+  private final PositionJoint intakePivot;
+  private final Flywheel groundIntake;
 
   @SuppressWarnings("unused")
   private final Vision vision;
 
   @SuppressWarnings("unused")
   private final Components sim_components;
+
+  private final PieceDetection coralDetection;
 
   private ReefControls reefControls;
   // Controller
@@ -200,17 +204,22 @@ public class RobotContainer {
                 new FlywheelIOTalonFX("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
                 FlywheelConstants.CLIMBER_INTAKE_GAINS);
 
-        funnelPivot =
+        intakePivot =
             new PositionJoint(
-                new PositionJointIOSparkMax(
-                    "FunnelPivot", PositionJointConstants.FUNNEL_PIVOT_CONFIG, () -> 0, false),
-                PositionJointConstants.FUNNEL_PIVOT_GAINS);
+                new PositionJointIOTalonFX(
+                    "IntakePivot", PositionJointConstants.INTAKE_PIVOT_CONFIG),
+                PositionJointConstants.INTAKE_PIVOT_GAINS);
 
-        funnelIntake =
+        groundIntake =
             new Flywheel(
-                new FlywheelIOSparkMax(
-                    "FunnelIntake", FlywheelConstants.FUNNEL_INTAKE_CONFIG, false),
-                FlywheelConstants.FUNNEL_INTAKE_GAINS);
+                new FlywheelIOTalonFX("GroundIntake", FlywheelConstants.GROUND_INTAKE_CONFIG),
+                FlywheelConstants.GROUND_INTAKE_GAINS);
+
+        coralDetection =
+            new PieceDetection(
+                new PieceDetectionIOPhoton(
+                    "Camera-Piece", PieceDetectionConstants.EXAMPLE_CONFIG, 1.5),
+                () -> new Pose3d(drive.getPose()));
         break;
 
       case SIM:
@@ -276,15 +285,19 @@ public class RobotContainer {
                 new FlywheelIOSim("Climber_Intake", FlywheelConstants.CLIMBER_INTAKE_CONFIG),
                 FlywheelConstants.CLIMBER_INTAKE_GAINS);
 
-        funnelPivot =
+        intakePivot =
             new PositionJoint(
-                new PositionJointIOSim("FunnelPivot", PositionJointConstants.FUNNEL_PIVOT_CONFIG),
-                PositionJointConstants.FUNNEL_PIVOT_GAINS);
+                new PositionJointIOSim("IntakePivot", PositionJointConstants.INTAKE_PIVOT_CONFIG),
+                PositionJointConstants.INTAKE_PIVOT_GAINS);
 
-        funnelIntake =
+        groundIntake =
             new Flywheel(
-                new FlywheelIOSim("FunnelIntake", FlywheelConstants.FUNNEL_INTAKE_CONFIG),
-                FlywheelConstants.FUNNEL_INTAKE_GAINS);
+                new FlywheelIOSim("GroundIntake", FlywheelConstants.GROUND_INTAKE_CONFIG),
+                FlywheelConstants.GROUND_INTAKE_GAINS);
+
+        coralDetection =
+            new PieceDetection(
+                new PieceDetectionIOReplay("Camera-Piece"), () -> new Pose3d(drive.getPose()));
 
         break;
 
@@ -338,14 +351,18 @@ public class RobotContainer {
             new Flywheel(
                 new FlywheelIOReplay("Climber_Intake"), FlywheelConstants.CLIMBER_INTAKE_GAINS);
 
-        funnelPivot =
+        intakePivot =
             new PositionJoint(
-                new PositionJointIOReplay("FunnelPivot"),
-                PositionJointConstants.FUNNEL_PIVOT_GAINS);
+                new PositionJointIOReplay("IntakePivot"),
+                PositionJointConstants.INTAKE_PIVOT_GAINS);
 
-        funnelIntake =
+        groundIntake =
             new Flywheel(
-                new FlywheelIOReplay("FunnelIntake"), FlywheelConstants.FUNNEL_INTAKE_GAINS);
+                new FlywheelIOReplay("GroundIntake"), FlywheelConstants.GROUND_INTAKE_GAINS);
+
+        coralDetection =
+            new PieceDetection(
+                new PieceDetectionIOReplay("Camera-Piece"), () -> new Pose3d(drive.getPose()));
         break;
     }
 
@@ -353,7 +370,7 @@ public class RobotContainer {
 
     quarrel =
         new QuarrelSubsystem(
-            elevator, pivot, outtake, funnelPivot, funnelIntake, outtake_bottom_sensor);
+            elevator, pivot, outtake, intakePivot, groundIntake, outtake_bottom_sensor);
 
     L1Chooser = new LoggedNetworkBoolean("/Coral Choosers/L1", false);
     L2Chooser = new LoggedNetworkBoolean("/Coral Choosers/L2", false);
@@ -426,7 +443,8 @@ public class RobotContainer {
                     () -> -driverController.getLeftY(),
                     () -> -driverController.getLeftX(),
                     () -> -driverController.getRightX(),
-                    false));
+                    false),
+            Commands.none());
 
     reefControls.init();
 
@@ -443,31 +461,32 @@ public class RobotContainer {
             Commands.parallel(
                 QuarrelCommands.PresetCommand(
                     quarrel, () -> new QuarrelPosition(0, Rotation2d.kZero)),
-                new PositionJointPositionCommand(funnelPivot, () -> 0.4),
+                new PositionJointPositionCommand(intakePivot, () -> 0.4),
                 new FlywheelVoltageCommand(climberIntake, () -> 12.0).withTimeout(0.2),
                 new PositionJointPositionCommand(climber, () -> 290)));
 
-    // outtake.setDefaultCommand(new FlywheelVoltageCommand(outtake, () -> 0));
+    outtake.setDefaultCommand(new FlywheelVoltageCommand(outtake, () -> 0));
+    groundIntake.setDefaultCommand(new FlywheelVoltageCommand(groundIntake, () -> 0));
 
     driverController
         .rightBumper()
         .onTrue(
             Commands.parallel(
-                new FlywheelVoltageCommand(funnelIntake, () -> 8.0),
+                new FlywheelVoltageCommand(groundIntake, () -> 12.0),
                 new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? -3.0 : 3.0)))
         .onFalse(
             Commands.parallel(
-                new FlywheelVoltageCommand(funnelIntake, () -> 0.0),
+                new FlywheelVoltageCommand(groundIntake, () -> 0.0),
                 new FlywheelVoltageCommand(outtake, () -> 0.0)));
     driverController
         .leftBumper()
         .onTrue(
             Commands.parallel(
-                new FlywheelVoltageCommand(funnelIntake, () -> -8.0),
+                new FlywheelVoltageCommand(groundIntake, () -> -12.0),
                 new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? 3.0 : -3.0)))
         .onFalse(
             Commands.parallel(
-                new FlywheelVoltageCommand(funnelIntake, () -> 0.0),
+                new FlywheelVoltageCommand(groundIntake, () -> 0.0),
                 new FlywheelVoltageCommand(outtake, () -> 0.0)));
 
     climber.setDefaultCommand(
@@ -484,7 +503,7 @@ public class RobotContainer {
                 new FlywheelVoltageCommand(climberIntake, () -> -12.0).withTimeout(0.2),
                 new PositionJointPositionCommand(climber, () -> 225),
                 new PositionJointPositionCommand(pivot, () -> 0),
-                new PositionJointPositionCommand(funnelPivot, () -> 0.4)));
+                new PositionJointPositionCommand(intakePivot, () -> 0.25)));
 
     driverController
         .pov(180)
@@ -581,13 +600,13 @@ public class RobotContainer {
                 drive,
                 quarrel)));
     NamedCommands.registerCommand(
-        "L4_5",
+        "L4_5R",
         Commands.sequence(
             ReefControls.getAutoScoreSequence(
                 () -> {
                   return ReefControls.LOCATION.REEF_BACK_LEFT;
                 },
-                ReefControls.QUEUED_EVENT.LEFT_L4,
+                ReefControls.QUEUED_EVENT.RIGHT_L4,
                 drive,
                 quarrel)));
     NamedCommands.registerCommand(
@@ -645,16 +664,28 @@ public class RobotContainer {
 
     NamedCommands.registerCommand(
         "MidPointReady",
-        Commands.sequence(QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getMID)));
+        Commands.sequence(QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL2)));
+    NamedCommands.registerCommand(
+        "L3Ready",
+        Commands.sequence(QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL3)));
 
     NamedCommands.registerCommand("Score", QuarrelCommands.ScoreCommand(quarrel));
     NamedCommands.registerCommand("Transfer", QuarrelCommands.TransferCommand(quarrel));
 
     NamedCommands.registerCommand(
-        "TransferUP",
-        Commands.sequence(
-            QuarrelCommands.TransferCommand(quarrel),
-            QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getMID)));
+        "TransferUP", Commands.sequence(new PositionJointPositionCommand(intakePivot, () -> 0.3)));
+
+    NamedCommands.registerCommand(
+        "FeedBlip", new FlywheelVoltageCommand(groundIntake, () -> 12.0).withTimeout(1.5));
+
+    NamedCommands.registerCommand("FeedSlow", new FlywheelVoltageCommand(groundIntake, () -> 6.0));
+
+    NamedCommands.registerCommand(
+        "HP Feed",
+        Commands.parallel(
+            new PositionJointPositionCommand(intakePivot, () -> 0.3),
+            QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL2),
+            new FlywheelVoltageCommand(groundIntake, () -> 6.0)));
   }
 
   /**
@@ -666,12 +697,5 @@ public class RobotContainer {
     return autoChooser.get();
   }
 
-  public void autoInit() {
-    CommandScheduler.getInstance()
-        .schedule(
-            Commands.sequence(
-                Commands.waitSeconds(0.8),
-                new PositionJointPositionCommand(funnelPivot, () -> -0.4).withTimeout(2),
-                new PositionJointPositionCommand(funnelPivot, () -> -0.05)));
-  }
+  public void autoInit() {}
 }

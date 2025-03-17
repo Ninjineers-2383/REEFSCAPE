@@ -13,17 +13,17 @@ public class QuarrelPresets {
       new LoggedTunableNumber("QuarrelPresets/L1/Elevator", 0.2);
 
   public static final LoggedTunableNumber L2_PIVOT =
-      new LoggedTunableNumber("QuarrelPresets/L2/Pivot", 80.0);
+      new LoggedTunableNumber("QuarrelPresets/L2/Pivot", -90.0);
   public static final LoggedTunableNumber L2_ELEVATOR =
-      new LoggedTunableNumber("QuarrelPresets/L2/Elevator", 0.7);
+      new LoggedTunableNumber("QuarrelPresets/L2/Elevator", 0.05);
 
   public static final LoggedTunableNumber L3_PIVOT =
-      new LoggedTunableNumber("QuarrelPresets/L3/Pivot", 80.0);
+      new LoggedTunableNumber("QuarrelPresets/L3/Pivot", -90.0);
   public static final LoggedTunableNumber L3_ELEVATOR =
-      new LoggedTunableNumber("QuarrelPresets/L3/Elevator", 0.94);
+      new LoggedTunableNumber("QuarrelPresets/L3/Elevator", 0.45);
 
   public static final LoggedTunableNumber L4_PIVOT =
-      new LoggedTunableNumber("QuarrelPresets/L4/Pivot", 270.0);
+      new LoggedTunableNumber("QuarrelPresets/L4/Pivot", -70.0);
   public static final LoggedTunableNumber L4_ELEVATOR =
       new LoggedTunableNumber("QuarrelPresets/L4/Elevator", 1.15);
 
@@ -38,23 +38,23 @@ public class QuarrelPresets {
       new LoggedTunableNumber("QuarrelPresets/Zero/Elevator", 0.0);
 
   public static final LoggedTunableNumber LOWBALL_PIVOT =
-      new LoggedTunableNumber("QuarrelPresets/LOWBALL/Pivot", 70);
+      new LoggedTunableNumber("QuarrelPresets/LOWBALL/Pivot", -5.0);
   public static final LoggedTunableNumber LOWBALL_ELEVATOR =
-      new LoggedTunableNumber("QuarrelPresets/LOWBALL/Elevator", 0.3);
+      new LoggedTunableNumber("QuarrelPresets/LOWBALL/Elevator", 0.1);
 
   public static final LoggedTunableNumber HIGHBALL_PIVOT =
-      new LoggedTunableNumber("QuarrelPresets/HIGHBALL/Pivot", 70);
+      new LoggedTunableNumber("QuarrelPresets/HIGHBALL/Pivot", -5.0);
   public static final LoggedTunableNumber HIGHBALL_ELEVATOR =
-      new LoggedTunableNumber("QuarrelPresets/HIGHBALL/Elevator", 1);
+      new LoggedTunableNumber("QuarrelPresets/HIGHBALL/Elevator", 0.5);
 
   public static final LoggedTunableNumber SCORE_PIVOT =
       new LoggedTunableNumber("QuarrelPresets/Score/Pivot", 30.0);
 
   public static final LoggedTunableNumber TRANSFER_DOWN_PIVOT =
-      new LoggedTunableNumber("QuarrelPresets/TransferDown/Pivot", 85);
+      new LoggedTunableNumber("QuarrelPresets/TransferDown/Pivot", -160);
 
   public static final LoggedTunableNumber TRANSFER_DOWN_ELEVATOR =
-      new LoggedTunableNumber("QuarrelPresets/TransferDown/Elevator", 0.16);
+      new LoggedTunableNumber("QuarrelPresets/TransferDown/Elevator", 0.0);
 
   public static final LoggedTunableNumber Processor_PIVOT =
       new LoggedTunableNumber("QuarrelPresets/Processor/Pivot", 70);
