@@ -306,6 +306,11 @@ public class ReefControls extends SubsystemBase {
           Pose2d end =
               trajectory.flipPath().getPathPoses().get(trajectory.getPathPoses().size() - 1);
           Rotation2d endRotation = trajectory.flipPath().getGoalEndState().rotation();
+
+          trajectory =
+              DriverStation.getAlliance().get() == Alliance.Blue
+                  ? trajectory.flipPath()
+                  : trajectory;
           return Commands.sequence(
               Commands.runOnce(() -> driveAlongTrajDoneInt = false),
               Commands.runOnce(() -> this.queuedLocation = reefLocation),
@@ -318,10 +323,7 @@ public class ReefControls extends SubsystemBase {
                   AutoBuilder.pathfindToPose(
                       new Pose2d(end.getTranslation(), endRotation),
                       new PathConstraints(1.5, 3, 170, 540)),
-                  driveTrajCommand.apply(
-                      DriverStation.getAlliance().get() == Alliance.Blue
-                          ? trajectory.flipPath()
-                          : trajectory),
+                  driveTrajCommand.apply(trajectory),
                   fullAutoDriveEnabled),
               Commands.runOnce(() -> driveAlongTrajDoneInt = true));
         },
