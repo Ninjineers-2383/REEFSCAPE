@@ -303,14 +303,14 @@ public class ReefControls extends SubsystemBase {
             Logger.recordOutput("Controls/DriveTrajCommand", e.toString());
             return null;
           }
-          Pose2d end =
-              trajectory.flipPath().getPathPoses().get(trajectory.getPathPoses().size() - 1);
-          Rotation2d endRotation = trajectory.flipPath().getGoalEndState().rotation();
-
           trajectory =
               DriverStation.getAlliance().get() == Alliance.Blue
                   ? trajectory.flipPath()
                   : trajectory;
+          Pose2d end =
+              trajectory.flipPath().getPathPoses().get(trajectory.getPathPoses().size() - 1);
+          Rotation2d endRotation = trajectory.flipPath().getGoalEndState().rotation();
+
           return Commands.sequence(
               Commands.runOnce(() -> driveAlongTrajDoneInt = false),
               Commands.runOnce(() -> this.queuedLocation = reefLocation),
