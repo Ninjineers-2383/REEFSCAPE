@@ -40,7 +40,7 @@ public class QuarrelPresets {
   public static final LoggedTunableNumber LOWBALL_PIVOT =
       new LoggedTunableNumber("QuarrelPresets/LOWBALL/Pivot", -5.0);
   public static final LoggedTunableNumber LOWBALL_ELEVATOR =
-      new LoggedTunableNumber("QuarrelPresets/LOWBALL/Elevator", 0.1);
+      new LoggedTunableNumber("QuarrelPresets/LOWBALL/Elevator", 0.09);
 
   public static final LoggedTunableNumber HIGHBALL_PIVOT =
       new LoggedTunableNumber("QuarrelPresets/HIGHBALL/Pivot", -5.0);

@@ -5,4 +5,5 @@ public class DigitalSensorConstants {
 
   public static final DigitalSensorConfig OUTTAKE_BOTTOM_BREAK_CONFIG =
       new DigitalSensorConfig(0, true);
+  public static final DigitalSensorConfig INTAKE_BREAK_CONFIG = new DigitalSensorConfig(1, true);
 }

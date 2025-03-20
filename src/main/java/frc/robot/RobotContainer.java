@@ -70,6 +70,7 @@ public class RobotContainer {
   private final PositionJoint pivot;
   private final Flywheel outtake;
   private final DigitalSensor outtake_bottom_sensor;
+  private final DigitalSensor intake_sensor;
 
   private final QuarrelSubsystem quarrel;
 
@@ -194,6 +195,11 @@ public class RobotContainer {
                 new DigitalSensorIODigitalInput(
                     "Outtake_Bottom_Sensor", DigitalSensorConstants.OUTTAKE_BOTTOM_BREAK_CONFIG));
 
+        intake_sensor =
+            new DigitalSensor(
+                new DigitalSensorIODigitalInput(
+                    "Intake_Sensor", DigitalSensorConstants.INTAKE_BREAK_CONFIG));
+
         climber =
             new PositionJoint(
                 new PositionJointIOTalonFX("Climber", PositionJointConstants.CLIMBER_CONFIG),
@@ -274,6 +280,7 @@ public class RobotContainer {
 
         outtake_bottom_sensor =
             new DigitalSensor(new DigitalSensorIOReplay("Outtake_Bottom_Sensor"));
+        intake_sensor = new DigitalSensor(new DigitalSensorIOReplay("Intake_Sensor"));
 
         climber =
             new PositionJoint(
@@ -343,6 +350,8 @@ public class RobotContainer {
         outtake_bottom_sensor =
             new DigitalSensor(new DigitalSensorIOReplay("Outtake_Bottom_Sensor"));
 
+        intake_sensor = new DigitalSensor(new DigitalSensorIOReplay("Intake_Sensor"));
+
         climber =
             new PositionJoint(
                 new PositionJointIOReplay("Climber"), PositionJointConstants.CLIMBER_GAINS);
@@ -370,7 +379,13 @@ public class RobotContainer {
 
     quarrel =
         new QuarrelSubsystem(
-            elevator, pivot, outtake, intakePivot, groundIntake, outtake_bottom_sensor);
+            elevator,
+            pivot,
+            outtake,
+            intakePivot,
+            groundIntake,
+            outtake_bottom_sensor,
+            intake_sensor);
 
     L1Chooser = new LoggedNetworkBoolean("/Coral Choosers/L1", false);
     L2Chooser = new LoggedNetworkBoolean("/Coral Choosers/L2", false);
@@ -472,7 +487,7 @@ public class RobotContainer {
         .rightBumper()
         .onTrue(
             Commands.parallel(
-                new FlywheelVoltageCommand(groundIntake, () -> 12.0),
+                new FlywheelVoltageCommand(groundIntake, () -> -12.0),
                 new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? -3.0 : 3.0)))
         .onFalse(
             Commands.parallel(
@@ -482,7 +497,7 @@ public class RobotContainer {
         .leftBumper()
         .onTrue(
             Commands.parallel(
-                new FlywheelVoltageCommand(groundIntake, () -> -12.0),
+                new FlywheelVoltageCommand(groundIntake, () -> 2.0),
                 new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? 3.0 : -3.0)))
         .onFalse(
             Commands.parallel(

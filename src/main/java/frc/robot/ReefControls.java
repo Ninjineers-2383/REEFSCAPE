@@ -19,6 +19,7 @@ import frc.robot.commands.QuarrelCommands.QuarrelSubsystem;
 import frc.robot.commands.QuarrelPresets;
 import frc.robot.commands.QuarrelPresets.QuarrelPosition;
 import frc.robot.commands.flywheel.FlywheelVoltageCommand;
+import frc.robot.commands.position_joint.PositionJointPositionCommand;
 import frc.robot.commands.position_joint.PositionJointVelocityCommand;
 import frc.robot.subsystems.drive.Drive;
 import java.util.HashMap;
@@ -223,12 +224,12 @@ public class ReefControls extends SubsystemBase {
         QUEUED_EVENT.ALGAE_LOW,
         getAlgaeIntakeSequence(() -> queuedLocation, QUEUED_EVENT.ALGAE_LOW));
 
-    leftL1.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.LEFT_L1));
+    leftL1.onTrue(new PositionJointPositionCommand(quarrelerSubsystem.intakePivot(), () -> 0.131));
     leftL2.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.LEFT_L2));
     leftL3.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.LEFT_L3));
     leftL4.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.LEFT_L4));
 
-    rightL1.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.RIGHT_L1));
+    rightL1.onTrue(new PositionJointPositionCommand(quarrelerSubsystem.intakePivot(), () -> 0.3));
     rightL2.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.RIGHT_L2));
     rightL3.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.RIGHT_L3));
     rightL4.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.RIGHT_L4));

@@ -26,7 +26,8 @@ public class QuarrelCommands {
       Flywheel claw,
       PositionJoint intakePivot,
       Flywheel groundIntake,
-      DigitalSensor bottomBeamBreak) {}
+      DigitalSensor bottomBeamBreak,
+      DigitalSensor intakeBeamBreak) {}
 
   //   Commands.sequence(
   // Commands.waitUntil(() -> elevator.getPosition() > 0.6),
@@ -72,23 +73,26 @@ public class QuarrelCommands {
         new FlywheelVoltageCommand(subsystem.claw, () -> 0.0).withTimeout(0.02));
   }
 
-  public static Command TransferPose(QuarrelSubsystem subsystem) {
-    return Commands.parallel(
-        new PositionJointPositionCommand(subsystem.intakePivot, () -> -1),
-        Commands.sequence(
-            new PrintCommand("Transfer Command Started"),
-            new WaitUntilCommand(() -> subsystem.intakePivot.getPosition() < 0.1),
-            new PositionJointPositionCommand(
-                subsystem.pivot,
-                () -> QuarrelPresets.getTransferDown().pivotRotation().getRotations()),
-            new PrintCommand("Transfer Command Pivot Finished"),
-            new PositionJointPositionCommand(
-                subsystem.elevator,
-                () -> QuarrelPresets.getTransferDown().elevatorPositionMeters()),
-            new PrintCommand("Transfer Command Move Finished")));
-  }
-
   public static Command TransferCommand(QuarrelSubsystem subsystem) {
+    Command tranfer1 =
+        Commands.deadline(
+            Commands.sequence(
+                new PrintCommand("Transfer Command Started"),
+                new WaitUntilCommand(() -> subsystem.intakePivot.getPosition() < 0.1),
+                new PositionJointPositionCommand(
+                    subsystem.pivot,
+                    () -> QuarrelPresets.getTransferDown().pivotRotation().getRotations()),
+                new PrintCommand("Transfer Command Pivot Finished"),
+                new PositionJointPositionCommand(
+                    subsystem.elevator,
+                    () -> QuarrelPresets.getTransferDown().elevatorPositionMeters()),
+                new PrintCommand("Transfer Command Move Finished")),
+            Commands.sequence(
+                new PositionJointPositionCommand(subsystem.intakePivot, () -> -1),
+                new FlywheelVoltageCommand(subsystem.groundIntake, () -> 12.0).withTimeout(0.2),
+                Commands.waitUntil(subsystem.intakeBeamBreak().getTrigger()),
+                new FlywheelVoltageCommand(subsystem.groundIntake, () -> 0.0).withTimeout(0.2)));
+
     Command transfer =
         new SequentialCommandGroup(
             Commands.parallel(
@@ -102,8 +106,7 @@ public class QuarrelCommands {
             new PrintCommand("Transfer Command Index Finished"));
 
     return Commands.sequence(
-        TransferPose(subsystem),
-        Commands.either(Commands.none(), transfer, subsystem.bottomBeamBreak.getTrigger())
+        tranfer1, Commands.either(Commands.none(), transfer, subsystem.bottomBeamBreak.getTrigger())
         // new ForkCommand(new PositionJointPositionCommand(subsystem.intakePivot, () -> 0.22))
         );
   }
