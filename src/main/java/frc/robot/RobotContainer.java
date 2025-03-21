@@ -700,7 +700,7 @@ public class RobotContainer {
         Commands.parallel(
             new PositionJointPositionCommand(intakePivot, () -> 0.3),
             QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL2),
-            new FlywheelVoltageCommand(groundIntake, () -> 6.0)));
+            new FlywheelVoltageCommand(groundIntake, () -> 3.0)));
   }
 
   /**
