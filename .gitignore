@@ -190,3 +190,4 @@ src/main/java/frc/robot/BuildConstants.java
 !/repos/releases/com/pathplanner/lib/PathplannerLib-java/**/*.jar
 
 *.gltf
+*.wpilog

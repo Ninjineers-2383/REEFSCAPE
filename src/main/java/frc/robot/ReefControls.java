@@ -234,8 +234,14 @@ public class ReefControls extends SubsystemBase {
     rightL3.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.RIGHT_L3));
     rightL4.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.RIGHT_L4));
 
-    algaeHigh.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.ALGAE_HIGH));
-    algaeLow.onTrue(getScoreBranchButtonPressedCommand(QUEUED_EVENT.ALGAE_LOW));
+    algaeHigh.onTrue(
+        Commands.parallel(
+            new FlywheelVoltageCommand(quarrelerSubsystem.claw(), () -> -12.0).withTimeout(0.2),
+            QuarrelCommands.PresetCommand(quarrelerSubsystem, QuarrelPresets::getHighball)));
+    algaeLow.onTrue(
+        Commands.parallel(
+            new FlywheelVoltageCommand(quarrelerSubsystem.claw(), () -> -12.0).withTimeout(0.2),
+            QuarrelCommands.PresetCommand(quarrelerSubsystem, QuarrelPresets::getLowball)));
 
     driveAlongTrajDone.onTrue(
         Commands.either(
