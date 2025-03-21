@@ -88,6 +88,7 @@ public class QuarrelCommands {
                     () -> QuarrelPresets.getTransferDown().elevatorPositionMeters()),
                 new PrintCommand("Transfer Command Move Finished")),
             Commands.sequence(
+                new FlywheelVoltageCommand(subsystem.groundIntake, () -> 0.0).withTimeout(0.2),
                 new PositionJointPositionCommand(subsystem.intakePivot, () -> -1),
                 new FlywheelVoltageCommand(subsystem.groundIntake, () -> 12.0).withTimeout(0.2),
                 Commands.waitUntil(subsystem.intakeBeamBreak().getTrigger()),
