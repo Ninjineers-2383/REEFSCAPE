@@ -36,7 +36,7 @@ public final class Constants {
       public static final int HUMAN_LEFT = 8;
       public static final int EMERGENCY_ELEVATOR_RESET = 9;
 
-      public static final int EMERGENCY_DRIVE = 11;
+      public static final int FAST_MODE = 11;
       public static final int SCORE = 12;
     }
 

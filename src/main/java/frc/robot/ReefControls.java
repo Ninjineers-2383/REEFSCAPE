@@ -100,6 +100,7 @@ public class ReefControls extends SubsystemBase {
   protected Trigger autoLineupEnable = switchControls.button(12);
   protected Trigger fullAutoDriveEnabled = switchControls.button(11);
   protected Trigger autoScoreEnabled = switchControls.button(10);
+  protected Trigger fastMode = reefControls.button(Constants.OperatorButtons.LEFT.FAST_MODE);
 
   protected Map<QUEUED_EVENT, Command> queuedCommands = new HashMap<>();
   protected static Map<QUEUED_EVENT, Supplier<QuarrelPosition>> queuedPresets =
@@ -328,7 +329,7 @@ public class ReefControls extends SubsystemBase {
                   //         : trajectory),
                   AutoBuilder.pathfindToPose(
                       new Pose2d(end.getTranslation(), endRotation),
-                      new PathConstraints(1.5, 3, 170, 540)),
+                      new PathConstraints(fastMode.getAsBoolean() ? 3 : 1.5, 3, 170, 540)),
                   driveTrajCommand.apply(trajectory),
                   fullAutoDriveEnabled),
               Commands.runOnce(() -> driveAlongTrajDoneInt = true));
