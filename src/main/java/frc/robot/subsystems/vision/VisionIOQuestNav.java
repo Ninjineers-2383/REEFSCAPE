@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.networktables.FloatArraySubscriber;
 import edu.wpi.first.networktables.IntegerPublisher;
@@ -45,7 +46,16 @@ public class VisionIOQuestNav implements VisionIO {
   private FloatArraySubscriber questAngles =
       nt4Table.getFloatArrayTopic("eulerAngles").subscribe(new float[] {0.0f, 0.0f, 0.0f});
   private DoubleSubscriber questBatteryPercent =
-      nt4Table.getDoubleTopic("batteryPercent").subscribe(0.0f);
+      nt4Table.getDoubleTopic("device/batteryPercent").subscribe(0.0f);
+
+  /** Subscriber for heartbeat requests */
+  private final DoubleSubscriber heartbeatRequestSub =
+      nt4Table.getDoubleTopic("heartbeat/quest_to_robot").subscribe(0.0);
+  /** Publisher for heartbeat responses */
+  private final DoublePublisher heartbeatResponsePub =
+      nt4Table.getDoubleTopic("heartbeat/robot_to_quest").publish();
+  /** Last processed heartbeat request ID */
+  private double lastProcessedHeartbeatId = 0;
 
   private final Transform3d robotToCamera;
 
@@ -125,6 +135,7 @@ public class VisionIOQuestNav implements VisionIO {
     Logger.recordOutput("QuestNav/battery", getBatteryPercent());
 
     cleanUpQuestNavMessages();
+    processHeartbeat();
   }
 
   private QuestNavData[] getQuestNavData() {
@@ -184,6 +195,16 @@ public class VisionIOQuestNav implements VisionIO {
   private Pose3d getQuestNavPose(float[] position, float[] angles) {
     var oculousPositionCompensated = getQuestNavTranslation(position); // 6.5
     return new Pose3d(oculousPositionCompensated, getQuestNavRotation(angles));
+  }
+
+  /** Process heartbeat requests from Quest and respond with the same ID */
+  public void processHeartbeat() {
+    double requestId = heartbeatRequestSub.get();
+    // Only respond to new requests to avoid flooding
+    if (requestId > 0 && requestId != lastProcessedHeartbeatId) {
+      heartbeatResponsePub.set(requestId);
+      lastProcessedHeartbeatId = requestId;
+    }
   }
 
   public void resetPose(Pose3d pose) {
