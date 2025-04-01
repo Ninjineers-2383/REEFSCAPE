@@ -48,13 +48,13 @@ public class PositionJointConstants {
       String canBus) {}
 
   public static final PositionJointGains ELEVATOR_GAINS =
-      new PositionJointGains(27.0, 3.0, 0.0, 0.5, 0.3, 4.0, 0.0, 25.0, 8.0, 0.0, 1.3, 0.04, 0.0);
+      new PositionJointGains(15.0, 5.0, 2.0, 0.3, 0.1, 3.2, 0.0, 25.0, 8.0, 0.0, 1.3, 0.04, 0.0);
 
   public static final PositionJointHardwareConfig ELEVATOR_CONFIG =
       new PositionJointHardwareConfig(
           new int[] {10, 11},
           new boolean[] {false, false},
-          (59.373046875 + 7.27001953125) / Units.inchesToMeters(61 - 9),
+          (40.281 + 0.07) / Units.inchesToMeters(77 - 25),
           40,
           GravityType.CONSTANT,
           EncoderType.INTERNAL,
@@ -74,7 +74,7 @@ public class PositionJointConstants {
           GravityType.CONSTANT,
           EncoderType.EXTERNAL_CANCODER_PRO,
           17,
-          Rotation2d.fromRotations(-0.383301 - 0.25),
+          Rotation2d.fromRotations(-0.094971 - 0.25),
           "Drive");
 
   public static final PositionJointGains CLIMBER_GAINS =
