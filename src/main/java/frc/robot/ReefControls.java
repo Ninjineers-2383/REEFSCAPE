@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.ForkCommand;
 import frc.robot.commands.QuarrelCommands;
 import frc.robot.commands.QuarrelCommands.QuarrelSubsystem;
 import frc.robot.commands.QuarrelPresets;
@@ -237,11 +238,11 @@ public class ReefControls extends SubsystemBase {
 
     algaeHigh.onTrue(
         Commands.parallel(
-            new FlywheelVoltageCommand(quarrelerSubsystem.claw(), () -> -12.0).withTimeout(0.2),
+            new FlywheelVoltageCommand(quarrelerSubsystem.claw(), () -> -7.0),
             QuarrelCommands.PresetCommand(quarrelerSubsystem, QuarrelPresets::getHighball)));
     algaeLow.onTrue(
         Commands.parallel(
-            new FlywheelVoltageCommand(quarrelerSubsystem.claw(), () -> -12.0).withTimeout(0.2),
+            new FlywheelVoltageCommand(quarrelerSubsystem.claw(), () -> -7.0),
             QuarrelCommands.PresetCommand(quarrelerSubsystem, QuarrelPresets::getLowball)));
 
     driveAlongTrajDone.onTrue(
@@ -329,7 +330,7 @@ public class ReefControls extends SubsystemBase {
                   //         : trajectory),
                   AutoBuilder.pathfindToPose(
                       new Pose2d(end.getTranslation(), endRotation),
-                      new PathConstraints(fastMode.getAsBoolean() ? 3 : 1.5, 3, 170, 540)),
+                      new PathConstraints(fastMode.getAsBoolean() ? 3 : 1.5, 3, 90, 100)),
                   driveTrajCommand.apply(trajectory),
                   fullAutoDriveEnabled),
               Commands.runOnce(() -> driveAlongTrajDoneInt = true));
@@ -363,7 +364,10 @@ public class ReefControls extends SubsystemBase {
                 QuarrelCommands.PresetCommand(
                     quarrelerSubsystem, () -> queuedPresets.get(event).get())),
             Commands.either(
-                QuarrelCommands.ScoreCommand(quarrelerSubsystem), Commands.none(), autoScore)));
+                QuarrelCommands.ScoreCommand(quarrelerSubsystem)
+                    .andThen(new ForkCommand(QuarrelCommands.TransferCommand(quarrelerSubsystem))),
+                Commands.none(),
+                autoScore)));
   }
 
   public static Command getAutoScoreSequence(

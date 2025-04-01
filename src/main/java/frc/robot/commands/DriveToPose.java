@@ -116,6 +116,6 @@ public class DriveToPose extends Command {
   @Override
   public boolean isFinished() {
     return drive.getPose().getTranslation().getDistance(endPose.getTranslation()) < 0.04
-        || timer.hasElapsed(0.4);
+        || timer.hasElapsed(0.05);
   }
 }

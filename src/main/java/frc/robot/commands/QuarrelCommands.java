@@ -57,19 +57,14 @@ public class QuarrelCommands {
     // Score by running claw at full speed until beam breaks are no longer triggered
     return new SequentialCommandGroup(
         new ParallelDeadlineGroup(
-            new WaitUntilCommand(
-                subsystem
-                    .bottomBeamBreak
-                    .getTrigger()
-                    .or(subsystem.bottomBeamBreak.getTrigger())
-                    .negate()),
+            new WaitUntilCommand(subsystem.bottomBeamBreak.getTrigger().negate()),
             new FlywheelVoltageCommand(
                 subsystem.claw,
                 () ->
                     (subsystem.pivot.getPosition() > 0.5 || subsystem.pivot.getPosition() < 0.0)
                         ? -10
                         : 10.0)),
-        new WaitCommand(0.5),
+        new WaitCommand(0.1),
         new FlywheelVoltageCommand(subsystem.claw, () -> 0.0).withTimeout(0.02));
   }
 

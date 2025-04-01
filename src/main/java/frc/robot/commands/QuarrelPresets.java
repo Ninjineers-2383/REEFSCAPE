@@ -57,7 +57,7 @@ public class QuarrelPresets {
       new LoggedTunableNumber("QuarrelPresets/TransferDown/Elevator", 0.0);
 
   public static final LoggedTunableNumber Processor_PIVOT =
-      new LoggedTunableNumber("QuarrelPresets/Processor/Pivot", 70);
+      new LoggedTunableNumber("QuarrelPresets/Processor/Pivot", 50);
 
   public static final LoggedTunableNumber Processor_ELEVATOR =
       new LoggedTunableNumber("QuarrelPresets/Processor/Elevator", 0);

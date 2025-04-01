@@ -15,10 +15,10 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.ForkCommand;
 import frc.robot.commands.QuarrelCommands;
 import frc.robot.commands.QuarrelCommands.QuarrelSubsystem;
 import frc.robot.commands.QuarrelPresets;
-import frc.robot.commands.QuarrelPresets.QuarrelPosition;
 import frc.robot.commands.flywheel.FlywheelVoltageCommand;
 import frc.robot.commands.position_joint.PositionJointPositionCommand;
 import frc.robot.commands.position_joint.PositionJointVelocityCommand;
@@ -474,11 +474,19 @@ public class RobotContainer {
         .x()
         .onTrue(
             Commands.parallel(
-                QuarrelCommands.PresetCommand(
-                    quarrel, () -> new QuarrelPosition(0, Rotation2d.kZero)),
-                new PositionJointPositionCommand(intakePivot, () -> 0.4),
-                new FlywheelVoltageCommand(climberIntake, () -> 12.0).withTimeout(0.2),
-                new PositionJointPositionCommand(climber, () -> 290)));
+                // QuarrelCommands.PresetCommand(
+                //     quarrel, () -> new QuarrelPosition(0, Rotation2d.kZero)),
+                // new PositionJointPositionCommand(intakePivot, () -> 0.4),
+                // new FlywheelVoltageCommand(climberIntake, () -> 12.0).withTimeout(0.2),
+                // new PositionJointPositionCommand(climber, () -> 290)));
+                new PositionJointPositionCommand(
+                    pivot,
+                    () ->
+                        QuarrelPresets.getHighball()
+                            .pivotRotation()
+                            .minus(Rotation2d.fromDegrees(3.0))
+                            .getRotations()),
+                new ForkCommand(new FlywheelVoltageCommand(outtake, () -> -3.0))));
 
     outtake.setDefaultCommand(new FlywheelVoltageCommand(outtake, () -> 0));
     groundIntake.setDefaultCommand(new FlywheelVoltageCommand(groundIntake, () -> 0));
