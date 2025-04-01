@@ -1,0 +1,47 @@
+{
+  "name": "Operator3 Switch",
+  "components": [
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": false,
+      "centerPx": [
+        355,
+        57
+      ],
+      "sizePx": [
+        50,
+        50
+      ],
+      "sourceIndex": 10
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": false,
+      "centerPx": [
+        292,
+        57
+      ],
+      "sizePx": [
+        50,
+        50
+      ],
+      "sourceIndex": 11
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": false,
+      "centerPx": [
+        230,
+        57
+      ],
+      "sizePx": [
+        50,
+        50
+      ],
+      "sourceIndex": 12
+    }
+  ]
+}

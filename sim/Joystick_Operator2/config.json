@@ -1,0 +1,173 @@
+{
+  "name": "Operator2 Branch",
+  "components": [
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": true,
+      "centerPx": [
+        740,
+        45
+      ],
+      "sizePx": [
+        75,
+        75
+      ],
+      "sourceIndex": 1
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": true,
+      "centerPx": [
+        668,
+        117
+      ],
+      "sizePx": [
+        75,
+        75
+      ],
+      "sourceIndex": 2
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": true,
+      "centerPx": [
+        813,
+        117
+      ],
+      "sizePx": [
+        75,
+        75
+      ],
+      "sourceIndex": 3
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": true,
+      "centerPx": [
+        740,
+        175
+      ],
+      "sizePx": [
+        50,
+        50
+      ],
+      "sourceIndex": 4
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": true,
+      "centerPx": [
+        668,
+        230
+      ],
+      "sizePx": [
+        75,
+        75
+      ],
+      "sourceIndex": 5
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": true,
+      "centerPx": [
+        813,
+        230
+      ],
+      "sizePx": [
+        75,
+        75
+      ],
+      "sourceIndex": 6
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": true,
+      "centerPx": [
+        740,
+        288
+      ],
+      "sizePx": [
+        50,
+        50
+      ],
+      "sourceIndex": 7
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": true,
+      "centerPx": [
+        668,
+        346
+      ],
+      "sizePx": [
+        75,
+        75
+      ],
+      "sourceIndex": 8
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": true,
+      "centerPx": [
+        813,
+        346
+      ],
+      "sizePx": [
+        75,
+        75
+      ],
+      "sourceIndex": 9
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": true,
+      "centerPx": [
+        739,
+        531
+      ],
+      "sizePx": [
+        75,
+        75
+      ],
+      "sourceIndex": 10
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": true,
+      "centerPx": [
+        668,
+        457
+      ],
+      "sizePx": [
+        75,
+        75
+      ],
+      "sourceIndex": 11
+    },
+    {
+      "type": "button",
+      "isYellow": true,
+      "isEllipse": true,
+      "centerPx": [
+        813,
+        457
+      ],
+      "sizePx": [
+        75,
+        75
+      ],
+      "sourceIndex": 12
+    }
+  ]
+}
