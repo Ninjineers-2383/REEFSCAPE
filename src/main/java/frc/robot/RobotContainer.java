@@ -86,6 +86,7 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private final Components sim_components;
 
+  @SuppressWarnings("unused")
   private final PieceDetection coralDetection;
 
   private ReefControls reefControls;
@@ -419,6 +420,10 @@ public class RobotContainer {
         "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
+
+    autoChooser.addOption(
+        "DriveForward",
+        DriveCommands.joystickDriveRobotCentric(drive, () -> 0.25, () -> 0, () -> 0));
 
     Logger.recordOutput("Components", new Pose3d[] {new Pose3d()});
 
