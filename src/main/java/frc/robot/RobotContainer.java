@@ -503,7 +503,8 @@ public class RobotContainer {
         .onTrue(
             Commands.parallel(
                 new FlywheelVoltageCommand(groundIntake, () -> -12.0),
-                new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? -3.0 : 3.0)))
+                new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? -3.0 : 3.0),
+                new ForkCommand(new InstantCommand(() -> {}, drive))))
         .onFalse(
             Commands.parallel(
                 new FlywheelVoltageCommand(groundIntake, () -> 0.0),
@@ -513,7 +514,8 @@ public class RobotContainer {
         .onTrue(
             Commands.parallel(
                 new FlywheelVoltageCommand(groundIntake, () -> 2.0),
-                new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? 3.0 : -3.0)))
+                new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? 3.0 : -3.0),
+                new ForkCommand(new InstantCommand(() -> {}, drive))))
         .onFalse(
             Commands.parallel(
                 new FlywheelVoltageCommand(groundIntake, () -> 0.0),

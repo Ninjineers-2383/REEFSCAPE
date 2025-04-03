@@ -1,5 +1,6 @@
 package frc.robot;
 
+import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.net.WebServer;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Threads;
@@ -74,6 +75,8 @@ public class Robot extends LoggedRobot {
     WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
 
     SmartDashboard.putData("Command Scheduler", CommandScheduler.getInstance());
+
+    SignalLogger.enableAutoLogging(false);
 
     // Maybe this is useful
     // enableLiveWindowInTest(true);

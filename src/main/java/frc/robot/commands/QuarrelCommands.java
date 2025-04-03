@@ -62,8 +62,8 @@ public class QuarrelCommands {
                 subsystem.claw,
                 () ->
                     (subsystem.pivot.getPosition() > 0.5 || subsystem.pivot.getPosition() < 0.0)
-                        ? -10
-                        : 10.0)),
+                        ? -8
+                        : 8.0)),
         new WaitCommand(0.1),
         new FlywheelVoltageCommand(subsystem.claw, () -> 0.0).withTimeout(0.02));
   }
