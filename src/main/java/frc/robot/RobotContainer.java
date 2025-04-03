@@ -472,7 +472,9 @@ public class RobotContainer {
         .a()
         .onTrue(
             Commands.parallel(
-                QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getBargeHigh),
+                new PositionJointPositionCommand(
+                    quarrel.pivot(),
+                    () -> QuarrelPresets.getBargeHigh().pivotRotation().getRotations()),
                 new FlywheelVoltageCommand(outtake, () -> 4)));
 
     driverController
