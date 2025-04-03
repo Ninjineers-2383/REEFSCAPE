@@ -153,7 +153,8 @@ public class ReefControls extends SubsystemBase {
             QUEUED_EVENT.LEFT_L1,
             drive,
             quarrelerSubsystem,
-            autoScoreEnabled));
+            autoScoreEnabled,
+            true));
 
     queuedCommands.put(
         QUEUED_EVENT.LEFT_L2,
@@ -162,7 +163,8 @@ public class ReefControls extends SubsystemBase {
             QUEUED_EVENT.LEFT_L2,
             drive,
             quarrelerSubsystem,
-            autoScoreEnabled));
+            autoScoreEnabled,
+            true));
 
     queuedCommands.put(
         QUEUED_EVENT.LEFT_L3,
@@ -171,7 +173,8 @@ public class ReefControls extends SubsystemBase {
             QUEUED_EVENT.LEFT_L3,
             drive,
             quarrelerSubsystem,
-            autoScoreEnabled));
+            autoScoreEnabled,
+            true));
 
     queuedCommands.put(
         QUEUED_EVENT.LEFT_L4,
@@ -180,7 +183,8 @@ public class ReefControls extends SubsystemBase {
             QUEUED_EVENT.LEFT_L4,
             drive,
             quarrelerSubsystem,
-            autoScoreEnabled));
+            autoScoreEnabled,
+            true));
 
     queuedCommands.put(
         QUEUED_EVENT.RIGHT_L1,
@@ -189,7 +193,8 @@ public class ReefControls extends SubsystemBase {
             QUEUED_EVENT.RIGHT_L1,
             drive,
             quarrelerSubsystem,
-            autoScoreEnabled));
+            autoScoreEnabled,
+            true));
 
     queuedCommands.put(
         QUEUED_EVENT.RIGHT_L2,
@@ -198,7 +203,8 @@ public class ReefControls extends SubsystemBase {
             QUEUED_EVENT.RIGHT_L2,
             drive,
             quarrelerSubsystem,
-            autoScoreEnabled));
+            autoScoreEnabled,
+            true));
 
     queuedCommands.put(
         QUEUED_EVENT.RIGHT_L3,
@@ -207,7 +213,8 @@ public class ReefControls extends SubsystemBase {
             QUEUED_EVENT.RIGHT_L3,
             drive,
             quarrelerSubsystem,
-            autoScoreEnabled));
+            autoScoreEnabled,
+            true));
 
     queuedCommands.put(
         QUEUED_EVENT.RIGHT_L4,
@@ -216,7 +223,8 @@ public class ReefControls extends SubsystemBase {
             QUEUED_EVENT.RIGHT_L4,
             drive,
             quarrelerSubsystem,
-            autoScoreEnabled));
+            autoScoreEnabled,
+            true));
 
     queuedCommands.put(
         QUEUED_EVENT.ALGAE_HIGH,
@@ -343,7 +351,8 @@ public class ReefControls extends SubsystemBase {
       QUEUED_EVENT event,
       Drive drive,
       QuarrelSubsystem quarrelerSubsystem,
-      BooleanSupplier autoScore) {
+      BooleanSupplier autoScore,
+      boolean pullUpFeeder) {
     return Commands.sequence(
         Commands.either(
             Commands.none(),
@@ -365,7 +374,10 @@ public class ReefControls extends SubsystemBase {
                     quarrelerSubsystem, () -> queuedPresets.get(event).get())),
             Commands.either(
                 QuarrelCommands.ScoreCommand(quarrelerSubsystem)
-                    .andThen(new ForkCommand(QuarrelCommands.TransferCommand(quarrelerSubsystem))),
+                    .andThen(
+                        pullUpFeeder
+                            ? new ForkCommand(QuarrelCommands.TransferCommand(quarrelerSubsystem))
+                            : Commands.none()),
                 Commands.none(),
                 autoScore)));
   }
@@ -375,7 +387,7 @@ public class ReefControls extends SubsystemBase {
       QUEUED_EVENT event,
       Drive drive,
       QuarrelSubsystem quarrelerSubsystem) {
-    return getScoreSequence(reefLocation, event, drive, quarrelerSubsystem, () -> true);
+    return getScoreSequence(reefLocation, event, drive, quarrelerSubsystem, () -> true, false);
   }
 
   public static Pose2d getScorePose(LOCATION reefLocation, QUEUED_EVENT event) {
