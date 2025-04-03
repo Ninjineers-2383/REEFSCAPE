@@ -16,7 +16,7 @@ public class REEFLocations {
   protected final LoggedTunableNumber GLOBAL_L_X =
       new LoggedTunableNumber("REEFLocations/GLOBAL/L/X", -0.39);
   protected final LoggedTunableNumber GLOBAL_L_Y =
-      new LoggedTunableNumber("REEFLocations/GLOBAL/L/Y", 0.25);
+      new LoggedTunableNumber("REEFLocations/GLOBAL/L/Y", 0.23);
 
   protected final LoggedTunableNumber GLOBAL_R_X =
       new LoggedTunableNumber("REEFLocations/GLOBAL/R/X", -0.39);
