@@ -48,7 +48,7 @@ public class PositionJointConstants {
       String canBus) {}
 
   public static final PositionJointGains ELEVATOR_GAINS =
-      new PositionJointGains(15.0, 5.0, 2.0, 0.3, 0.1, 3.2, 0.0, 25.0, 8.0, 0.0, 1.3, 0.04, 0.0);
+      new PositionJointGains(15.0, 5.0, 2.0, 0.3, 0.1, 2.9, 0.0, 25.0, 8.0, 0.0, 1.3, 0.04, 0.0);
 
   public static final PositionJointHardwareConfig ELEVATOR_CONFIG =
       new PositionJointHardwareConfig(
