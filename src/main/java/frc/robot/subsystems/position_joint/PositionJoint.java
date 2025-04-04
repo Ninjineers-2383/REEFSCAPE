@@ -133,6 +133,7 @@ public class PositionJoint extends SubsystemBase {
 
   public void incrementPosition(double deltaPosition) {
     goal.position += deltaPosition;
+    setpoint = goal;
   }
 
   public void setVoltage(double voltage) {
