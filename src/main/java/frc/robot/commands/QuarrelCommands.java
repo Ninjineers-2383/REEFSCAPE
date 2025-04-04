@@ -84,7 +84,8 @@ public class QuarrelCommands {
                 new PrintCommand("Transfer Command Move Finished")),
             Commands.sequence(
                 new FlywheelVoltageCommand(subsystem.groundIntake, () -> 0.0).withTimeout(0.2),
-                new PositionJointPositionCommand(subsystem.intakePivot, () -> -1),
+                Commands.deferredProxy(
+                    () -> new PositionJointPositionCommand(subsystem.intakePivot, () -> -1)),
                 new FlywheelVoltageCommand(subsystem.groundIntake, () -> 12.0).withTimeout(0.2),
                 Commands.waitUntil(subsystem.intakeBeamBreak().getTrigger()),
                 new FlywheelVoltageCommand(subsystem.groundIntake, () -> 0.0).withTimeout(0.2)));
@@ -105,6 +106,13 @@ public class QuarrelCommands {
         tranfer1, Commands.either(Commands.none(), transfer, subsystem.bottomBeamBreak.getTrigger())
         // new ForkCommand(new PositionJointPositionCommand(subsystem.intakePivot, () -> 0.22))
         );
+  }
+
+  public static Command IntakeUp(QuarrelSubsystem subsystem) {
+    return Commands.sequence(
+        new PositionJointPositionCommand(subsystem.intakePivot(), () -> 0.193),
+        Commands.waitUntil(() -> subsystem.pivot().getPosition() > -0.3),
+        new PositionJointPositionCommand(subsystem.intakePivot(), () -> 0.3));
   }
 
   public static Command IntakeAlgaeCommand(QuarrelSubsystem subsystem) {

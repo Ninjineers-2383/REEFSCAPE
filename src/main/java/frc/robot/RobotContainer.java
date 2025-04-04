@@ -497,6 +497,8 @@ public class RobotContainer {
                             .getRotations()),
                 new ForkCommand(new FlywheelVoltageCommand(outtake, () -> -3.0))));
 
+    driverController.b().onTrue(QuarrelCommands.IntakeUp(quarrel));
+
     outtake.setDefaultCommand(new FlywheelVoltageCommand(outtake, () -> 0));
     groundIntake.setDefaultCommand(new FlywheelVoltageCommand(groundIntake, () -> 0));
 
