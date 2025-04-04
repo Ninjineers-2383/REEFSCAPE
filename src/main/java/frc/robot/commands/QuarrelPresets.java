@@ -23,7 +23,7 @@ public class QuarrelPresets {
       new LoggedTunableNumber("QuarrelPresets/L3/Elevator", 0.45);
 
   public static final LoggedTunableNumber L4_PIVOT =
-      new LoggedTunableNumber("QuarrelPresets/L4/Pivot", -65.0);
+      new LoggedTunableNumber("QuarrelPresets/L4/Pivot", -62.5);
   public static final LoggedTunableNumber L4_ELEVATOR =
       new LoggedTunableNumber("QuarrelPresets/L4/Elevator", 1.15);
 

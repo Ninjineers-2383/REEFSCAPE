@@ -108,6 +108,8 @@ public class RobotContainer {
 
   private final LoggedNetworkBoolean TransferChooser;
 
+  private final Trigger pivotResetSwitch = new CommandXboxController(1).button(10);
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     new QuarrelPresets();
@@ -500,6 +502,7 @@ public class RobotContainer {
 
     driverController
         .rightBumper()
+        .and(pivotResetSwitch.negate())
         .onTrue(
             Commands.parallel(
                 new FlywheelVoltageCommand(groundIntake, () -> -12.0),
@@ -511,6 +514,7 @@ public class RobotContainer {
                 new FlywheelVoltageCommand(outtake, () -> 0.0)));
     driverController
         .leftBumper()
+        .and(pivotResetSwitch.negate())
         .onTrue(
             Commands.parallel(
                 new FlywheelVoltageCommand(groundIntake, () -> 2.0),
@@ -520,6 +524,23 @@ public class RobotContainer {
             Commands.parallel(
                 new FlywheelVoltageCommand(groundIntake, () -> 0.0),
                 new FlywheelVoltageCommand(outtake, () -> 0.0)));
+
+    driverController
+        .leftBumper()
+        .and(pivotResetSwitch)
+        .whileTrue(new PositionJointVelocityCommand(pivot, () -> -0.25))
+        .onFalse(
+            Commands.parallel(
+                new PositionJointVelocityCommand(pivot, () -> 0.0),
+                Commands.runOnce(() -> pivot.resetPosition(-0.25))));
+    driverController
+        .rightBumper()
+        .and(pivotResetSwitch)
+        .whileTrue(new PositionJointVelocityCommand(pivot, () -> 0.25))
+        .onFalse(
+            Commands.parallel(
+                new PositionJointVelocityCommand(pivot, () -> 0.0),
+                Commands.runOnce(() -> pivot.resetPosition(-0.25))));
 
     climber.setDefaultCommand(
         new PositionJointVelocityCommand(

@@ -153,7 +153,11 @@ public class PositionJoint extends SubsystemBase {
   }
 
   public void resetPosition() {
-    positionJoint.resetPosition();
-    goal.position = 0;
+    resetPosition(0);
+  }
+
+  public void resetPosition(double position) {
+    positionJoint.resetPosition(position);
+    goal.position = position;
   }
 }

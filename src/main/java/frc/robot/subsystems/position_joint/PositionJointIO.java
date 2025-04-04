@@ -32,7 +32,7 @@ public interface PositionJointIO {
 
   public default void setGains(PositionJointGains gains) {}
 
-  public default void resetPosition() {}
+  public default void resetPosition(double position) {}
 
   public String getName();
 }

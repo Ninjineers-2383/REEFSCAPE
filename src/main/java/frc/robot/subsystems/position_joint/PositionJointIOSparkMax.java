@@ -309,9 +309,9 @@ public class PositionJointIOSparkMax implements PositionJointIO {
   }
 
   @Override
-  public void resetPosition() {
+  public void resetPosition(double position) {
     for (int i = 0; i < motors.length; i++) {
-      motors[i].getEncoder().setPosition(0.0);
+      motors[i].getEncoder().setPosition(position);
     }
   }
 
