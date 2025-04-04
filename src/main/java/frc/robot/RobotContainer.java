@@ -156,7 +156,7 @@ public class RobotContainer {
                     "OV9281-12", VisionConstants.robotToCamera1, drive::getRotation));
         // Reset gyro to 0° when B button is pressed
         driverController
-            .b()
+            .y()
             .onTrue(
                 // Commands.runOnce(
                 //         () ->
