@@ -24,4 +24,9 @@ public class AbsoluteCancoder implements IAbsoluteEncoder {
   public boolean isConnected() {
     return encoder.isConnected();
   }
+
+  @Override
+  public void resetPosition(double position) {
+    encoder.setPosition(position);
+  }
 }

@@ -342,6 +342,7 @@ public class PositionJointIOTalonFX implements PositionJointIO {
   @Override
   public void resetPosition(double position) {
     motors[0].setPosition(position);
+    externalEncoder.resetPosition(position);
   }
 
   @Override

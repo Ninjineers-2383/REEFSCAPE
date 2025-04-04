@@ -10,4 +10,6 @@ public interface IAbsoluteEncoder {
   public default boolean isConnected() {
     return true;
   }
+
+  public default void resetPosition(double position) {}
 }
