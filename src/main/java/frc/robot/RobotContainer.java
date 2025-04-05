@@ -38,10 +38,6 @@ import frc.robot.subsystems.flywheel.FlywheelConstants;
 import frc.robot.subsystems.flywheel.FlywheelIOReplay;
 import frc.robot.subsystems.flywheel.FlywheelIOSim;
 import frc.robot.subsystems.flywheel.FlywheelIOTalonFX;
-import frc.robot.subsystems.piece_detection.PieceDetection;
-import frc.robot.subsystems.piece_detection.PieceDetectionConstants;
-import frc.robot.subsystems.piece_detection.PieceDetectionIOPhoton;
-import frc.robot.subsystems.piece_detection.PieceDetectionIOReplay;
 import frc.robot.subsystems.position_joint.PositionJoint;
 import frc.robot.subsystems.position_joint.PositionJointConstants;
 import frc.robot.subsystems.position_joint.PositionJointIOReplay;
@@ -85,9 +81,6 @@ public class RobotContainer {
 
   @SuppressWarnings("unused")
   private final Components sim_components;
-
-  @SuppressWarnings("unused")
-  private final PieceDetection coralDetection;
 
   private ReefControls reefControls;
   // Controller
@@ -224,11 +217,6 @@ public class RobotContainer {
                 new FlywheelIOTalonFX("GroundIntake", FlywheelConstants.GROUND_INTAKE_CONFIG),
                 FlywheelConstants.GROUND_INTAKE_GAINS);
 
-        coralDetection =
-            new PieceDetection(
-                new PieceDetectionIOPhoton(
-                    "Camera-Piece", PieceDetectionConstants.EXAMPLE_CONFIG, 1.5),
-                () -> new Pose3d(drive.getPose()));
         break;
 
       case SIM:
@@ -305,10 +293,6 @@ public class RobotContainer {
                 new FlywheelIOSim("GroundIntake", FlywheelConstants.GROUND_INTAKE_CONFIG),
                 FlywheelConstants.GROUND_INTAKE_GAINS);
 
-        coralDetection =
-            new PieceDetection(
-                new PieceDetectionIOReplay("Camera-Piece"), () -> new Pose3d(drive.getPose()));
-
         break;
 
       default:
@@ -372,9 +356,6 @@ public class RobotContainer {
             new Flywheel(
                 new FlywheelIOReplay("GroundIntake"), FlywheelConstants.GROUND_INTAKE_GAINS);
 
-        coralDetection =
-            new PieceDetection(
-                new PieceDetectionIOReplay("Camera-Piece"), () -> new Pose3d(drive.getPose()));
         break;
     }
 
@@ -738,17 +719,12 @@ public class RobotContainer {
 
     NamedCommands.registerCommand(
         "HP Feed",
-        Commands.parallel(
-            new PositionJointPositionCommand(intakePivot, () -> 0.3),
-            QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL2),
-            new FlywheelVoltageCommand(groundIntake, () -> 6.0)));
-    Commands.parallel(
-        Commands.parallel(
-            new PositionJointPositionCommand(intakePivot, () -> 0.3),
-            QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL2),
-            new FlywheelVoltageCommand(groundIntake, () -> 6.0)),
-        new PositionJointPositionCommand(intakePivot, () -> 0.3));
-    ;
+        Commands.deferredProxy(
+            () ->
+                Commands.parallel(
+                    new PositionJointPositionCommand(intakePivot, () -> 0.3),
+                    QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL2),
+                    new FlywheelVoltageCommand(groundIntake, () -> 6.0))));
   }
 
   /**
