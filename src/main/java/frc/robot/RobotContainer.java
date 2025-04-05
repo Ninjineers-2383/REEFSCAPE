@@ -507,7 +507,8 @@ public class RobotContainer {
         .and(pivotResetSwitch.negate())
         .onTrue(
             Commands.parallel(
-                new FlywheelVoltageCommand(groundIntake, () -> -12.0),
+                new FlywheelVoltageCommand(
+                    groundIntake, () -> intakePivot.getPosition() > 0.0 ? -3 : -12.0),
                 new FlywheelVoltageCommand(outtake, () -> pivot.getPosition() > 0.5 ? -3.0 : 3.0),
                 new ForkCommand(new InstantCommand(() -> {}, drive))))
         .onFalse(
@@ -741,6 +742,13 @@ public class RobotContainer {
             new PositionJointPositionCommand(intakePivot, () -> 0.3),
             QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL2),
             new FlywheelVoltageCommand(groundIntake, () -> 6.0)));
+    Commands.parallel(
+        Commands.parallel(
+            new PositionJointPositionCommand(intakePivot, () -> 0.3),
+            QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL2),
+            new FlywheelVoltageCommand(groundIntake, () -> 6.0)),
+        new PositionJointPositionCommand(intakePivot, () -> 0.3));
+    ;
   }
 
   /**
