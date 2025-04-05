@@ -719,12 +719,10 @@ public class RobotContainer {
 
     NamedCommands.registerCommand(
         "HP Feed",
-        Commands.deferredProxy(
-            () ->
-                Commands.parallel(
-                    new PositionJointPositionCommand(intakePivot, () -> 0.3),
-                    QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL2),
-                    new FlywheelVoltageCommand(groundIntake, () -> 6.0))));
+        Commands.parallel(
+            Commands.deferredProxy(() -> new PositionJointPositionCommand(intakePivot, () -> 0.3)),
+            QuarrelCommands.PresetCommand(quarrel, QuarrelPresets::getL2),
+            new FlywheelVoltageCommand(groundIntake, () -> 6.0)));
   }
 
   /**
