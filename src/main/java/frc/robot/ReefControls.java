@@ -307,7 +307,7 @@ public class ReefControls extends SubsystemBase {
   }
 
   protected Command getDriveTrajCommand(LOCATION reefLocation) {
-    int idx = getReefSideIndex(reefLocation);
+    int idx = REEFLocations.getInstance().getClosestReefTagIdx(drive.getPose());
     return Commands.defer(
         () -> {
           PathPlannerPath trajectory;
@@ -329,7 +329,7 @@ public class ReefControls extends SubsystemBase {
 
           return Commands.sequence(
               Commands.runOnce(() -> driveAlongTrajDoneInt = false),
-              Commands.runOnce(() -> this.queuedLocation = reefLocation),
+              // Commands.runOnce(() -> this.queuedLocation = reefLocation),
               Commands.either(
                   // AutoBuilder.followPath(
                   //     DriverStation.getAlliance().get() == Alliance.Blue

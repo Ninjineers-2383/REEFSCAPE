@@ -137,4 +137,24 @@ public class REEFLocations {
         .transformBy(new Transform2d(0, 0, Rotation2d.kPi))
         .transformBy(globalTransform);
   }
+
+  public int getClosestReefTagIdx(Pose2d pose) {
+    int closestPose = -1;
+    double closestDistance = Double.MAX_VALUE;
+
+    for (int i = 0; i < 6; i++) {
+      Pose2d tagPose = getAprilTagLocationByReefSide(i, isBlue());
+      double distance = pose.getTranslation().getDistance(tagPose.getTranslation());
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestPose = i;
+      }
+    }
+
+    return closestPose;
+  }
+
+  public Pose2d getClosestReefTagPose(Pose2d pose) {
+    return getAprilTagLocationByReefSide(getClosestReefTagIdx(pose), isBlue());
+  }
 }

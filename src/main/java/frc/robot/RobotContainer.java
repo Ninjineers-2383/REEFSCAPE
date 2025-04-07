@@ -435,6 +435,23 @@ public class RobotContainer {
             () -> -driverController.getLeftX(),
             () -> -driverController.getRightX()));
 
+    outtake_bottom_sensor
+        .getTrigger()
+        .or(intake_sensor.getTrigger())
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -driverController.getLeftY(),
+                () -> -driverController.getLeftX(),
+                () -> {
+                  Pose2d pose = REEFLocations.getInstance().getClosestReefTagPose(drive.getPose());
+                  // Get robot rotation to point at pose
+                  return new Rotation2d(
+                      Math.atan2(
+                          pose.getX() - drive.getPose().getX(),
+                          pose.getY() - drive.getPose().getY()));
+                }));
+
     reefControls =
         new ReefControls(
             quarrel,
