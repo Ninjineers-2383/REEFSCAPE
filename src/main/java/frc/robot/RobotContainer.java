@@ -474,9 +474,9 @@ public class RobotContainer {
                     () ->
                         QuarrelPresets.getHighball()
                             .pivotRotation()
-                            .minus(Rotation2d.fromDegrees(3.0))
+                            .minus(Rotation2d.fromDegrees(4.5))
                             .getRotations()),
-                new ForkCommand(new FlywheelVoltageCommand(outtake, () -> -3.0))));
+                new ForkCommand(new FlywheelVoltageCommand(outtake, () -> -1.5))));
 
     driverController.b().onTrue(QuarrelCommands.IntakeUp(quarrel));
 
