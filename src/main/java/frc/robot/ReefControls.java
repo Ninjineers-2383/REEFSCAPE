@@ -1,15 +1,17 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.PathPoint;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -23,6 +25,7 @@ import frc.robot.commands.flywheel.FlywheelVoltageCommand;
 import frc.robot.commands.position_joint.PositionJointPositionCommand;
 import frc.robot.commands.position_joint.PositionJointVelocityCommand;
 import frc.robot.subsystems.drive.Drive;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -307,40 +310,51 @@ public class ReefControls extends SubsystemBase {
   }
 
   protected Command getDriveTrajCommand(LOCATION reefLocation) {
-    int idx = REEFLocations.getInstance().getClosestReefTagIdx(drive.getPose());
+    PathConstraints pathConstraints = new PathConstraints(2, 0.5, 10, 25);
+
     return Commands.defer(
         () -> {
-          PathPlannerPath trajectory;
-          try {
-            trajectory =
-                PathPlannerPath.fromPathFile(
-                    (latestHumanPlayer == LOCATION.HUMAN_RIGHT ? "R" : "L") + " to " + (idx + 1));
-          } catch (Exception e) {
-            Logger.recordOutput("Controls/DriveTrajCommand", e.toString());
-            return null;
-          }
-          trajectory =
-              DriverStation.getAlliance().get() == Alliance.Blue
-                  ? trajectory.flipPath()
-                  : trajectory;
-          Pose2d end =
-              trajectory.flipPath().getPathPoses().get(trajectory.getPathPoses().size() - 1);
-          Rotation2d endRotation = trajectory.flipPath().getGoalEndState().rotation();
+          int idx = REEFLocations.getInstance().getClosestReefTagIdx(drive.getPose());
+          Pose2d scorePose = getScorePose(getReefLocation(idx), queuedEvent);
+
+          ArrayList<PathPoint> pathPoints = new ArrayList<>();
+          pathPoints.add(
+              new PathPoint(
+                  scorePose
+                      .transformBy(new Transform2d(-1, 0, Rotation2d.kZero))
+                      .getTranslation()));
+          pathPoints.add(
+              new PathPoint(
+                  scorePose
+                      .transformBy(new Transform2d(-0.5, 0, Rotation2d.kZero))
+                      .getTranslation()));
+          pathPoints.add(
+              new PathPoint(
+                  scorePose
+                      .transformBy(new Transform2d(-0.01, 0, Rotation2d.kZero))
+                      .getTranslation()));
+
+          PathPlannerPath path =
+              PathPlannerPath.fromPathPoints(
+                      pathPoints, pathConstraints, new GoalEndState(0, scorePose.getRotation()))
+                  .flipPath();
 
           return Commands.sequence(
               Commands.runOnce(() -> driveAlongTrajDoneInt = false),
-              // Commands.runOnce(() -> this.queuedLocation = reefLocation),
-              Commands.either(
-                  // AutoBuilder.followPath(
-                  //     DriverStation.getAlliance().get() == Alliance.Blue
-                  //         ? trajectory.flipPath()
-
-                  //         : trajectory),
-                  AutoBuilder.pathfindToPose(
-                      new Pose2d(end.getTranslation(), endRotation),
-                      new PathConstraints(fastMode.getAsBoolean() ? 3 : 1.5, 3, 90, 100)),
-                  driveTrajCommand.apply(trajectory),
-                  fullAutoDriveEnabled),
+              Commands.runOnce(() -> this.queuedLocation = getReefLocation(idx)),
+              Commands.parallel(
+                  Commands.sequence(
+                      Commands.waitUntil(
+                          () ->
+                              drive
+                                      .getPose()
+                                      .getTranslation()
+                                      .getDistance(scorePose.getTranslation())
+                                  < 0.5),
+                      QuarrelCommands.PresetCommand(
+                          quarrelerSubsystem, () -> queuedPresets.get(queuedEvent).get())),
+                  AutoBuilder.pathfindThenFollowPath(path, new PathConstraints(2, 1, 10, 25))),
+              new InstantCommand(drive::stop),
               Commands.runOnce(() -> driveAlongTrajDoneInt = true));
         },
         Set.of(drive));
@@ -362,16 +376,17 @@ public class ReefControls extends SubsystemBase {
             quarrelerSubsystem.bottomBeamBreak().getTrigger()),
         Commands.sequence(
             new FlywheelVoltageCommand(quarrelerSubsystem.claw(), () -> 0.0).withTimeout(0.2),
-            Commands.parallel(
-                // Commands.defer(
-                //     () ->
-                //         AutoBuilder.pathfindToPose(
-                //             getScorePose(reefLocation.get(), event),
-                //             new PathConstraints(1.5, 1.5, 540, 720)),
-                //     Set.of(drive)),
-                DriveCommands.driveToPose(drive, () -> getScorePose(reefLocation.get(), event)),
-                QuarrelCommands.PresetCommand(
-                    quarrelerSubsystem, () -> queuedPresets.get(event).get())),
+            // Commands.parallel(
+            //     // Commands.defer(
+            //     //     () ->
+            //     //         AutoBuilder.pathfindToPose(
+            //     //             getScorePose(reefLocation.get(), event),
+            //     //             new PathConstraints(1.5, 1.5, 540, 720)),
+            //     //     Set.of(drive)),
+            //     // DriveCommands.driveToPose(drive, () -> getScorePose(reefLocation.get(),
+            // event)),
+            //     QuarrelCommands.PresetCommand(
+            //         quarrelerSubsystem, () -> queuedPresets.get(event).get())),
             Commands.either(
                 QuarrelCommands.ScoreCommand(quarrelerSubsystem)
                     .andThen(
@@ -472,6 +487,25 @@ public class ReefControls extends SubsystemBase {
     }
 
     return location;
+  }
+
+  public static LOCATION getReefLocation(int side) {
+    switch (side) {
+      case 0:
+        return LOCATION.REEF_FRONT;
+      case 1:
+        return LOCATION.REEF_FRONT_RIGHT;
+      case 2:
+        return LOCATION.REEF_BACK_RIGHT;
+      case 3:
+        return LOCATION.REEF_BACK;
+      case 4:
+        return LOCATION.REEF_BACK_LEFT;
+      case 5:
+        return LOCATION.REEF_FRONT_LEFT;
+      default:
+        return LOCATION.NONE;
+    }
   }
 
   protected Command getAlgaeIntakeSequence(Supplier<LOCATION> reefLocation, QUEUED_EVENT event) {

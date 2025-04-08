@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.ReefControls.LOCATION;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ForkCommand;
 import frc.robot.commands.QuarrelCommands;
@@ -446,10 +447,11 @@ public class RobotContainer {
                 () -> {
                   Pose2d pose = REEFLocations.getInstance().getClosestReefTagPose(drive.getPose());
                   // Get robot rotation to point at pose
-                  return new Rotation2d(
-                      Math.atan2(
-                          pose.getX() - drive.getPose().getX(),
-                          pose.getY() - drive.getPose().getY()));
+                  //   return new Rotation2d(
+                  //       Math.atan2(
+                  //           pose.getY() - drive.getPose().getY(),
+                  //           pose.getX() - drive.getPose().getX()));
+                  return pose.getRotation().minus(Rotation2d.kPi);
                 }));
 
     reefControls =
@@ -499,6 +501,11 @@ public class RobotContainer {
 
     outtake.setDefaultCommand(new FlywheelVoltageCommand(outtake, () -> 0));
     groundIntake.setDefaultCommand(new FlywheelVoltageCommand(groundIntake, () -> 0));
+
+    driverController
+        .rightTrigger(0.5)
+        .or(driverController.leftTrigger(0.5))
+        .onTrue(reefControls.getDriveTrajCommand(LOCATION.NONE));
 
     driverController
         .rightBumper()

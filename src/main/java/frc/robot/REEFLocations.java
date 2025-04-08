@@ -14,14 +14,14 @@ public class REEFLocations {
   protected LoggedTunableNumber[] y = new LoggedTunableNumber[24];
 
   protected final LoggedTunableNumber GLOBAL_L_X =
-      new LoggedTunableNumber("REEFLocations/GLOBAL/L/X", -0.39);
+      new LoggedTunableNumber("REEFLocations/GLOBAL/L/X", -0.45);
   protected final LoggedTunableNumber GLOBAL_L_Y =
       new LoggedTunableNumber("REEFLocations/GLOBAL/L/Y", 0.23);
 
   protected final LoggedTunableNumber GLOBAL_R_X =
-      new LoggedTunableNumber("REEFLocations/GLOBAL/R/X", -0.39);
+      new LoggedTunableNumber("REEFLocations/GLOBAL/R/X", -0.45);
   protected final LoggedTunableNumber GLOBAL_R_Y =
-      new LoggedTunableNumber("REEFLocations/GLOBAL/R/Y", -0.05);
+      new LoggedTunableNumber("REEFLocations/GLOBAL/R/Y", -0.07);
 
   protected final AprilTagFieldLayout fieldLayout;
 
