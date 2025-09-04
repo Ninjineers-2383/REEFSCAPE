@@ -43,12 +43,10 @@ import frc.robot.subsystems.position_joint.PositionJointConstants;
 import frc.robot.subsystems.position_joint.PositionJointIOReplay;
 import frc.robot.subsystems.position_joint.PositionJointIOSim;
 import frc.robot.subsystems.position_joint.PositionJointIOTalonFX;
-import frc.robot.subsystems.vision.Vision;
-import frc.robot.subsystems.vision.VisionConstants;
-import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-import frc.robot.subsystems.vision.VisionIOPhotonVisionTrig;
-import frc.robot.subsystems.vision.VisionIOQuestNav;
+// import frc.robot.subsystems.vision.Vision;
+// import frc.robot.subsystems.vision.VisionIO;
+// import frc.robot.subsystems.vision.VisionIOPhotonVisionTrig;
+// import frc.robot.subsystems.vision.VisionIOQuestNav;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
@@ -73,8 +71,8 @@ public class RobotContainer {
   //   private final PositionJoint climber;
   //   private final Flywheel climberIntake;
 
-  @SuppressWarnings("unused")
-  private final Vision vision;
+  // @SuppressWarnings("unused")
+  // private final Vision vision;
 
   @SuppressWarnings("unused")
   private final Components sim_components;
@@ -141,7 +139,7 @@ public class RobotContainer {
                     AzimuthMotorConstants.BACK_RIGHT_GAINS),
                 PhoenixOdometryThread.getInstance(),
                 null);
-        VisionIOQuestNav questNav =
+        /*  VisionIOQuestNav questNav =
             new VisionIOQuestNav(
                 VisionConstants.robotToCamera0,
                 new VisionIOPhotonVisionTrig(
@@ -150,7 +148,7 @@ public class RobotContainer {
         // Reset gyro to 0° when B button is pressed
         driverController.b().onTrue(Commands.runOnce(questNav::resetHeading).ignoringDisable(true));
 
-        vision = new Vision(drive::addVisionMeasurement, questNav);
+        vision = new Vision(drive::addVisionMeasurement, questNav); */
 
         elevator =
             new PositionJoint(
@@ -215,13 +213,14 @@ public class RobotContainer {
                 null,
                 null);
 
-        vision =
-            new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
-                new VisionIOPhotonVisionSim(
-                    VisionConstants.camera1Name, VisionConstants.robotToCamera1, drive::getPose));
+        // vision =
+        //     new Vision(
+        //         drive::addVisionMeasurement,
+        //         new VisionIOPhotonVisionSim(
+        //             VisionConstants.camera0Name, VisionConstants.robotToCamera0, drive::getPose),
+        //         new VisionIOPhotonVisionSim(
+        //             VisionConstants.camera1Name, VisionConstants.robotToCamera1,
+        // drive::getPose));
 
         elevator =
             new PositionJoint(
@@ -280,8 +279,6 @@ public class RobotContainer {
                     AzimuthMotorConstants.BACK_RIGHT_GAINS),
                 null,
                 null);
-
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO() {}, new VisionIO() {});
 
         pivot =
             new PositionJoint(
