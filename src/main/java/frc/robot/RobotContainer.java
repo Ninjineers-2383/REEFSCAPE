@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -147,8 +148,20 @@ public class RobotContainer {
         driverController.y().onTrue(Commands.runOnce(questNav::resetPose).ignoringDisable(true));
         // Reset gyro to 0° when B button is pressed
         driverController.b().onTrue(Commands.runOnce(questNav::resetHeading).ignoringDisable(true));
-
         vision = new Vision(drive::addVisionMeasurement, questNav); */
+
+        // Reset gyro to 0° when B button
+        final Runnable resetGyro =
+            () ->
+                drive.setPose(
+                    new Pose2d(
+                        drive.getPose().getTranslation(),
+                        DriverStation.getAlliance().isPresent()
+                            ? (DriverStation.getAlliance().get() == DriverStation.Alliance.Red
+                                ? new Rotation2d(Math.PI)
+                                : new Rotation2d())
+                            : new Rotation2d())); // zero gyro
+        driverController.b().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
 
         elevator =
             new PositionJoint(
